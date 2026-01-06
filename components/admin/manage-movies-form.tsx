@@ -42,6 +42,7 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
   const [showHistorical, setShowHistorical] = useState(false);
   const [historicalSearch, setHistoricalSearch] = useState('');
   const [historicalLoading, setHistoricalLoading] = useState<string | null>(null);
+  const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
 
   // CSV batch upload state
   const [showCsvUpload, setShowCsvUpload] = useState(false);
@@ -243,6 +244,16 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
   // Sort dates descending (most recent first)
   const sortedDates = Object.keys(groupedHistorical).sort((a, b) => b.localeCompare(a));
 
+  function toggleDateGroup(date: string) {
+    const newExpanded = new Set(expandedDates);
+    if (newExpanded.has(date)) {
+      newExpanded.delete(date);
+    } else {
+      newExpanded.add(date);
+    }
+    setExpandedDates(newExpanded);
+  }
+
   return (
     <div className="space-y-8">
       {/* Add Movie Section */}
@@ -382,41 +393,54 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
               </p>
             ) : (
               <div className="max-h-96 overflow-y-auto space-y-4">
-                {sortedDates.map((date) => (
-                  <div key={date}>
-                    <div className="sticky top-0 bg-gray-100 px-3 py-2 font-semibold text-sm text-gray-700 border-b border-gray-300">
-                      {new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
-                        weekday: 'short',
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                      })}
-                      <span className="text-gray-500 ml-2">({groupedHistorical[date].length})</span>
-                    </div>
-                    <div className="space-y-2 mt-2">
-                      {groupedHistorical[date].map((movie) => (
-                        <div
-                          key={movie.id}
-                          className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
-                        >
-                          <div className="flex-1">
-                            <div className="font-medium text-gray-900">{movie.title}</div>
-                            <div className="text-xs text-gray-500">
-                              {movie.distributor || 'No distributor'} • ${movie.salary} • Proj: {movie.projected_gross}M
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => handleCopyHistoricalMovie(movie)}
-                            disabled={historicalLoading === movie.id}
-                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                          >
-                            {historicalLoading === movie.id ? 'Adding...' : 'Add to Contest'}
-                          </button>
+                {sortedDates.map((date) => {
+                  const isExpanded = expandedDates.has(date);
+                  return (
+                    <div key={date}>
+                      <button
+                        onClick={() => toggleDateGroup(date)}
+                        className="w-full sticky top-0 bg-gray-100 px-3 py-2 font-semibold text-sm text-gray-700 border-b border-gray-300 hover:bg-gray-200 transition-colors flex items-center justify-between"
+                      >
+                        <div>
+                          <span className={`inline-block mr-2 transition-transform ${isExpanded ? 'rotate-90' : ''}`}>
+                            ▶
+                          </span>
+                          {new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
+                            weekday: 'short',
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                          <span className="text-gray-500 ml-2">({groupedHistorical[date].length})</span>
                         </div>
-                      ))}
+                      </button>
+                      {isExpanded && (
+                        <div className="space-y-2 mt-2">
+                          {groupedHistorical[date].map((movie) => (
+                            <div
+                              key={movie.id}
+                              className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                            >
+                              <div className="flex-1">
+                                <div className="font-medium text-gray-900">{movie.title}</div>
+                                <div className="text-xs text-gray-500">
+                                  {movie.distributor || 'No distributor'} • ${movie.salary} • Proj: {movie.projected_gross}M
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => handleCopyHistoricalMovie(movie)}
+                                disabled={historicalLoading === movie.id}
+                                className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                              >
+                                {historicalLoading === movie.id ? 'Adding...' : 'Add to Contest'}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
