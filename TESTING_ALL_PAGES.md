@@ -10,7 +10,11 @@
 /contests/[id]/leaderboard           - Leaderboard (final scores)
 /account                             - Account page
 /login                               - Login page
-/admin/create-contest                - Admin: create test contest
+/admin                               - Admin dashboard
+/admin/contests/new                  - Admin: create contest
+/admin/contests/[id]/movies          - Admin: manage movies
+/admin/contests/[id]/actuals         - Admin: enter actuals
+/admin/contests/[id]/score           - Admin: score contest
 ```
 
 ## Complete User Flow Test
@@ -24,16 +28,16 @@
 - [ ] Lock time displayed in ET timezone
 - [ ] "How It Works" section (3 steps)
 - [ ] "Contest Rules" section (7 rules)
-- [ ] Admin link visible when logged in
 
-### 2. Create Test Contest
+### 2. Create Contest (Admin)
 
 **Steps:**
 1. Sign in at `/login`
-2. Visit `/admin/create-contest`
-3. Click "Create Test Contest"
-4. Should create contest with 7 movies
-5. Click "Build Lineup →"
+2. Visit `/admin`
+3. Click "Create New Contest"
+4. Select Friday date for opening weekend
+5. Click "Create Contest"
+6. Add movies via form, historical selection, or CSV upload
 
 ### 3. Contest Page (/contests/[id])
 
@@ -194,9 +198,10 @@ From Leaderboard:
 
 ## Admin Flow: Create and Score Contest
 
-1. Visit `/admin/create-contest`
-2. Create test contest with 7 movies
-3. Submit lineup
+1. Visit `/admin`
+2. Create new contest at `/admin/contests/new`
+3. Add movies at `/admin/contests/[id]/movies`
+4. Submit lineup as user
 4. Manually update contest status to 'locked' in database
 5. Visit lineup → See "Contest is locked"
 6. Manually add actual_gross to all movies in database

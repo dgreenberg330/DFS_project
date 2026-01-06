@@ -137,18 +137,6 @@ export default async function LandingPage() {
             </li>
           </ul>
         </div>
-
-        {/* Admin Link */}
-        {user && (
-          <div className="mt-8 text-center">
-            <Link
-              href="/admin/create-contest"
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
-              Admin: Create Test Contest
-            </Link>
-          </div>
-        )}
       </div>
     </div>
   );

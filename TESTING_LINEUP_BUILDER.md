@@ -8,11 +8,11 @@ http://localhost:3000/login
 ```
 Enter your email and click the magic link.
 
-### 2. Create a Test Contest
+### 2. Create a Contest (Admin)
 ```
-http://localhost:3000/admin/create-contest
+http://localhost:3000/admin/contests/new
 ```
-Click "Create Test Contest" - this creates a contest with 7 sample movies.
+Select a Friday date and create the contest, then add movies via the admin movies page.
 
 ### 3. Build Your Lineup
 After creating the contest, click "Build Lineup" or visit:
@@ -131,7 +131,9 @@ Select:
 /                              - Home page
 /login                         - Sign in with magic link
 /account                       - View past entries
-/admin/create-contest          - Create test contest
+/admin                         - Admin dashboard
+/admin/contests/new            - Create contest
+/admin/contests/[id]/movies    - Manage movies
 /contests/[id]/lineup          - Build lineup for contest
 ```
 
