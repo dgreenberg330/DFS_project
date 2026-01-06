@@ -1,0 +1,192 @@
+-- ============================================================================
+-- Box Office Fantasy Sports - Database Schema
+-- ============================================================================
+-- Design notes:
+-- - All timestamps stored in UTC, displayed as ET in frontend
+-- - User data lives in Supabase auth.users (email, id)
+-- - Money fields: salary (integer dollars), gross (numeric millions)
+-- - Scoring: $1M box office = 1 point
+-- ============================================================================
+
+-- Contest states: upcoming -> locked -> resolved
+CREATE TYPE contest_status AS ENUM ('upcoming', 'locked', 'resolved');
+
+-- Lineup states: editable -> locked -> scored
+CREATE TYPE lineup_status AS ENUM ('editable', 'locked', 'scored');
+
+-- ============================================================================
+-- CONTESTS
+-- ============================================================================
+CREATE TABLE contests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  -- Contest identification
+  name TEXT NOT NULL, -- e.g., "Weekend of Jan 10-12, 2025"
+
+  -- Timing (all stored in UTC)
+  lock_time TIMESTAMPTZ NOT NULL, -- Thursday 8PM ET converted to UTC
+  weekend_start DATE NOT NULL, -- Friday of opening weekend
+  weekend_end DATE NOT NULL, -- Sunday of opening weekend
+
+  -- State management
+  status contest_status NOT NULL DEFAULT 'upcoming',
+
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_contests_status ON contests(status);
+CREATE INDEX idx_contests_lock_time ON contests(lock_time);
+
+-- ============================================================================
+-- MOVIES
+-- ============================================================================
+CREATE TABLE movies (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  contest_id UUID NOT NULL REFERENCES contests(id) ON DELETE CASCADE,
+
+  -- Movie details
+  title TEXT NOT NULL,
+  release_date DATE NOT NULL,
+  distributor TEXT, -- Optional
+  theater_count INTEGER, -- Optional
+
+  -- Pricing and projections
+  salary INTEGER NOT NULL CHECK (salary >= 0 AND salary <= 100), -- $0-100 range
+  projected_gross NUMERIC(10, 2) NOT NULL, -- Millions, e.g., 25.50 = $25.5M
+
+  -- Actuals (filled in Sunday night)
+  actual_gross NUMERIC(10, 2), -- Millions, nullable until results in
+
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_movies_contest_id ON movies(contest_id);
+
+-- ============================================================================
+-- LINEUPS
+-- ============================================================================
+-- Represents a user's movie selections for a contest
+-- Separate from entries to maintain clean state management
+CREATE TABLE lineups (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  -- State and scoring
+  status lineup_status NOT NULL DEFAULT 'editable',
+  total_score NUMERIC(10, 2), -- Sum of actual_gross for selected movies
+
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ============================================================================
+-- ENTRIES
+-- ============================================================================
+-- Links user + contest + lineup
+-- One entry per user per contest (enforced by unique constraint)
+CREATE TABLE entries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  -- References
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  contest_id UUID NOT NULL REFERENCES contests(id) ON DELETE CASCADE,
+  lineup_id UUID NOT NULL REFERENCES lineups(id) ON DELETE CASCADE,
+
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  -- Constraint: one entry per user per contest
+  CONSTRAINT unique_user_contest UNIQUE (user_id, contest_id)
+);
+
+CREATE INDEX idx_entries_user_id ON entries(user_id);
+CREATE INDEX idx_entries_contest_id ON entries(contest_id);
+CREATE INDEX idx_entries_lineup_id ON entries(lineup_id);
+
+-- ============================================================================
+-- ADMIN_USERS
+-- ============================================================================
+-- Tracks which users have admin privileges for managing contests
+-- Simple whitelist approach for MVP
+CREATE TABLE admin_users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  -- Constraint: one row per admin user
+  CONSTRAINT unique_admin_user UNIQUE (user_id)
+);
+
+CREATE INDEX idx_admin_users_user_id ON admin_users(user_id);
+
+-- NOTE: First admin must be manually inserted via SQL:
+-- INSERT INTO admin_users (user_id) VALUES ('user-uuid-here');
+
+-- ============================================================================
+-- LINEUP_MOVIES (Join Table)
+-- ============================================================================
+-- Many-to-many relationship between lineups and movies
+-- Constraint: 2-4 movies per lineup (enforced at application level)
+CREATE TABLE lineup_movies (
+  lineup_id UUID NOT NULL REFERENCES lineups(id) ON DELETE CASCADE,
+  movie_id UUID NOT NULL REFERENCES movies(id) ON DELETE CASCADE,
+
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  PRIMARY KEY (lineup_id, movie_id)
+);
+
+CREATE INDEX idx_lineup_movies_movie_id ON lineup_movies(movie_id);
+
+-- ============================================================================
+-- UPDATED_AT TRIGGER
+-- ============================================================================
+-- Auto-update updated_at timestamp on row changes
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_contests_updated_at BEFORE UPDATE ON contests
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_movies_updated_at BEFORE UPDATE ON movies
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_lineups_updated_at BEFORE UPDATE ON lineups
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- NOTES
+-- ============================================================================
+-- Assumptions and design choices:
+--
+-- 1. User data: Using Supabase auth.users for authentication and user identity.
+--    No separate user_profiles table needed for MVP.
+--
+-- 2. Money representation:
+--    - salary: INTEGER (0-100 range, represents dollars like $45)
+--    - projected_gross, actual_gross, total_score: NUMERIC(10,2)
+--      (represents millions, e.g., 25.50 = $25.5M)
+--
+-- 3. Lineup constraints (2-4 movies, $100 salary cap):
+--    Enforced at application level, not database constraints, per spec's
+--    guidance to "prevent illegal lineups" in the UI.
+--
+-- 4. Entry uniqueness: Enforced at database level with unique constraint
+--    on (user_id, contest_id) to guarantee one entry per user per contest.
+--
+-- 5. State transitions: Application logic will enforce state flow
+--    (contests: upcoming->locked->resolved, lineups: editable->locked->scored).
+--
+-- 6. Carryover movies: Not explicitly modeled. Movies can have release_date
+--    before the contest weekend; admin manually adds them to the slate.
+--
+-- 7. Scoring: Run as batch process Sunday night. Loop through lineups,
+--    sum actual_gross from lineup_movies join, update lineup.total_score.
+--
+-- 8. Time zones: All timestamptz stored in UTC. Frontend converts to ET.
+--    lock_time stored as Thursday 8PM ET -> UTC conversion.
