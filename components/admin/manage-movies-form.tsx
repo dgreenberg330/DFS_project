@@ -153,9 +153,7 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
     setError(null);
 
     try {
-      const copied = await copyMovieToContest(movie.id, contest.id, {
-        release_date: contest.weekend_start,
-      });
+      const copied = await copyMovieToContest(movie.id, contest.id);
       setMovies([copied, ...movies].sort((a, b) => b.salary - a.salary));
       router.refresh();
     } catch (err: any) {
