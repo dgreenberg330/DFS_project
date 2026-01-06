@@ -5,17 +5,18 @@
 'use client';
 
 import { useState } from 'react';
-import { createMovie } from '@/actions/movies';
-import { updateMovie, deleteMovie } from '@/actions/admin-movies';
+import { createMovie, batchCreateMovies } from '@/actions/movies';
+import { updateMovie, deleteMovie, copyMovieToContest } from '@/actions/admin-movies';
 import { ContestWithMovies, Movie } from '@/types';
 import { useRouter } from 'next/navigation';
 
 interface ManageMoviesFormProps {
   contest: ContestWithMovies;
   movies: Movie[];
+  historicalMovies: Movie[];
 }
 
-export function ManageMoviesForm({ contest, movies: initialMovies }: ManageMoviesFormProps) {
+export function ManageMoviesForm({ contest, movies: initialMovies, historicalMovies }: ManageMoviesFormProps) {
   const router = useRouter();
   const [movies, setMovies] = useState(initialMovies);
 
@@ -36,6 +37,18 @@ export function ManageMoviesForm({ contest, movies: initialMovies }: ManageMovie
   const [editLoading, setEditLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Historical movies state
+  const [showHistorical, setShowHistorical] = useState(false);
+  const [historicalSearch, setHistoricalSearch] = useState('');
+  const [historicalLoading, setHistoricalLoading] = useState<string | null>(null);
+
+  // CSV batch upload state
+  const [showCsvUpload, setShowCsvUpload] = useState(false);
+  const [csvText, setCsvText] = useState('');
+  const [csvLoading, setCsvLoading] = useState(false);
+  const [csvError, setCsvError] = useState<string | null>(null);
+  const [csvSuccess, setCsvSuccess] = useState(false);
 
   async function handleAddMovie(e: React.FormEvent) {
     e.preventDefault();
@@ -133,6 +146,89 @@ export function ManageMoviesForm({ contest, movies: initialMovies }: ManageMovie
       setDeleteLoading(null);
     }
   }
+
+  async function handleCopyHistoricalMovie(movie: Movie) {
+    setHistoricalLoading(movie.id);
+    setError(null);
+
+    try {
+      const copied = await copyMovieToContest(movie.id, contest.id, {
+        release_date: contest.weekend_start,
+      });
+      setMovies([copied, ...movies].sort((a, b) => b.salary - a.salary));
+      router.refresh();
+    } catch (err: any) {
+      setError(err.message || 'Failed to copy movie');
+    } finally {
+      setHistoricalLoading(null);
+    }
+  }
+
+  async function handleCsvUpload(e: React.FormEvent) {
+    e.preventDefault();
+    setCsvLoading(true);
+    setCsvError(null);
+    setCsvSuccess(false);
+
+    try {
+      // Parse CSV (expecting: title,release_date,distributor,theater_count,salary,projected_gross)
+      const lines = csvText.trim().split('\n');
+      if (lines.length === 0) {
+        throw new Error('CSV is empty');
+      }
+
+      // Skip header if present
+      const hasHeader = lines[0].toLowerCase().includes('title');
+      const dataLines = hasHeader ? lines.slice(1) : lines;
+
+      const movieInputs = dataLines.map((line, index) => {
+        const parts = line.split(',').map(s => s.trim());
+        if (parts.length < 6) {
+          throw new Error(`Line ${index + 1}: Expected 6 columns (title,release_date,distributor,theater_count,salary,projected_gross)`);
+        }
+
+        const [title, release_date, distributor, theater_count, salary, projected_gross] = parts;
+
+        const salaryNum = parseInt(salary);
+        const projectedNum = parseFloat(projected_gross);
+        const theaterNum = theater_count ? parseInt(theater_count) : undefined;
+
+        if (salaryNum < 5 || salaryNum > 100) {
+          throw new Error(`Line ${index + 1}: Salary must be between $5 and $100`);
+        }
+
+        return {
+          contest_id: contest.id,
+          title,
+          release_date,
+          distributor: distributor || undefined,
+          theater_count: theaterNum,
+          salary: salaryNum,
+          projected_gross: projectedNum,
+        };
+      });
+
+      const newMovies = await batchCreateMovies(movieInputs);
+      setMovies([...newMovies, ...movies].sort((a, b) => b.salary - a.salary));
+      setCsvSuccess(true);
+      setCsvText('');
+
+      setTimeout(() => {
+        setCsvSuccess(false);
+        setShowCsvUpload(false);
+        router.refresh();
+      }, 2000);
+    } catch (err: any) {
+      setCsvError(err.message || 'Failed to upload CSV');
+    } finally {
+      setCsvLoading(false);
+    }
+  }
+
+  // Filter historical movies by search
+  const filteredHistorical = historicalMovies.filter(movie =>
+    movie.title.toLowerCase().includes(historicalSearch.toLowerCase())
+  );
 
   return (
     <div className="space-y-8">
@@ -243,6 +339,119 @@ export function ManageMoviesForm({ contest, movies: initialMovies }: ManageMovie
             </button>
           </div>
         </form>
+      </div>
+
+      {/* Historical Movies Section */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Select from Historical Movies</h2>
+          <button
+            onClick={() => setShowHistorical(!showHistorical)}
+            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+          >
+            {showHistorical ? 'Hide' : 'Show'} ({historicalMovies.length})
+          </button>
+        </div>
+
+        {showHistorical && (
+          <div className="space-y-4">
+            <input
+              type="text"
+              placeholder="Search movies..."
+              value={historicalSearch}
+              onChange={(e) => setHistoricalSearch(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+
+            {filteredHistorical.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-4">
+                {historicalSearch ? 'No movies found' : 'No historical movies available'}
+              </p>
+            ) : (
+              <div className="max-h-96 overflow-y-auto space-y-2">
+                {filteredHistorical.map((movie) => (
+                  <div
+                    key={movie.id}
+                    className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                  >
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900">{movie.title}</div>
+                      <div className="text-xs text-gray-500">
+                        {movie.distributor || 'No distributor'} • ${movie.salary} • Proj: {movie.projected_gross}M
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleCopyHistoricalMovie(movie)}
+                      disabled={historicalLoading === movie.id}
+                      className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      {historicalLoading === movie.id ? 'Adding...' : 'Add to Contest'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* CSV Batch Upload Section */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Batch Upload (CSV)</h2>
+          <button
+            onClick={() => setShowCsvUpload(!showCsvUpload)}
+            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+          >
+            {showCsvUpload ? 'Hide' : 'Show'}
+          </button>
+        </div>
+
+        {showCsvUpload && (
+          <div>
+            {csvSuccess && (
+              <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-green-800 text-sm">Movies uploaded successfully!</p>
+              </div>
+            )}
+
+            {csvError && (
+              <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-red-800 text-sm">{csvError}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleCsvUpload} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  CSV Data
+                </label>
+                <div className="mb-2 text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                  <div className="font-medium mb-1">Format (comma-separated):</div>
+                  <code>title,release_date,distributor,theater_count,salary,projected_gross</code>
+                  <div className="mt-2 font-medium">Example:</div>
+                  <code>Wicked,2024-11-22,Universal,3888,48,120.5</code>
+                </div>
+                <textarea
+                  value={csvText}
+                  onChange={(e) => setCsvText(e.target.value)}
+                  rows={10}
+                  placeholder="Paste CSV data here..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={csvLoading}
+                className="w-full py-2 px-4 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:opacity-50"
+              >
+                {csvLoading ? 'Uploading...' : 'Upload Movies'}
+              </button>
+            </form>
+          </div>
+        )}
       </div>
 
       {/* Movie List Section */}

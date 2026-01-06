@@ -119,3 +119,87 @@ export async function deleteMovie(movieId: string): Promise<void> {
     revalidatePath(`/contests/${movie.contest_id}`);
   }
 }
+
+/**
+ * Gets all historical movies from other contests (admin only)
+ * Useful for selecting previously entered movies
+ *
+ * Usage:
+ * await getHistoricalMovies(currentContestId);
+ */
+export async function getHistoricalMovies(currentContestId: string): Promise<Movie[]> {
+  await checkAdminAccess();
+
+  if (!currentContestId) {
+    throw new Error('Current contest ID required.');
+  }
+
+  const supabase = await createClient();
+
+  const { data: movies, error } = await supabase
+    .from('movies')
+    .select('*')
+    .neq('contest_id', currentContestId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to load historical movies: ${error.message}`);
+  }
+
+  return movies || [];
+}
+
+/**
+ * Copies a historical movie to current contest (admin only)
+ *
+ * Usage:
+ * await copyMovieToContest(movieId, targetContestId);
+ */
+export async function copyMovieToContest(
+  sourceMovieId: string,
+  targetContestId: string,
+  overrides?: { release_date?: string; salary?: number; projected_gross?: number }
+): Promise<Movie> {
+  await checkAdminAccess();
+
+  if (!sourceMovieId || !targetContestId) {
+    throw new Error('Source movie ID and target contest ID required.');
+  }
+
+  const supabase = await createClient();
+
+  // Get source movie
+  const { data: sourceMovie, error: fetchError } = await supabase
+    .from('movies')
+    .select('*')
+    .eq('id', sourceMovieId)
+    .single();
+
+  if (fetchError || !sourceMovie) {
+    throw new Error('Source movie not found.');
+  }
+
+  // Create new movie with overrides
+  const { data: newMovie, error: createError } = await supabase
+    .from('movies')
+    .insert({
+      contest_id: targetContestId,
+      title: sourceMovie.title,
+      release_date: overrides?.release_date || sourceMovie.release_date,
+      distributor: sourceMovie.distributor,
+      theater_count: sourceMovie.theater_count,
+      salary: overrides?.salary || sourceMovie.salary,
+      projected_gross: overrides?.projected_gross || sourceMovie.projected_gross,
+    })
+    .select()
+    .single();
+
+  if (createError || !newMovie) {
+    throw new Error(`Failed to copy movie: ${createError?.message || 'Unknown error'}`);
+  }
+
+  revalidatePath('/admin');
+  revalidatePath(`/admin/contests/${targetContestId}/movies`);
+  revalidatePath(`/contests/${targetContestId}`);
+  return newMovie;
+}

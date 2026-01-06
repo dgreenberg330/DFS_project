@@ -3,6 +3,7 @@
 // ============================================================================
 
 import { getContest } from '@/actions/contests';
+import { getHistoricalMovies } from '@/actions/admin-movies';
 import { ManageMoviesForm } from '@/components/admin/manage-movies-form';
 
 interface PageProps {
@@ -12,6 +13,7 @@ interface PageProps {
 export default async function ManageMoviesPage({ params }: PageProps) {
   const { id: contestId } = await params;
   const contest = await getContest(contestId);
+  const historicalMovies = await getHistoricalMovies(contestId);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -24,7 +26,11 @@ export default async function ManageMoviesPage({ params }: PageProps) {
         </p>
       </div>
 
-      <ManageMoviesForm contest={contest} movies={contest.movies || []} />
+      <ManageMoviesForm
+        contest={contest}
+        movies={contest.movies || []}
+        historicalMovies={historicalMovies}
+      />
     </div>
   );
 }

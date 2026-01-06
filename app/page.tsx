@@ -109,7 +109,7 @@ export default async function LandingPage() {
           <ul className="space-y-2 text-sm text-gray-700">
             <li className="flex items-start gap-2">
               <span className="text-blue-600 mt-0.5">•</span>
-              <span>Select 2-4 movies from the weekly slate (3 is optimal)</span>
+              <span>Select 2-4 movies from the weekly slate</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-blue-600 mt-0.5">•</span>
