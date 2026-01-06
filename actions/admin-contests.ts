@@ -59,3 +59,44 @@ export async function getContestEntryCount(contestId: string): Promise<number> {
 
   return count || 0;
 }
+
+/**
+ * Deletes a contest (admin only)
+ * Checks if contest has entries and prevents deletion if so
+ *
+ * Usage:
+ * await deleteContest(contestId);
+ */
+export async function deleteContest(contestId: string): Promise<void> {
+  await checkAdminAccess();
+
+  if (!contestId) {
+    throw new Error('Contest ID required.');
+  }
+
+  const supabase = await createClient();
+
+  // Check if contest has entries
+  const { count, error: countError } = await supabase
+    .from('entries')
+    .select('*', { count: 'exact', head: true })
+    .eq('contest_id', contestId);
+
+  if (countError) {
+    throw new Error(`Failed to check entries: ${countError.message}`);
+  }
+
+  if (count && count > 0) {
+    throw new Error(`Cannot delete contest: ${count} user entries exist. Delete entries first.`);
+  }
+
+  // Delete contest (movies will cascade delete due to foreign key)
+  const { error: deleteError } = await supabase
+    .from('contests')
+    .delete()
+    .eq('id', contestId);
+
+  if (deleteError) {
+    throw new Error(`Failed to delete contest: ${deleteError.message}`);
+  }
+}
