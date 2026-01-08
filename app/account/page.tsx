@@ -5,6 +5,7 @@
 import { getUser } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { getPastEntries } from '@/actions/account';
+import { getUserProfile } from '@/actions/user-profiles';
 import { SignOutButton } from '@/components/sign-out-button';
 import Link from 'next/link';
 
@@ -15,7 +16,8 @@ export default async function AccountPage() {
     redirect('/login');
   }
 
-  // Fetch user's past contest entries
+  // Fetch user profile and past contest entries
+  const profile = await getUserProfile();
   const allEntries = await getPastEntries();
 
   // Defensive check: ensure allEntries is an array
@@ -52,9 +54,20 @@ export default async function AccountPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Account</h1>
-              <p className="text-gray-600 mt-1">{user.email}</p>
+              {profile && (
+                <p className="text-lg text-gray-700 mt-1">@{profile.username}</p>
+              )}
+              <p className="text-sm text-gray-600 mt-1">{user.email}</p>
             </div>
-            <SignOutButton />
+            <div className="space-y-2">
+              <Link
+                href="/account/edit-username"
+                className="block text-sm text-blue-600 hover:text-blue-700"
+              >
+                Edit Username
+              </Link>
+              <SignOutButton />
+            </div>
           </div>
         </div>
 

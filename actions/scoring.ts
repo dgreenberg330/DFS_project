@@ -252,16 +252,25 @@ export async function getLeaderboard(contestId: string) {
     throw new Error(`Failed to fetch leaderboard: ${entriesError.message}`);
   }
 
-  // Fetch user emails for each entry
+  // Fetch user emails and usernames for each entry
   // Note: In production, consider caching user data or using RLS
   const entriesWithUsers = await Promise.all(
     (entries || []).map(async (entry) => {
       const { data: user } = await supabase.auth.admin.getUserById(entry.user_id);
+
+      // Fetch username from user_profiles
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('username')
+        .eq('user_id', entry.user_id)
+        .maybeSingle();
+
       return {
         ...entry,
         user: {
           id: entry.user_id,
           email: user?.user?.email || 'Unknown',
+          username: profile?.username,
         },
       };
     })

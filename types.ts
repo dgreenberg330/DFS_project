@@ -121,6 +121,7 @@ export interface LeaderboardEntry extends Entry {
   user: {
     id: string;
     email: string;
+    username?: string; // Optional for backward compatibility
   };
   rank?: number; // Assigned after sorting by total_score
 }
@@ -236,6 +237,27 @@ export interface AdminUser {
   user_id: string;
   created_at: string;
 }
+
+/**
+ * User profile (extended data beyond auth.users)
+ */
+export interface UserProfile {
+  id: string;
+  user_id: string;
+  username: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Username validation constraints
+ */
+export const USERNAME_CONSTRAINTS = {
+  MIN_LENGTH: 3,
+  MAX_LENGTH: 20,
+  PATTERN: /^[a-zA-Z0-9_]+$/,
+  PATTERN_DESCRIPTION: 'letters, numbers, and underscores only'
+} as const;
 
 /**
  * Data needed to update a movie (admin action)

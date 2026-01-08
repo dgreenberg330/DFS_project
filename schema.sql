@@ -123,6 +123,30 @@ CREATE INDEX idx_admin_users_user_id ON admin_users(user_id);
 -- INSERT INTO admin_users (user_id) VALUES ('user-uuid-here');
 
 -- ============================================================================
+-- USER_PROFILES
+-- ============================================================================
+-- Extended user profile data beyond Supabase auth.users
+-- Links to auth.users via user_id foreign key
+CREATE TABLE user_profiles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+
+  -- Username (unique, alphanumeric + underscore, 3-20 chars)
+  username TEXT NOT NULL,
+
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  -- Constraints
+  CONSTRAINT unique_user_profile UNIQUE (user_id),
+  CONSTRAINT unique_username UNIQUE (username),
+  CONSTRAINT valid_username CHECK (username ~ '^[a-zA-Z0-9_]{3,20}$')
+);
+
+CREATE INDEX idx_user_profiles_user_id ON user_profiles(user_id);
+CREATE INDEX idx_user_profiles_username ON user_profiles(username);
+
+-- ============================================================================
 -- LINEUP_MOVIES (Join Table)
 -- ============================================================================
 -- Many-to-many relationship between lineups and movies
@@ -157,6 +181,9 @@ CREATE TRIGGER update_movies_updated_at BEFORE UPDATE ON movies
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_lineups_updated_at BEFORE UPDATE ON lineups
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_profiles_updated_at BEFORE UPDATE ON user_profiles
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================================================

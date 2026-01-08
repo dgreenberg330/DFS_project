@@ -5,6 +5,7 @@
 import { getContest } from '@/actions/contests';
 import { getContestEntryCount } from '@/actions/admin-contests';
 import { ScoreContestForm } from '@/components/admin/score-contest-form';
+import type { Movie } from '@/types';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -33,7 +34,7 @@ export default async function ScoreContestPage({ params }: PageProps) {
 
   // Check which movies are missing actuals
   const moviesWithoutActuals = (contest.movies || []).filter(
-    (m) => m.actual_gross === null || m.actual_gross === undefined
+    (m: Movie) => m.actual_gross === null || m.actual_gross === undefined
   );
 
   return (

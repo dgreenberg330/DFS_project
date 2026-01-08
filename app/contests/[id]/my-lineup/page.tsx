@@ -35,12 +35,12 @@ export default async function MyLineupPage({ params }: PageProps) {
   const movies = lineup.movies || [];
 
   // Calculate totals
-  const totalSalary = movies.reduce((sum, lm) => {
+  const totalSalary = movies.reduce((sum: number, lm: any) => {
     const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
     return sum + movie.salary;
   }, 0);
 
-  const projectedScore = movies.reduce((sum, lm) => {
+  const projectedScore = movies.reduce((sum: number, lm: any) => {
     const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
     return sum + movie.projected_gross;
   }, 0);

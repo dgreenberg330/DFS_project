@@ -6,13 +6,13 @@
 
 import { useState } from 'react';
 import { batchUpdateActuals } from '@/actions/scoring';
-import { ContestWithMovies } from '@/types';
+import { ContestWithMovies, Movie } from '@/types';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 interface EnterActualsFormProps {
   contest: ContestWithMovies;
-  movies: typeof contest.movies;
+  movies: Movie[];
 }
 
 export function EnterActualsForm({ contest, movies }: EnterActualsFormProps) {

@@ -148,7 +148,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
                       {/* User */}
                       <div className="flex items-center gap-2 mb-2">
                         <span className="font-medium text-gray-900">
-                          {isUserEntry ? 'You' : entry.user.email.split('@')[0]}
+                          {isUserEntry ? 'You' : (entry.user.username || entry.user.email.split('@')[0])}
                         </span>
                         {isUserEntry && (
                           <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">

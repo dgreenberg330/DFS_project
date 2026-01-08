@@ -33,6 +33,22 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      // Check if user has set username
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('username')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (!profile) {
+          // First login - redirect to username setup
+          return NextResponse.redirect(`${origin}/setup-username`);
+        }
+      }
+
       // Defensive check: validate next path starts with /
       const safePath = next.startsWith('/') ? next : '/account';
       // Successful authentication, redirect to account or specified page
