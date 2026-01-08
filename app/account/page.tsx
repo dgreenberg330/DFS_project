@@ -16,9 +16,20 @@ export default async function AccountPage() {
     redirect('/login');
   }
 
-  // Fetch user profile and past contest entries
+  // Fetch user profile - if it fails or returns null, redirect to setup
   const profile = await getUserProfile();
-  const allEntries = await getPastEntries();
+  if (!profile) {
+    redirect('/setup-username');
+  }
+
+  // Fetch past contest entries with error handling
+  let allEntries: any[] = [];
+  try {
+    allEntries = await getPastEntries();
+  } catch (error) {
+    console.error('Error loading entries:', error);
+    allEntries = [];
+  }
 
   // Defensive check: ensure allEntries is an array
   const entries = Array.isArray(allEntries) ? allEntries : [];

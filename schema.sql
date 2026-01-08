@@ -187,6 +187,182 @@ CREATE TRIGGER update_user_profiles_updated_at BEFORE UPDATE ON user_profiles
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================================================
+-- ROW LEVEL SECURITY (RLS) POLICIES
+-- ============================================================================
+
+-- Enable RLS on all tables (should be enabled by default in Supabase, but explicit is better)
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE entries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lineups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lineup_movies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE movies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+
+-- USER_PROFILES: Users can read all profiles, but only update their own
+CREATE POLICY "Anyone can view user profiles"
+  ON user_profiles FOR SELECT
+  USING (true);
+
+CREATE POLICY "Users can insert their own profile"
+  ON user_profiles FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own profile"
+  ON user_profiles FOR UPDATE
+  USING (auth.uid() = user_id);
+
+-- ENTRIES: Users can only see and manage their own entries
+CREATE POLICY "Users can view their own entries"
+  ON entries FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own entries"
+  ON entries FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own entries"
+  ON entries FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own entries"
+  ON entries FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- LINEUPS: Users can manage lineups through entries relationship
+-- Allow access if user owns an entry that references this lineup
+CREATE POLICY "Users can view their own lineups"
+  ON lineups FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM entries
+      WHERE entries.lineup_id = lineups.id
+      AND entries.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can insert lineups"
+  ON lineups FOR INSERT
+  WITH CHECK (true);
+
+CREATE POLICY "Users can update their own lineups"
+  ON lineups FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM entries
+      WHERE entries.lineup_id = lineups.id
+      AND entries.user_id = auth.uid()
+    )
+  );
+
+-- LINEUP_MOVIES: Users can manage movies in their own lineups
+CREATE POLICY "Users can view their lineup movies"
+  ON lineup_movies FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM entries
+      WHERE entries.lineup_id = lineup_movies.lineup_id
+      AND entries.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can insert lineup movies"
+  ON lineup_movies FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM entries
+      WHERE entries.lineup_id = lineup_movies.lineup_id
+      AND entries.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can delete their lineup movies"
+  ON lineup_movies FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM entries
+      WHERE entries.lineup_id = lineup_movies.lineup_id
+      AND entries.user_id = auth.uid()
+    )
+  );
+
+-- CONTESTS: Everyone can view contests (public data)
+CREATE POLICY "Anyone can view contests"
+  ON contests FOR SELECT
+  USING (true);
+
+-- Admin users can manage contests (INSERT/UPDATE/DELETE handled separately via admin check)
+CREATE POLICY "Admins can insert contests"
+  ON contests FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM admin_users
+      WHERE admin_users.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Admins can update contests"
+  ON contests FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM admin_users
+      WHERE admin_users.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Admins can delete contests"
+  ON contests FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM admin_users
+      WHERE admin_users.user_id = auth.uid()
+    )
+  );
+
+-- MOVIES: Everyone can view movies (public data)
+CREATE POLICY "Anyone can view movies"
+  ON movies FOR SELECT
+  USING (true);
+
+-- Admin users can manage movies
+CREATE POLICY "Admins can insert movies"
+  ON movies FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM admin_users
+      WHERE admin_users.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Admins can update movies"
+  ON movies FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM admin_users
+      WHERE admin_users.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Admins can delete movies"
+  ON movies FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM admin_users
+      WHERE admin_users.user_id = auth.uid()
+    )
+  );
+
+-- ADMIN_USERS: Only admins can view admin list
+CREATE POLICY "Admins can view admin users"
+  ON admin_users FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM admin_users AS au
+      WHERE au.user_id = auth.uid()
+    )
+  );
+
+-- ============================================================================
 -- NOTES
 -- ============================================================================
 -- Assumptions and design choices:

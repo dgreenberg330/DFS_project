@@ -20,16 +20,22 @@ export default function Error({
           <p className="text-gray-600 mb-6">
             {error.message || 'There was a problem loading your account information. Please try again.'}
           </p>
-          <div className="flex gap-3 justify-center">
+          <div className="flex flex-col gap-3 max-w-xs mx-auto">
             <button
               onClick={reset}
-              className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              className="w-full px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
             >
               Try Again
             </button>
             <Link
+              href="/setup-username"
+              className="w-full px-6 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors text-center"
+            >
+              Setup Username
+            </Link>
+            <Link
               href="/"
-              className="px-6 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
+              className="w-full px-6 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors text-center"
             >
               Go Home
             </Link>
