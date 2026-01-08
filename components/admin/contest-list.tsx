@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import { deleteContest } from '@/actions/admin-contests';
+import { lockExpiredContests } from '@/actions/contests';
 import { Contest } from '@/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -18,7 +19,31 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
   const router = useRouter();
   const [contests, setContests] = useState(initialContests);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+  const [lockLoading, setLockLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  async function handleLockExpired() {
+    setLockLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const lockedIds = await lockExpiredContests();
+
+      if (lockedIds.length === 0) {
+        setSuccessMessage('No contests needed locking. All contests are already locked or in the future.');
+      } else {
+        setSuccessMessage(`Successfully locked ${lockedIds.length} contest(s)!`);
+      }
+
+      router.refresh();
+    } catch (err: any) {
+      setError(err.message || 'Failed to lock contests');
+    } finally {
+      setLockLoading(false);
+    }
+  }
 
   async function handleDelete(contest: Contest) {
     if (!confirm(`Delete "${contest.name}"? This will also delete all movies. This cannot be undone.`)) {
@@ -42,12 +67,27 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
   return (
     <div className="bg-white shadow rounded-lg">
       <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-xl font-semibold">All Contests</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">All Contests</h2>
+          <button
+            onClick={handleLockExpired}
+            disabled={lockLoading}
+            className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+          >
+            {lockLoading ? 'Locking...' : 'Lock Expired Contests'}
+          </button>
+        </div>
       </div>
 
       {error && (
         <div className="mx-6 mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-800 text-sm">{error}</p>
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="mx-6 mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
+          <p className="text-green-800 text-sm">{successMessage}</p>
         </div>
       )}
 
