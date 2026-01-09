@@ -6,6 +6,7 @@ import { getUser } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { getContest } from '@/actions/contests';
 import { getUserEntry } from '@/actions/lineups';
+import { Header } from '@/components/header';
 import Link from 'next/link';
 
 interface PageProps {
@@ -49,16 +50,11 @@ export default async function MyLineupPage({ params }: PageProps) {
   const isScored = lineup.status === 'scored';
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-2xl mx-auto px-4">
-        {/* Header */}
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        {/* Page Title */}
         <div className="mb-6">
-          <Link
-            href={`/contests/${contestId}`}
-            className="text-sm text-blue-600 hover:text-blue-700 mb-2 inline-block"
-          >
-            ← Back to Contest
-          </Link>
           <h1 className="text-2xl font-bold text-gray-900">My Lineup</h1>
           <p className="text-sm text-gray-600 mt-1">{contest.name}</p>
         </div>

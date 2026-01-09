@@ -5,6 +5,7 @@
 import { getContest } from '@/actions/contests';
 import { getLeaderboard } from '@/actions/scoring';
 import { getUser } from '@/lib/supabase-server';
+import { Header } from '@/components/header';
 import Link from 'next/link';
 
 interface PageProps {
@@ -19,15 +20,10 @@ export default async function LeaderboardPage({ params }: PageProps) {
   // Only show leaderboard for resolved contests
   if (contest.status !== 'resolved') {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-3xl mx-auto px-4">
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-3xl mx-auto px-4 py-8">
           <div className="mb-6">
-            <Link
-              href={`/contests/${contestId}`}
-              className="text-sm text-blue-600 hover:text-blue-700 mb-2 inline-block"
-            >
-              ← Back to Contest
-            </Link>
             <h1 className="text-2xl font-bold text-gray-900">Leaderboard</h1>
           </div>
 
@@ -63,16 +59,11 @@ export default async function LeaderboardPage({ params }: PageProps) {
     : -1;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Header */}
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Page Title */}
         <div className="mb-6">
-          <Link
-            href={`/contests/${contestId}`}
-            className="text-sm text-blue-600 hover:text-blue-700 mb-2 inline-block"
-          >
-            ← Back to Contest
-          </Link>
           <h1 className="text-2xl font-bold text-gray-900">Final Leaderboard</h1>
           <p className="text-sm text-gray-600 mt-1">{contest.name}</p>
         </div>
@@ -191,16 +182,13 @@ export default async function LeaderboardPage({ params }: PageProps) {
         </div>
 
         {/* Navigation */}
-        <div className="mt-6 flex justify-between">
-          <Link href="/" className="text-sm text-blue-600 hover:text-blue-700">
-            ← Back to Home
-          </Link>
-          {user && (
+        {user && (
+          <div className="mt-6 text-right">
             <Link href="/account" className="text-sm text-blue-600 hover:text-blue-700">
               View All My Entries →
             </Link>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

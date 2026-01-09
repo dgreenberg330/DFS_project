@@ -4,39 +4,14 @@
 
 import Link from 'next/link';
 import { getCurrentContest } from '@/actions/contests';
-import { getUser } from '@/lib/supabase-server';
+import { Header } from '@/components/header';
 
 export default async function LandingPage() {
-  const user = await getUser();
   const currentContest = await getCurrentContest();
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">Box Office Fantasy</h1>
-          <div className="flex items-center gap-4">
-            {user ? (
-              <>
-                <Link
-                  href="/account"
-                  className="text-sm text-gray-700 hover:text-gray-900"
-                >
-                  Account
-                </Link>
-              </>
-            ) : (
-              <Link
-                href="/login"
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Sign In
-              </Link>
-            )}
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Hero */}
       <div className="max-w-4xl mx-auto px-4 py-12">

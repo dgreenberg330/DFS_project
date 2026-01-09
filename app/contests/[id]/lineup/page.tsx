@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 import { getContest } from '@/actions/contests';
 import { getUserEntry } from '@/actions/lineups';
 import { LineupBuilder } from '@/components/lineup-builder';
+import { Header } from '@/components/header';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -63,9 +64,10 @@ export default async function LineupPage({ params }: PageProps) {
     : [];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-2xl mx-auto px-4">
-        {/* Header */}
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        {/* Contest Info */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">{contest.name}</h1>
           <p className="text-sm text-gray-600 mt-1">

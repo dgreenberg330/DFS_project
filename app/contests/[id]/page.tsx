@@ -6,6 +6,7 @@ import { getContest } from '@/actions/contests';
 import { getUser, createClient } from '@/lib/supabase-server';
 import { getUserEntry } from '@/actions/lineups';
 import { ExpandableMovieList } from '@/components/expandable-movie-list';
+import { Header } from '@/components/header';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
@@ -45,13 +46,11 @@ export default async function ContestPage({ params }: PageProps) {
   const isLocked = contest.status !== 'upcoming';
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-3xl mx-auto px-4">
-        {/* Header */}
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        {/* Contest Title */}
         <div className="mb-6">
-          <Link href="/" className="text-sm text-blue-600 hover:text-blue-700 mb-2 inline-block">
-            ← Home
-          </Link>
           <h1 className="text-3xl font-bold text-gray-900">{contest.name}</h1>
         </div>
 
@@ -179,19 +178,16 @@ export default async function ContestPage({ params }: PageProps) {
         <ExpandableMovieList movies={contest.movies} />
 
         {/* Navigation */}
-        <div className="mt-6 flex justify-between text-sm">
-          <Link href="/" className="text-blue-600 hover:text-blue-700">
-            ← Back to Home
-          </Link>
-          {contest.status === 'resolved' && (
+        {contest.status === 'resolved' && (
+          <div className="mt-6 text-sm text-right">
             <Link
               href={`/contests/${contestId}/leaderboard`}
               className="text-blue-600 hover:text-blue-700"
             >
               View Leaderboard →
             </Link>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

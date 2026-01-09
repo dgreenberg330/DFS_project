@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 import { getPastEntries } from '@/actions/account';
 import { getUserProfile } from '@/actions/user-profiles';
 import { SignOutButton } from '@/components/sign-out-button';
+import { Header } from '@/components/header';
 import Link from 'next/link';
 
 export default async function AccountPage() {
@@ -50,17 +51,10 @@ export default async function AccountPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Back to Home Link */}
-        <Link
-          href="/"
-          className="text-sm text-blue-600 hover:text-blue-700 mb-4 inline-block"
-        >
-          ← Back to Home
-        </Link>
-
-        {/* Header */}
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Account Header */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="flex items-center justify-between">
             <div>

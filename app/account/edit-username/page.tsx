@@ -6,7 +6,7 @@ import { getUser } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { getUserProfile } from '@/actions/user-profiles';
 import { SetUsernameForm } from '@/components/set-username-form';
-import Link from 'next/link';
+import { Header } from '@/components/header';
 
 export default async function EditUsernamePage() {
   const user = await getUser();
@@ -18,15 +18,9 @@ export default async function EditUsernamePage() {
   const profile = await getUserProfile();
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-md mx-auto px-4">
-        <Link
-          href="/account"
-          className="text-sm text-blue-600 hover:text-blue-700 mb-4 inline-block"
-        >
-          ← Back to Account
-        </Link>
-
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="max-w-md mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             {profile ? 'Edit Username' : 'Set Username'}
