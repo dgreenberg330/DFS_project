@@ -147,7 +147,7 @@ export default async function ContestPage({ params }: PageProps) {
           <div className="space-y-3 text-sm text-gray-700">
             <div className="flex gap-3">
               <span className="text-blue-600 font-semibold">Lineup:</span>
-              <span>Select 2-4 movies (3 is optimal, representing 30-40% of the slate)</span>
+              <span>Select 2-4 movies</span>
             </div>
             <div className="flex gap-3">
               <span className="text-blue-600 font-semibold">Salary Cap:</span>
