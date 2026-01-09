@@ -118,16 +118,22 @@ export default async function AccountPage() {
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <h3 className="font-semibold text-gray-900">{contest.name}</h3>
-                        {contest.status === 'upcoming' && (
-                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded mt-1 inline-block">
-                            Open
-                          </span>
-                        )}
-                        {contest.status === 'locked' && (
-                          <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded mt-1 inline-block">
-                            Locked
-                          </span>
-                        )}
+                        <div className="flex items-center gap-3 mt-1">
+                          <p className="text-sm text-gray-600">
+                            {new Date(contest.weekend_start + 'T00:00:00').toLocaleDateString()} -{' '}
+                            {new Date(contest.weekend_end + 'T00:00:00').toLocaleDateString()}
+                          </p>
+                          {contest.status === 'upcoming' && (
+                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                              Open
+                            </span>
+                          )}
+                          {contest.status === 'locked' && (
+                            <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
+                              Locked
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="text-right">
                         <div className="text-2xl font-bold text-blue-600">
@@ -216,9 +222,10 @@ export default async function AccountPage() {
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <h3 className="font-semibold text-gray-900">{contest.name}</h3>
-                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded mt-1 inline-block">
-                          Resolved
-                        </span>
+                        <p className="text-sm text-gray-500">
+                          {new Date(contest.weekend_start + 'T00:00:00').toLocaleDateString()} -{' '}
+                          {new Date(contest.weekend_end + 'T00:00:00').toLocaleDateString()}
+                        </p>
                       </div>
                       <div className="text-right">
                         {lineup.status === 'scored' && lineup.total_score !== null ? (
