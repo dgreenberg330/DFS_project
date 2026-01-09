@@ -352,15 +352,10 @@ CREATE POLICY "Admins can delete movies"
     )
   );
 
--- ADMIN_USERS: Only admins can view admin list
-CREATE POLICY "Admins can view admin users"
+-- ADMIN_USERS: Users can check their own admin status
+CREATE POLICY "Users can check own admin status"
   ON admin_users FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM admin_users AS au
-      WHERE au.user_id = auth.uid()
-    )
-  );
+  USING (user_id = auth.uid());
 
 -- ============================================================================
 -- NOTES
