@@ -28,7 +28,7 @@ export function LoginForm() {
     } else {
       setMessage({
         type: 'success',
-        text: 'Check your email for the magic link!',
+        text: 'Check your email for the sign in link!',
       });
       setEmail(''); // Clear form
     }
