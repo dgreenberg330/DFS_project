@@ -10,12 +10,12 @@ export async function Header() {
 
   return (
     <header className="bg-gray-900 border-b border-gray-800">
-      <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div className="max-w-4xl mx-auto px-4 py-1 flex items-center justify-between">
         <Link href="/" className="hover:opacity-90 transition-opacity">
           <img
             src="/logo_full.png?v=2"
             alt="Box Office Fantasy"
-            className="h-12 w-auto"
+            className="h-16 w-auto"
           />
         </Link>
         <div className="flex items-center gap-4">

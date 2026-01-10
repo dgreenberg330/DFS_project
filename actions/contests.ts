@@ -5,6 +5,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase-server';
+import { createAdminClient } from '@/lib/supabase-admin';
 import { Contest, ContestStatus, CreateContestInput } from '@/types';
 import { checkAdminAccess } from '@/lib/admin';
 import { revalidatePath } from 'next/cache';
@@ -192,8 +193,11 @@ export async function lockExpiredContests(): Promise<string[]> {
 
     // Defensive check: only proceed if we have lineup IDs
     if (lineupIds.length > 0) {
+      // Use admin client to bypass RLS for updating other users' lineups
+      const adminClient = createAdminClient();
+
       // Update all lineups to locked status
-      const { error: lineupError } = await supabase
+      const { error: lineupError } = await adminClient
         .from('lineups')
         .update({ status: 'locked' })
         .in('id', lineupIds)
@@ -211,6 +215,7 @@ export async function lockExpiredContests(): Promise<string[]> {
 
 /**
  * Manually locks a specific contest (admin override)
+ * Idempotent - can be run multiple times safely
  */
 export async function lockContest(contestId: string): Promise<void> {
   // Admin access required
@@ -221,21 +226,22 @@ export async function lockContest(contestId: string): Promise<void> {
     throw new Error('Contest ID is required.');
   }
 
-  const supabase = await createClient();
+  // Use admin client for all operations to bypass RLS
+  const adminClient = createAdminClient();
 
-  // Update contest status
-  const { error: contestError } = await supabase
+  // Update contest status (idempotent - works even if already locked)
+  const { error: contestError } = await adminClient
     .from('contests')
     .update({ status: ContestStatus.LOCKED })
     .eq('id', contestId)
-    .eq('status', ContestStatus.UPCOMING); // Only lock if upcoming
+    .in('status', [ContestStatus.UPCOMING, ContestStatus.LOCKED]);
 
   if (contestError) {
     throw new Error(`Failed to lock contest: ${contestError.message}`);
   }
 
   // Lock all associated lineups
-  const { data: entries, error: entriesError } = await supabase
+  const { data: entries, error: entriesError } = await adminClient
     .from('entries')
     .select('lineup_id')
     .eq('contest_id', contestId);
@@ -249,7 +255,7 @@ export async function lockContest(contestId: string): Promise<void> {
 
     // Defensive check: only proceed if we have lineup IDs
     if (lineupIds.length > 0) {
-      const { error: lineupError } = await supabase
+      const { error: lineupError } = await adminClient
         .from('lineups')
         .update({ status: 'locked' })
         .in('id', lineupIds)
