@@ -58,15 +58,3 @@ export async function signOut() {
   await supabase.auth.signOut();
   redirect('/');
 }
-
-/**
- * Checks if user is authenticated
- * Returns user or null
- */
-export async function getCurrentUser() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
-}

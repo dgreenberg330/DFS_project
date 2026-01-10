@@ -41,18 +41,6 @@ export async function createClient() {
 }
 
 /**
- * Gets current user session (server-side)
- * Returns null if no session
- */
-export async function getSession() {
-  const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  return session;
-}
-
-/**
  * Gets current authenticated user (server-side)
  * Returns null if not authenticated
  */
