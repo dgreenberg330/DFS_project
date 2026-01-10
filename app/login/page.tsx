@@ -24,7 +24,7 @@ export default async function LoginPage() {
             Sign In
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Enter your email to receive a magic link
+            Enter your email to sign in
           </p>
         </div>
 
