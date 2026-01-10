@@ -120,8 +120,7 @@ export interface LeaderboardEntry extends Entry {
   lineup: LineupWithMovies;
   user: {
     id: string;
-    email: string;
-    username?: string; // Optional for backward compatibility
+    username: string; // Display name (never expose email publicly)
   };
   rank?: number; // Assigned after sorting by total_score
 }
