@@ -14,7 +14,7 @@ export async function Header() {
         <Link href="/" className="hover:opacity-90 transition-opacity">
           <img
             src="/logo_full.png?v=2"
-            alt="Box Office Fantasy"
+            alt="Shugsy - Fantasy Sports for the Box Office"
             className="h-16 w-auto"
           />
         </Link>
