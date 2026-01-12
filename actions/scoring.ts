@@ -4,7 +4,7 @@
 
 'use server';
 
-import { createClient } from '@/lib/supabase-server';
+import { createAdminClient } from '@/lib/supabase-admin';
 import { ContestStatus, LineupStatus, ScoredLineup } from '@/types';
 import { checkAdminAccess } from '@/lib/admin';
 import { revalidatePath } from 'next/cache';
@@ -46,7 +46,7 @@ export async function scoreContest(contestId: string): Promise<ScoredLineup[]> {
     throw new Error('Contest ID is required.');
   }
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Validate contest exists and is locked
   const { data: contest, error: contestError } = await supabase
@@ -211,7 +211,7 @@ export async function getLeaderboard(contestId: string) {
     throw new Error('Contest ID is required.');
   }
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Fetch contest to verify it's been scored
   const { data: contest, error: contestError } = await supabase
@@ -321,7 +321,7 @@ export async function updateMovieActuals(movieId: string, actualGross: number) {
     throw new Error('Actual gross cannot be negative.');
   }
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const { error } = await supabase
     .from('movies')
@@ -369,7 +369,7 @@ export async function batchUpdateActuals(
     throw new Error('Actual gross amounts cannot be negative.');
   }
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Update each movie
   // Note: Could optimize with SQL UPDATE ... FROM if performance becomes issue

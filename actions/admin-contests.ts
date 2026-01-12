@@ -4,7 +4,7 @@
 
 'use server';
 
-import { createClient } from '@/lib/supabase-server';
+import { createAdminClient } from '@/lib/supabase-admin';
 import { checkAdminAccess } from '@/lib/admin';
 import { Contest } from '@/types';
 
@@ -18,7 +18,7 @@ import { Contest } from '@/types';
 export async function getAllContests(): Promise<Contest[]> {
   await checkAdminAccess();
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const { data: contests, error } = await supabase
     .from('contests')
@@ -46,7 +46,7 @@ export async function getContestEntryCount(contestId: string): Promise<number> {
     throw new Error('Contest ID required.');
   }
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const { count, error } = await supabase
     .from('entries')
@@ -74,7 +74,7 @@ export async function deleteContest(contestId: string): Promise<void> {
     throw new Error('Contest ID required.');
   }
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Check if contest has entries
   const { count, error: countError } = await supabase
