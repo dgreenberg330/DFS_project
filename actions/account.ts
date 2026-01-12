@@ -5,6 +5,7 @@
 'use server';
 
 import { getUser, createClient } from '@/lib/supabase-server';
+import { createAdminClient } from '@/lib/supabase-admin';
 import { redirect } from 'next/navigation';
 
 /**
@@ -73,8 +74,9 @@ export async function getPastEntries() {
 
       // Only calculate rank for scored/resolved contests
       if (lineup.status === 'scored' && contest.status === 'resolved') {
-        // Get all entries for this contest
-        const { data: allEntries } = await supabase
+        // Get all entries for this contest (use admin client to bypass RLS and see all entries)
+        const adminClient = createAdminClient();
+        const { data: allEntries } = await adminClient
           .from('entries')
           .select('lineup:lineups(total_score)')
           .eq('contest_id', contest.id);
