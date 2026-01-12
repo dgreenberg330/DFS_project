@@ -91,6 +91,29 @@ Note: Manual data entry acceptable until 100+ weekly users. Carryover movies (se
 - Prefer server components by default (use 'use client' only when needed)
 - TypeScript required for all files
 
+## SEO/AEO/GEO Guidelines
+
+When adding new pages or content, include appropriate optimizations:
+
+### For New Pages
+- Add `generateMetadata` (dynamic) or `export const metadata` (static) with title, description, and canonical URL
+- Use semantic HTML (`<main>`, `<section>`, `<article>`) with proper heading hierarchy (h1 > h2 > h3)
+- Add to sitemap if publicly accessible (sitemap.ts auto-includes contest pages)
+
+### Structured Data (JSON-LD)
+Use components from `components/json-ld.tsx` when relevant:
+- **BreadcrumbJsonLd** - For nested pages with navigation context
+- **ContestEventJsonLd** - For contest/event pages
+- **FAQJsonLd** - For pages with Q&A content
+
+### When to Skip
+- Admin pages (already excluded from sitemap/robots)
+- Authenticated-only pages (use `robots: { index: false }`)
+- Temporary or utility pages
+
+### Key Target Keywords
+Primary: "box office fantasy", "movie fantasy sports", "predict box office", "opening weekend predictions"
+
 ## Git Workflow
 
 - Commit all new code changes with descriptive commit messages
