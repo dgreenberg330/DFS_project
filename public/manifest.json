@@ -1,0 +1,25 @@
+{
+  "name": "Shugsy - Fantasy Sports for the Box Office",
+  "short_name": "Shugsy",
+  "description": "Free fantasy sports game for movie box office predictions",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3f4f6",
+  "theme_color": "#14b8a6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo_s.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo_full.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["games", "entertainment"]
+}

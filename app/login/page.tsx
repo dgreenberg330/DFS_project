@@ -6,6 +6,20 @@ import { LoginForm } from '@/components/login-form';
 import { getUser } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { Header } from '@/components/header';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Sign In',
+  description: 'Sign in to Shugsy to play box office fantasy sports. Create lineups, predict opening weekend grosses, and compete on the leaderboard.',
+  openGraph: {
+    title: 'Sign In to Shugsy',
+    description: 'Sign in to play free box office fantasy sports.',
+    url: 'https://shugsy.com/login',
+  },
+  alternates: {
+    canonical: 'https://shugsy.com/login',
+  },
+};
 
 export default async function LoginPage() {
   // If already logged in, redirect to account

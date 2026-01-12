@@ -6,10 +6,30 @@ import { getContest } from '@/actions/contests';
 import { getLeaderboard } from '@/actions/scoring';
 import { getUser } from '@/lib/supabase-server';
 import { Header } from '@/components/header';
+import { BreadcrumbJsonLd } from '@/components/json-ld';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 
 interface PageProps {
   params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id: contestId } = await params;
+  const contest = await getContest(contestId);
+
+  return {
+    title: `${contest.name} Leaderboard - Results`,
+    description: `View the final leaderboard and results for the ${contest.name} box office fantasy contest. See how players scored based on opening weekend gross.`,
+    openGraph: {
+      title: `${contest.name} Leaderboard`,
+      description: `Final results for the ${contest.name} box office fantasy contest.`,
+      url: `https://shugsy.com/contests/${contestId}/leaderboard`,
+    },
+    alternates: {
+      canonical: `https://shugsy.com/contests/${contestId}/leaderboard`,
+    },
+  };
 }
 
 export default async function LeaderboardPage({ params }: PageProps) {
@@ -60,8 +80,15 @@ export default async function LeaderboardPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://shugsy.com' },
+          { name: contest.name, url: `https://shugsy.com/contests/${contestId}` },
+          { name: 'Leaderboard', url: `https://shugsy.com/contests/${contestId}/leaderboard` },
+        ]}
+      />
       <Header />
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Page Title */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Final Leaderboard</h1>
@@ -189,7 +216,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
             </Link>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

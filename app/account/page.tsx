@@ -9,6 +9,16 @@ import { getUserProfile } from '@/actions/user-profiles';
 import { SignOutButton } from '@/components/sign-out-button';
 import { Header } from '@/components/header';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'My Account',
+  description: 'View your Shugsy account, past contest entries, rankings, and stats. Track your box office fantasy sports performance.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function AccountPage() {
   // Require authentication

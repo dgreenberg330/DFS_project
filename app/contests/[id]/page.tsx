@@ -7,11 +7,34 @@ import { getUser, createClient } from '@/lib/supabase-server';
 import { getUserEntry } from '@/actions/lineups';
 import { ExpandableMovieList } from '@/components/expandable-movie-list';
 import { Header } from '@/components/header';
+import { ContestEventJsonLd, BreadcrumbJsonLd } from '@/components/json-ld';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import type { Metadata } from 'next';
 
 interface PageProps {
   params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id: contestId } = await params;
+  const contest = await getContest(contestId);
+
+  const movieNames = contest.movies?.slice(0, 3).map((m: any) => m.title).join(', ') || '';
+  const description = `Enter the ${contest.name} box office fantasy contest. Pick movies like ${movieNames} and compete on opening weekend gross. Free to play!`;
+
+  return {
+    title: contest.name,
+    description,
+    openGraph: {
+      title: `${contest.name} - Box Office Fantasy Contest`,
+      description,
+      url: `https://shugsy.com/contests/${contestId}`,
+    },
+    alternates: {
+      canonical: `https://shugsy.com/contests/${contestId}`,
+    },
+  };
 }
 
 export default async function ContestPage({ params }: PageProps) {
@@ -45,10 +68,27 @@ export default async function ContestPage({ params }: PageProps) {
   const timeUntilLock = lockTime.getTime() - now.getTime();
   const isLocked = contest.status !== 'upcoming';
 
+  // Format dates for schema
+  const weekendStart = contest.weekend_start ? new Date(contest.weekend_start + 'T00:00:00') : new Date();
+  const weekendEnd = contest.weekend_end ? new Date(contest.weekend_end + 'T00:00:00') : new Date();
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <ContestEventJsonLd
+        name={`${contest.name} - Box Office Fantasy`}
+        description={`Predict opening weekend box office for movies like ${contest.movies?.slice(0, 3).map((m: any) => m.title).join(', ') || 'this weekend\'s releases'}. Free fantasy sports game.`}
+        startDate={weekendStart.toISOString()}
+        endDate={weekendEnd.toISOString()}
+        url={`https://shugsy.com/contests/${contestId}`}
+      />
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://shugsy.com' },
+          { name: contest.name, url: `https://shugsy.com/contests/${contestId}` },
+        ]}
+      />
       <Header />
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      <main className="max-w-3xl mx-auto px-4 py-8">
         {/* Contest Title */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">{contest.name}</h1>
@@ -188,7 +228,7 @@ export default async function ContestPage({ params }: PageProps) {
             </Link>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }
