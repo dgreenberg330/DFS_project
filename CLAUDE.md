@@ -91,6 +91,12 @@ Note: Manual data entry acceptable until 100+ weekly users. Carryover movies (se
 - Prefer server components by default (use 'use client' only when needed)
 - TypeScript required for all files
 
+## Git Workflow
+
+- Commit all new code changes with descriptive commit messages
+- Do NOT push to remote until user has tested changes locally
+- Start dev server (`npm run dev`) and wait for user approval before pushing
+
 ## Weekly Operations Workflow
 
 - **Monday-Tuesday**: Enter movie slate, projections, set salaries
