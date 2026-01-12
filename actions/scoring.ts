@@ -72,6 +72,8 @@ export async function scoreContest(contestId: string): Promise<ScoredLineup[]> {
   }
 
   // Fetch all entries for this contest with their lineups and movies
+  // Note: lineup_movies must be nested inside lineups (not entries) because
+  // the foreign key relationship is: entries -> lineups -> lineup_movies -> movies
   const { data: entries, error: entriesError } = await supabase
     .from('entries')
     .select(`
@@ -80,12 +82,12 @@ export async function scoreContest(contestId: string): Promise<ScoredLineup[]> {
       lineup_id,
       lineup:lineups (
         id,
-        status
-      ),
-      movies:lineup_movies (
-        movie:movies (
-          id,
-          actual_gross
+        status,
+        movies:lineup_movies (
+          movie:movies (
+            id,
+            actual_gross
+          )
         )
       )
     `)
@@ -120,7 +122,8 @@ export async function scoreContest(contestId: string): Promise<ScoredLineup[]> {
       throw new Error(`Invalid lineup data for entry ${entry.id}. Data integrity issue.`);
     }
 
-    const lineupMovies = entry.movies || [];
+    // Movies are nested inside lineup (lineup_movies references lineups, not entries)
+    const lineupMovies = lineup.movies || [];
 
     // Defensive check: ensure lineup has movies
     if (lineupMovies.length === 0) {
