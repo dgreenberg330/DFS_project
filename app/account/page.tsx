@@ -228,7 +228,9 @@ export default async function AccountPage() {
                               {lineup.total_score.toFixed(1)} pts
                             </div>
                             {entry.rank && (
-                              <div className="text-sm text-gray-600">Rank #{entry.rank}</div>
+                              <div className="text-sm text-gray-600">
+                                Rank #{entry.rank}{entry.totalEntries && ` (${entry.totalEntries} entries)`}
+                              </div>
                             )}
                           </>
                         ) : (

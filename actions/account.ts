@@ -93,17 +93,21 @@ export async function getPastEntries() {
 
           // Defensive check: ensure we have scores
           if (scores.length === 0) {
-            return { ...entry, rank: null };
+            return { ...entry, rank: null, totalEntries: null };
           }
 
           // Find rank (1-indexed)
           const rank = scores.findIndex((score) => score === lineup.total_score) + 1;
 
-          return { ...entry, rank: rank > 0 ? rank : null };
+          return {
+            ...entry,
+            rank: rank > 0 ? rank : null,
+            totalEntries: allEntries.length
+          };
         }
       }
 
-      return { ...entry, rank: null };
+      return { ...entry, rank: null, totalEntries: null };
     })
   );
 
