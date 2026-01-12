@@ -22,6 +22,21 @@ This is a box office fantasy sports game where users create lineups of movies to
 - `npm run test` - Run tests
 - `supabase start` - Local database
 
+## Project Structure
+
+```
+/app                    # Next.js App Router (pages and layouts)
+  /admin               # Protected admin routes
+  /contests/[id]       # Dynamic contest pages
+  /auth/callback       # OAuth callback handler
+/components            # Reusable React components (mostly client)
+/actions               # Server actions ('use server')
+/lib                   # Utilities and Supabase clients
+/public                # Static assets
+types.ts               # Centralized TypeScript definitions
+middleware.ts          # Session refresh middleware
+```
+
 ## Core Architecture
 
 ### Data Model (5 Core Objects)
@@ -84,12 +99,66 @@ Salaries derived from projected opening weekend gross using linear scale:
 
 Note: Manual data entry acceptable until 100+ weekly users. Carryover movies (second weekend, released in last 14 days) are optional and must be explicitly added by admin.
 
+## Supabase Client Patterns
+
+Three client types exist - use the correct one:
+
+| Client | Location | Use Case |
+|--------|----------|----------|
+| `createClient()` | `lib/supabase-server.ts` | Default for all server operations. Subject to RLS. |
+| `createAdminClient()` | `lib/supabase-admin.ts` | Admin operations that bypass RLS (scoring, leaderboards). |
+| Browser client | `lib/supabase-browser.ts` | Client components (rarely needed). |
+
+**Rule**: Always use `createClient()` unless you specifically need to bypass Row Level Security.
+
+## Authorization Patterns
+
+| Function | Location | Use Case |
+|----------|----------|----------|
+| `getUser()` | `lib/supabase-server.ts` | Get current user (returns null if not authenticated) |
+| `requireAdmin()` | `lib/admin.ts` | Use in page components - redirects if not admin |
+| `checkAdminAccess()` | `lib/admin.ts` | Use in server actions - throws error if not admin |
+| `isAdmin()` | `lib/admin.ts` | Boolean check for conditional logic |
+
+Admin users are stored in the `admin_users` table.
+
 ## Code Conventions
 
 - Use ES modules (import/export)
 - Function components with React hooks only
 - Prefer server components by default (use 'use client' only when needed)
 - TypeScript required for all files
+- All types defined in `types.ts` (centralized)
+
+### Component Patterns
+
+- **Server components** (default): All `/app` page files. Call `getUser()` and server actions directly.
+- **Client components**: Mark with `'use client'`. Use for interactivity (forms, state). Import and call server actions.
+- **Header**: Server component that handles auth state - use as reference pattern.
+
+### Server Actions (`/actions`)
+
+All server action files start with `'use server'`. Follow this pattern:
+
+1. **Validate input** - Check for null/undefined/empty values
+2. **Verify authentication** - Call `getUser()`, redirect if needed
+3. **Fetch and validate data** - Handle Supabase errors by code
+4. **Business logic** - Apply rules and constraints
+5. **Revalidate paths** - Call `revalidatePath()` for affected pages
+6. **Redirect or return** - Redirect on success, throw on fatal error
+
+**Error codes**: `PGRST116` = not found, `23505` = unique constraint violation
+
+**Naming**: Domain-separated files. Admin actions in `admin-*.ts` files.
+
+### Defensive Programming
+
+Always validate data defensively:
+```typescript
+// Safe array handling (Supabase can return array or object)
+const item = Array.isArray(data) ? data[0] : data;
+const items = Array.isArray(data) ? data : [];
+```
 
 ## SEO/AEO/GEO Guidelines
 
@@ -126,3 +195,13 @@ Primary: "box office fantasy", "movie fantasy sports", "predict box office", "op
 - **Wednesday**: QA contest, send email reminder
 - **Thursday**: Contest locks at 8PM ET, verify entries
 - **Sunday night**: Enter actuals, run scoring, publish leaderboard, email winners
+
+## Environment Variables
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://...      # Public - Supabase project URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...         # Public - Anonymous key (RLS enforced)
+SUPABASE_SERVICE_ROLE_KEY=...             # Private - Bypasses RLS (server only)
+```
+
+Variables prefixed with `NEXT_PUBLIC_` are exposed to the browser. Never expose the service role key.
