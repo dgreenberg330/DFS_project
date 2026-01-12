@@ -38,9 +38,9 @@ export const metadata: Metadata = {
     description: 'Free fantasy sports game for movie box office. Pick your lineup of movies, predict opening weekend grosses, and compete on the leaderboard.',
     images: [
       {
-        url: '/logo_full.png',
-        width: 1200,
-        height: 630,
+        url: '/shugsy-share.png',
+        width: 945,
+        height: 415,
         alt: 'Shugsy - Box Office Fantasy Sports',
       },
     ],
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Shugsy - Fantasy Sports for the Box Office',
     description: 'Free fantasy sports game for movie box office. Pick your lineup of movies and compete on the leaderboard.',
-    images: ['/logo_full.png'],
+    images: ['/shugsy-share.png'],
   },
   robots: {
     index: true,
