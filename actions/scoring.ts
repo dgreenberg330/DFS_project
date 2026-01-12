@@ -237,6 +237,7 @@ export async function getLeaderboard(contestId: string) {
   }
 
   // Fetch all entries with lineups and movies
+  // Note: Cannot order by nested relation field in Supabase, so we sort in JS below
   const { data: entries, error: entriesError } = await supabase
     .from('entries')
     .select(`
@@ -248,8 +249,7 @@ export async function getLeaderboard(contestId: string) {
         )
       )
     `)
-    .eq('contest_id', contestId)
-    .order('lineup.total_score', { ascending: false });
+    .eq('contest_id', contestId);
 
   if (entriesError) {
     throw new Error(`Failed to fetch leaderboard: ${entriesError.message}`);
@@ -274,6 +274,13 @@ export async function getLeaderboard(contestId: string) {
       };
     })
   );
+
+  // Sort by total_score descending (highest score first)
+  entriesWithUsers.sort((a, b) => {
+    const lineupA = Array.isArray(a.lineup) ? a.lineup[0] : a.lineup;
+    const lineupB = Array.isArray(b.lineup) ? b.lineup[0] : b.lineup;
+    return (lineupB?.total_score || 0) - (lineupA?.total_score || 0);
+  });
 
   // Assign ranks based on total_score
   let currentRank = 1;
