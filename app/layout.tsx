@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { OrganizationJsonLd } from '@/components/json-ld'
 
-const siteUrl = 'https://shugsy.com'
+const siteUrl = 'https://www.shugsy.com'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

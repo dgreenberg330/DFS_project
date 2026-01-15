@@ -21,8 +21,8 @@ export function OrganizationJsonLd() {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'Shugsy',
-    url: 'https://shugsy.com',
-    logo: 'https://shugsy.com/logo_full.png',
+    url: 'https://www.shugsy.com',
+    logo: 'https://www.shugsy.com/logo_full.png',
     description: 'Fantasy sports for movie box office. Predict opening weekend grosses and compete on the leaderboard.',
     sameAs: [],
   };
@@ -35,7 +35,7 @@ export function WebApplicationJsonLd() {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
     name: 'Shugsy',
-    url: 'https://shugsy.com',
+    url: 'https://www.shugsy.com',
     applicationCategory: 'GameApplication',
     operatingSystem: 'Any',
     offers: {
@@ -132,7 +132,7 @@ export function ContestEventJsonLd({
     organizer: {
       '@type': 'Organization',
       name: 'Shugsy',
-      url: 'https://shugsy.com',
+      url: 'https://www.shugsy.com',
     },
     isAccessibleForFree: true,
   };

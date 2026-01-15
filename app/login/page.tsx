@@ -14,14 +14,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Sign In to Shugsy',
     description: 'Sign in to play free box office fantasy sports.',
-    url: 'https://shugsy.com/login',
+    url: 'https://www.shugsy.com/login',
     images: ['/shugsy-share.png'],
   },
   twitter: {
     images: ['/shugsy-share.png'],
   },
   alternates: {
-    canonical: 'https://shugsy.com/login',
+    canonical: 'https://www.shugsy.com/login',
   },
 };
 

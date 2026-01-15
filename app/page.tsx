@@ -12,12 +12,12 @@ export const metadata: Metadata = {
   title: 'Shugsy - Fantasy Sports for the Box Office | Predict Opening Weekend Grosses',
   description: 'Play free box office fantasy sports. Pick your lineup of movies, stay under the salary cap, and score points based on domestic opening weekend gross. Compete weekly!',
   alternates: {
-    canonical: 'https://shugsy.com',
+    canonical: 'https://www.shugsy.com',
   },
   openGraph: {
     title: 'Shugsy - Fantasy Sports for the Box Office',
     description: 'Play free box office fantasy sports. Pick movies, predict grosses, win the weekend!',
-    url: 'https://shugsy.com',
+    url: 'https://www.shugsy.com',
     images: ['/shugsy-share.png'],
   },
   twitter: {

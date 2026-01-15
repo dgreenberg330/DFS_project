@@ -29,14 +29,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: `${contest.name} - Box Office Fantasy Contest`,
       description,
-      url: `https://shugsy.com/contests/${contestId}`,
+      url: `https://www.shugsy.com/contests/${contestId}`,
       images: ['/shugsy-share.png'],
     },
     twitter: {
       images: ['/shugsy-share.png'],
     },
     alternates: {
-      canonical: `https://shugsy.com/contests/${contestId}`,
+      canonical: `https://www.shugsy.com/contests/${contestId}`,
     },
   };
 }
