@@ -30,10 +30,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: `${contest.name} - Box Office Fantasy Contest`,
       description,
       url: `https://www.shugsy.com/contests/${contestId}`,
-      images: ['/shugsy-share.png?v=5'],
+      images: ['/shugsy-share.png?v=6'],
     },
     twitter: {
-      images: ['/shugsy-share.png?v=5'],
+      images: ['/shugsy-share.png?v=6'],
     },
     alternates: {
       canonical: `https://www.shugsy.com/contests/${contestId}`,
