@@ -95,6 +95,13 @@ export interface LineupMovie {
   created_at: string;
 }
 
+/**
+ * LineupMovie with the full Movie data populated (from joins)
+ */
+export interface LineupMovieWithMovie extends LineupMovie {
+  movie: Movie;
+}
+
 // ============================================================================
 // EXTENDED TYPES (with relationships)
 // ============================================================================

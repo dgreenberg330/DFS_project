@@ -8,6 +8,12 @@ import { getContest } from '@/actions/contests';
 import { getUserEntry } from '@/actions/lineups';
 import { LineupBuilder } from '@/components/lineup-builder';
 import { Header } from '@/components/header';
+import type { Movie } from '@/types';
+
+// Type for lineup movie with nested movie data from Supabase joins
+interface LineupMovieData {
+  movie: Movie | Movie[];
+}
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -55,7 +61,7 @@ export default async function LineupPage({ params }: PageProps) {
         }
 
         const movies = lineup.movies || [];
-        return movies.map((lm: any) => {
+        return movies.map((lm: LineupMovieData) => {
           const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
           // Defensive check: ensure movie has id
           return movie?.id;

@@ -89,8 +89,8 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
         setAddSuccess(false);
         router.refresh();
       }, 2000);
-    } catch (err: any) {
-      setAddError(err.message || 'Failed to add movie');
+    } catch (err: unknown) {
+      setAddError(err instanceof Error ? err.message : 'Failed to add movie');
     } finally {
       setAddLoading(false);
     }
@@ -122,8 +122,8 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
       setEditingId(null);
       setEditData({});
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || 'Failed to update movie');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to update movie');
     } finally {
       setEditLoading(false);
     }
@@ -141,8 +141,8 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
       await deleteMovie(movie.id);
       setMovies(movies.filter(m => m.id !== movie.id));
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete movie');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to delete movie');
     } finally {
       setDeleteLoading(null);
     }
@@ -156,8 +156,8 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
       const copied = await copyMovieToContest(movie.id, contest.id);
       setMovies([copied, ...movies].sort((a, b) => b.salary - a.salary));
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || 'Failed to copy movie');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to copy movie');
     } finally {
       setHistoricalLoading(null);
     }
@@ -217,8 +217,8 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
         setShowCsvUpload(false);
         router.refresh();
       }, 2000);
-    } catch (err: any) {
-      setCsvError(err.message || 'Failed to upload CSV');
+    } catch (err: unknown) {
+      setCsvError(err instanceof Error ? err.message : 'Failed to upload CSV');
     } finally {
       setCsvLoading(false);
     }

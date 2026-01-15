@@ -7,25 +7,25 @@
 import { setUsername } from '@/actions/user-profiles';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export function SetUsernameForm() {
   const [username, setUsernameInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     const result = await setUsername(username);
 
     if (result.error) {
-      setError(result.error);
+      toast.error(result.error);
       setLoading(false);
     } else {
       // Success - redirect to account
+      toast.success('Username set successfully!');
       router.push('/account');
     }
   }
@@ -43,18 +43,16 @@ export function SetUsernameForm() {
           required
           value={username}
           onChange={(e) => setUsernameInput(e.target.value)}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base"
           placeholder="your_username"
           pattern="[a-zA-Z0-9_]{3,20}"
           title="3-20 characters, letters, numbers, and underscores only"
+          aria-describedby="username-hint"
         />
+        <p id="username-hint" className="mt-1 text-xs text-gray-500">
+          3-20 characters, letters, numbers, and underscores only
+        </p>
       </div>
-
-      {error && (
-        <div className="p-3 rounded bg-red-50 text-red-800 text-sm">
-          {error}
-        </div>
-      )}
 
       <button
         type="submit"

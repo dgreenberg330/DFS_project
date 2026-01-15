@@ -40,8 +40,8 @@ export function ScoreContestForm({ contest, entryCount, moviesWithoutActuals }: 
       const results = await scoreContest(contest.id);
       setLeaderboard(results);
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || 'Failed to score contest');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to score contest');
     } finally {
       setLoading(false);
     }

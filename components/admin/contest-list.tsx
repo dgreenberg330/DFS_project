@@ -38,8 +38,8 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
       }
 
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || 'Failed to lock contests');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to lock contests');
     } finally {
       setLockLoading(false);
     }
@@ -57,8 +57,8 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
       await deleteContest(contest.id);
       setContests(contests.filter(c => c.id !== contest.id));
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete contest');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to delete contest');
     } finally {
       setDeleteLoading(null);
     }

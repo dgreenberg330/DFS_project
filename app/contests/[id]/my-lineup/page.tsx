@@ -8,6 +8,12 @@ import { getContest } from '@/actions/contests';
 import { getUserEntry } from '@/actions/lineups';
 import { Header } from '@/components/header';
 import Link from 'next/link';
+import type { Movie } from '@/types';
+
+// Type for lineup movie with nested movie data from Supabase joins
+interface LineupMovieData {
+  movie: Movie | Movie[];
+}
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -36,12 +42,12 @@ export default async function MyLineupPage({ params }: PageProps) {
   const movies = lineup.movies || [];
 
   // Calculate totals
-  const totalSalary = movies.reduce((sum: number, lm: any) => {
+  const totalSalary = movies.reduce((sum: number, lm: LineupMovieData) => {
     const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
     return sum + movie.salary;
   }, 0);
 
-  const projectedScore = movies.reduce((sum: number, lm: any) => {
+  const projectedScore = movies.reduce((sum: number, lm: LineupMovieData) => {
     const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
     return sum + movie.projected_gross;
   }, 0);
@@ -122,7 +128,7 @@ export default async function MyLineupPage({ params }: PageProps) {
           </div>
 
           <div className="divide-y divide-gray-200">
-            {movies.map((lm: any) => {
+            {movies.map((lm: LineupMovieData) => {
               const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
               return (
                 <div key={movie.id} className="p-4">

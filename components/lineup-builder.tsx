@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { submitLineup } from '@/actions/lineups';
 import { validateLineup } from '@/lib/validation';
+import { toast } from 'sonner';
 import type { ContestWithMovies, Movie } from '@/types';
 
 interface LineupBuilderProps {
@@ -61,7 +62,7 @@ export function LineupBuilder({
     } else {
       // Select (check if would exceed 4 movies)
       if (selectedMovieIds.length >= 4) {
-        setError('Cannot select more than 4 movies');
+        toast.error('Cannot select more than 4 movies');
         return;
       }
       setSelectedMovieIds([...selectedMovieIds, movieId]);
@@ -71,19 +72,19 @@ export function LineupBuilder({
   // Submit lineup
   async function handleSubmit() {
     if (!validation.isValid) {
-      setError(validation.errors.join(', '));
+      toast.error(validation.errors.join(', '));
       return;
     }
 
     // Defensive check: ensure we have a contest ID
     if (!contest?.id) {
-      setError('Contest information is missing. Please refresh the page.');
+      toast.error('Contest information is missing. Please refresh the page.');
       return;
     }
 
     // Defensive check: ensure we have selected movies
     if (!selectedMovieIds || selectedMovieIds.length === 0) {
-      setError('Please select at least 2 movies.');
+      toast.error('Please select at least 2 movies.');
       return;
     }
 
@@ -96,10 +97,12 @@ export function LineupBuilder({
         movie_ids: selectedMovieIds,
       });
       setSubmitted(true);
-    } catch (err: any) {
+      toast.success('Lineup submitted successfully!');
+    } catch (err: unknown) {
       // Provide more helpful error messages
-      const errorMessage = err.message || 'Failed to submit lineup. Please try again.';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to submit lineup. Please try again.';
       setError(errorMessage);
+      toast.error(errorMessage);
       console.error('Lineup submission error:', err);
     } finally {
       setSubmitting(false);
@@ -127,8 +130,8 @@ export function LineupBuilder({
     <div className="space-y-6">
       {/* Success Message */}
       {submitted && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-          <p className="text-green-800 font-medium">Locked. Good luck.</p>
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center" role="alert" aria-live="polite">
+          <p className="text-green-800 font-medium">Lineup saved. Good luck!</p>
           <p className="text-sm text-green-700 mt-1">
             You can edit your lineup until the contest locks.
           </p>
@@ -137,7 +140,7 @@ export function LineupBuilder({
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4" role="alert" aria-live="assertive">
           <p className="text-red-800 text-sm">{error}</p>
         </div>
       )}

@@ -8,6 +8,44 @@ import { createClient } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 
+// Simple rate limiter for magic link requests
+// Note: In-memory, resets on server restart. For production, use Redis.
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 3; // Max 3 requests per minute per email
+
+function isRateLimited(email: string): boolean {
+  const now = Date.now();
+  const normalizedEmail = email.toLowerCase().trim();
+  const entry = rateLimitMap.get(normalizedEmail);
+
+  // Clean up expired entries periodically
+  if (rateLimitMap.size > 1000) {
+    for (const [key, value] of rateLimitMap.entries()) {
+      if (now > value.resetAt) {
+        rateLimitMap.delete(key);
+      }
+    }
+  }
+
+  if (!entry || now > entry.resetAt) {
+    // New window
+    rateLimitMap.set(normalizedEmail, {
+      count: 1,
+      resetAt: now + RATE_LIMIT_WINDOW_MS,
+    });
+    return false;
+  }
+
+  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return true;
+  }
+
+  // Increment count
+  entry.count++;
+  return false;
+}
+
 /**
  * Sends magic link email to user
  *
@@ -27,6 +65,11 @@ export async function sendMagicLink(email: string) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return { error: 'Please enter a valid email address.' };
+  }
+
+  // Rate limiting check
+  if (isRateLimited(email)) {
+    return { error: 'Too many requests. Please wait a minute before trying again.' };
   }
 
   const supabase = await createClient();

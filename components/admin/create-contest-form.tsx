@@ -66,8 +66,8 @@ export function CreateContestForm() {
       setTimeout(() => {
         router.push(`/admin/contests/${contest.id}/movies`);
       }, 1500);
-    } catch (err: any) {
-      setError(err.message || 'Failed to create contest');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to create contest');
     } finally {
       setLoading(false);
     }

@@ -34,7 +34,7 @@ export default async function LandingPage() {
       <FAQJsonLd />
       <Header />
 
-      <main>
+      <main id="main-content">
         {/* Hero */}
         <section aria-label="Introduction" className="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-100 pt-16 pb-24">
           <div className="max-w-4xl mx-auto px-4">

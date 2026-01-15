@@ -11,6 +11,7 @@ import { ContestEventJsonLd, BreadcrumbJsonLd } from '@/components/json-ld';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
+import type { Movie } from '@/types';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { id: contestId } = await params;
   const contest = await getContest(contestId);
 
-  const movieNames = contest.movies?.slice(0, 3).map((m: any) => m.title).join(', ') || '';
+  const movieNames = contest.movies?.slice(0, 3).map((m: Movie) => m.title).join(', ') || '';
   const description = `Enter the ${contest.name} box office fantasy contest. Pick movies like ${movieNames} and compete on opening weekend gross. Free to play!`;
 
   return {
@@ -80,7 +81,7 @@ export default async function ContestPage({ params }: PageProps) {
     <div className="min-h-screen bg-gray-50">
       <ContestEventJsonLd
         name={`${contest.name} - Box Office Fantasy`}
-        description={`Predict opening weekend box office for movies like ${contest.movies?.slice(0, 3).map((m: any) => m.title).join(', ') || 'this weekend\'s releases'}. Free fantasy sports game.`}
+        description={`Predict opening weekend box office for movies like ${contest.movies?.slice(0, 3).map((m: Movie) => m.title).join(', ') || 'this weekend\'s releases'}. Free fantasy sports game.`}
         startDate={weekendStart.toISOString()}
         endDate={weekendEnd.toISOString()}
         url={`https://shugsy.com/contests/${contestId}`}

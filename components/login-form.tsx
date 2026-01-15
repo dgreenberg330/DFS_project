@@ -6,30 +6,27 @@
 
 import { sendMagicLink } from '@/actions/auth';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(
-    null
-  );
+  const [success, setSuccess] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    setMessage(null);
+    setSuccess(false);
 
     const result = await sendMagicLink(email);
 
     setLoading(false);
 
     if (result.error) {
-      setMessage({ type: 'error', text: result.error });
+      toast.error(result.error);
     } else {
-      setMessage({
-        type: 'success',
-        text: 'Check your email for the sign in link!',
-      });
+      toast.success('Check your email for the sign in link!');
+      setSuccess(true);
       setEmail(''); // Clear form
     }
   }
@@ -47,20 +44,14 @@ export function LoginForm() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base"
           placeholder="you@example.com"
         />
       </div>
 
-      {message && (
-        <div
-          className={`p-3 rounded ${
-            message.type === 'success'
-              ? 'bg-green-50 text-green-800'
-              : 'bg-red-50 text-red-800'
-          }`}
-        >
-          {message.text}
+      {success && (
+        <div className="p-3 rounded bg-green-50 text-green-800" role="alert" aria-live="polite">
+          Check your email for the sign in link!
         </div>
       )}
 

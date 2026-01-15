@@ -62,8 +62,8 @@ export function EnterActualsForm({ contest, movies }: EnterActualsFormProps) {
       await batchUpdateActuals(updates);
       setSuccess(true);
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || 'Failed to update actuals');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to update actuals');
     } finally {
       setLoading(false);
     }

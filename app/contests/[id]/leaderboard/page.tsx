@@ -9,6 +9,12 @@ import { Header } from '@/components/header';
 import { BreadcrumbJsonLd } from '@/components/json-ld';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import type { Movie } from '@/types';
+
+// Type for lineup movie with nested movie data from Supabase joins
+interface LineupMovieData {
+  movie: Movie | Movie[];
+}
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -181,7 +187,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
 
                       {/* Movies */}
                       <div className="space-y-1">
-                        {movies.map((lm: any) => {
+                        {movies.map((lm: LineupMovieData) => {
                           const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
                           return (
                             <div

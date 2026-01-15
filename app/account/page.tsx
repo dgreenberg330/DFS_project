@@ -10,6 +10,20 @@ import { SignOutButton } from '@/components/sign-out-button';
 import { Header } from '@/components/header';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import type { Movie, Contest, Lineup, Entry } from '@/types';
+
+// Type for lineup movie with nested movie data from Supabase joins
+interface LineupMovieData {
+  movie: Movie | Movie[];
+}
+
+// Type for entry data from getPastEntries
+interface EntryData extends Entry {
+  lineup: (Lineup & { movies: LineupMovieData[] }) | (Lineup & { movies: LineupMovieData[] })[];
+  contest: Contest | Contest[];
+  rank?: number;
+  totalEntries?: number;
+}
 
 export const metadata: Metadata = {
   title: 'My Account',
@@ -34,7 +48,7 @@ export default async function AccountPage() {
   }
 
   // Fetch past contest entries with error handling
-  let allEntries: any[] = [];
+  let allEntries: EntryData[] = [];
   try {
     allEntries = await getPastEntries();
   } catch (error) {
@@ -101,7 +115,7 @@ export default async function AccountPage() {
                 const movies = lineup.movies || [];
 
                 // Calculate projected score
-                const projectedScore = movies.reduce((sum: number, lm: any) => {
+                const projectedScore = movies.reduce((sum: number, lm: LineupMovieData) => {
                   const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
                   return sum + (movie.projected_gross || 0);
                 }, 0);
@@ -149,7 +163,7 @@ export default async function AccountPage() {
 
                     {/* Lineup Movies */}
                     <div className="space-y-2">
-                      {movies.map((lm: any) => {
+                      {movies.map((lm: LineupMovieData) => {
                         const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
                         return (
                           <div
@@ -174,7 +188,7 @@ export default async function AccountPage() {
                         <span>Total Salary:</span>
                         <span>
                           $
-                          {movies.reduce((sum: number, lm: any) => {
+                          {movies.reduce((sum: number, lm: LineupMovieData) => {
                             const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
                             return sum + movie.salary;
                           }, 0)}
@@ -251,7 +265,7 @@ export default async function AccountPage() {
 
                     {/* Lineup Movies */}
                     <div className="space-y-2">
-                      {movies.map((lm: any) => {
+                      {movies.map((lm: LineupMovieData) => {
                         const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
                         return (
                           <div
@@ -279,7 +293,7 @@ export default async function AccountPage() {
                         <span>Total Salary:</span>
                         <span>
                           $
-                          {movies.reduce((sum: number, lm: any) => {
+                          {movies.reduce((sum: number, lm: LineupMovieData) => {
                             const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
                             return sum + movie.salary;
                           }, 0)}
