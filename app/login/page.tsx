@@ -15,10 +15,10 @@ export const metadata: Metadata = {
     title: 'Sign In to Shugsy',
     description: 'Sign in to play free box office fantasy sports.',
     url: 'https://www.shugsy.com/login',
-    images: ['/shugsy-share.png?v=2'],
+    images: ['/shugsy-share.png'],
   },
   twitter: {
-    images: ['/shugsy-share.png?v=2'],
+    images: ['/shugsy-share.png'],
   },
   alternates: {
     canonical: 'https://www.shugsy.com/login',
