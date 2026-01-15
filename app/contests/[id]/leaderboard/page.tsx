@@ -25,6 +25,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: `${contest.name} Leaderboard`,
       description: `Final results for the ${contest.name} box office fantasy contest.`,
       url: `https://shugsy.com/contests/${contestId}/leaderboard`,
+      images: ['/shugsy-share.png'],
+    },
+    twitter: {
+      images: ['/shugsy-share.png'],
     },
     alternates: {
       canonical: `https://shugsy.com/contests/${contestId}/leaderboard`,
