@@ -167,12 +167,15 @@ CREATE INDEX idx_lineup_movies_movie_id ON lineup_movies(movie_id);
 -- ============================================================================
 -- Auto-update updated_at timestamp on row changes
 CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE TRIGGER update_contests_updated_at BEFORE UPDATE ON contests
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -206,28 +209,28 @@ CREATE POLICY "Anyone can view user profiles"
 
 CREATE POLICY "Users can insert their own profile"
   ON user_profiles FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK ((select auth.uid()) = user_id);
 
 CREATE POLICY "Users can update their own profile"
   ON user_profiles FOR UPDATE
-  USING (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id);
 
 -- ENTRIES: Users can only see and manage their own entries
 CREATE POLICY "Users can view their own entries"
   ON entries FOR SELECT
-  USING (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id);
 
 CREATE POLICY "Users can insert their own entries"
   ON entries FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK ((select auth.uid()) = user_id);
 
 CREATE POLICY "Users can update their own entries"
   ON entries FOR UPDATE
-  USING (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id);
 
 CREATE POLICY "Users can delete their own entries"
   ON entries FOR DELETE
-  USING (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id);
 
 -- LINEUPS: Users can manage lineups through entries relationship
 -- Allow access if user owns an entry that references this lineup
@@ -237,7 +240,7 @@ CREATE POLICY "Users can view their own lineups"
     EXISTS (
       SELECT 1 FROM entries
       WHERE entries.lineup_id = lineups.id
-      AND entries.user_id = auth.uid()
+      AND entries.user_id = (select auth.uid())
     )
   );
 
@@ -251,7 +254,7 @@ CREATE POLICY "Users can update their own lineups"
     EXISTS (
       SELECT 1 FROM entries
       WHERE entries.lineup_id = lineups.id
-      AND entries.user_id = auth.uid()
+      AND entries.user_id = (select auth.uid())
     )
   );
 
@@ -262,7 +265,7 @@ CREATE POLICY "Users can view their lineup movies"
     EXISTS (
       SELECT 1 FROM entries
       WHERE entries.lineup_id = lineup_movies.lineup_id
-      AND entries.user_id = auth.uid()
+      AND entries.user_id = (select auth.uid())
     )
   );
 
@@ -272,7 +275,7 @@ CREATE POLICY "Users can insert lineup movies"
     EXISTS (
       SELECT 1 FROM entries
       WHERE entries.lineup_id = lineup_movies.lineup_id
-      AND entries.user_id = auth.uid()
+      AND entries.user_id = (select auth.uid())
     )
   );
 
@@ -282,7 +285,7 @@ CREATE POLICY "Users can delete their lineup movies"
     EXISTS (
       SELECT 1 FROM entries
       WHERE entries.lineup_id = lineup_movies.lineup_id
-      AND entries.user_id = auth.uid()
+      AND entries.user_id = (select auth.uid())
     )
   );
 
@@ -297,7 +300,7 @@ CREATE POLICY "Admins can insert contests"
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM admin_users
-      WHERE admin_users.user_id = auth.uid()
+      WHERE admin_users.user_id = (select auth.uid())
     )
   );
 
@@ -306,7 +309,7 @@ CREATE POLICY "Admins can update contests"
   USING (
     EXISTS (
       SELECT 1 FROM admin_users
-      WHERE admin_users.user_id = auth.uid()
+      WHERE admin_users.user_id = (select auth.uid())
     )
   );
 
@@ -315,7 +318,7 @@ CREATE POLICY "Admins can delete contests"
   USING (
     EXISTS (
       SELECT 1 FROM admin_users
-      WHERE admin_users.user_id = auth.uid()
+      WHERE admin_users.user_id = (select auth.uid())
     )
   );
 
@@ -330,7 +333,7 @@ CREATE POLICY "Admins can insert movies"
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM admin_users
-      WHERE admin_users.user_id = auth.uid()
+      WHERE admin_users.user_id = (select auth.uid())
     )
   );
 
@@ -339,7 +342,7 @@ CREATE POLICY "Admins can update movies"
   USING (
     EXISTS (
       SELECT 1 FROM admin_users
-      WHERE admin_users.user_id = auth.uid()
+      WHERE admin_users.user_id = (select auth.uid())
     )
   );
 
@@ -348,14 +351,14 @@ CREATE POLICY "Admins can delete movies"
   USING (
     EXISTS (
       SELECT 1 FROM admin_users
-      WHERE admin_users.user_id = auth.uid()
+      WHERE admin_users.user_id = (select auth.uid())
     )
   );
 
 -- ADMIN_USERS: Users can check their own admin status
 CREATE POLICY "Users can check own admin status"
   ON admin_users FOR SELECT
-  USING (user_id = auth.uid());
+  USING (user_id = (select auth.uid()));
 
 -- ============================================================================
 -- NOTES

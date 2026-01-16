@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { OrganizationJsonLd } from '@/components/json-ld'
+import { Footer } from '@/components/footer'
 import { Toaster } from 'sonner'
 
 const siteUrl = 'https://www.shugsy.com'
@@ -78,10 +79,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className="min-h-screen flex flex-col">
         <OrganizationJsonLd />
         <Toaster position="top-center" richColors />
-        {children}
+        <div className="flex-1">{children}</div>
+        <Footer />
       </body>
     </html>
   )
