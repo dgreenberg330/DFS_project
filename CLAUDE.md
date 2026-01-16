@@ -189,6 +189,29 @@ Primary: "box office fantasy", "movie fantasy sports", "predict box office", "op
 - Do NOT push to remote until user has tested changes locally
 - Start dev server (`npm run dev`) and wait for user approval before pushing
 
+## Versioning
+
+Use **Semantic Versioning** with git tags: `vMAJOR.MINOR.PATCH`
+
+| Version | When to bump | Examples |
+|---------|--------------|----------|
+| **PATCH** (v1.0.x) | Bug fixes, small tweaks | Fix scoring bug, typo fixes, styling adjustments |
+| **MINOR** (v1.x.0) | New features, backward-compatible | Email notifications, new pages, admin tools |
+| **MAJOR** (vx.0.0) | Breaking changes, major redesigns | New scoring system, schema overhaul, complete UI redesign |
+
+**When to create a tag** (proactively, without being asked):
+- After shipping a notable new feature
+- Before a contest weekend when multiple changes have been made
+- Before making risky or experimental changes (as a rollback point)
+
+**How to tag:**
+```bash
+git tag -a v1.0.1 -m "Brief description of changes"
+git push origin v1.0.1
+```
+
+Current version: v1.0.0 (January 2025)
+
 ## Weekly Operations Workflow
 
 - **Monday-Tuesday**: Enter movie slate, projections, set salaries
