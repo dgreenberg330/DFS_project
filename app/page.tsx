@@ -45,9 +45,7 @@ export default async function LandingPage() {
                 <span className="text-teal-400"> Box Office</span>
               </h1>
             <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
-              Predict what America watches this weekend.
-              <br />
-              Test your box office forecasting skills. Free to play.
+              Predict what America watches this weekend. Draft the top movies.
             </p>
 
             {/* CTA */}
