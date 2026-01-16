@@ -5,6 +5,7 @@
 import Link from 'next/link';
 import { getCurrentContest } from '@/actions/contests';
 import { Header } from '@/components/header';
+import { ExpandableMovieList } from '@/components/expandable-movie-list';
 import { WebApplicationJsonLd, FAQJsonLd } from '@/components/json-ld';
 import type { Metadata } from 'next';
 
@@ -44,7 +45,9 @@ export default async function LandingPage() {
                 <span className="text-teal-400"> Box Office</span>
               </h1>
             <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
-              Pick your lineup. Compete on domestic weekend box office.
+              Predict what America watches this weekend.
+              <br />
+              Test your box office forecasting skills. Free to play.
             </p>
 
             {/* CTA */}
@@ -75,6 +78,13 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
+
+        {/* Movie Slate Preview */}
+        {currentContest && currentContest.movies.length > 0 && (
+          <div className="max-w-4xl mx-auto px-4 -mt-8 mb-16">
+            <ExpandableMovieList movies={currentContest.movies} />
+          </div>
+        )}
 
         <div className="max-w-4xl mx-auto px-4 -mt-8">
           {/* How It Works */}

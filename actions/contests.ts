@@ -105,6 +105,7 @@ export async function getContest(contestId: string) {
 
 /**
  * Gets the current active contest (most recent upcoming or locked contest)
+ * Includes movies sorted by salary descending
  */
 export async function getCurrentContest() {
   const supabase = await createClient();
@@ -125,7 +126,18 @@ export async function getCurrentContest() {
     throw new Error(`Failed to fetch current contest: ${error.message}`);
   }
 
-  return contest;
+  // Fetch movies for the contest
+  const { data: movies, error: moviesError } = await supabase
+    .from('movies')
+    .select('*')
+    .eq('contest_id', contest.id)
+    .order('salary', { ascending: false });
+
+  if (moviesError) {
+    throw new Error(`Failed to load movies: ${moviesError.message}`);
+  }
+
+  return { ...contest, movies: movies || [] };
 }
 
 /**
