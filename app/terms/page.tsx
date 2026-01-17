@@ -289,7 +289,7 @@ export default function TermsPage() {
               <h2 className="text-xl font-semibold text-gray-900 mb-3">19. Governing Law</h2>
               <p>
                 These Terms shall be governed by and construed in accordance with the laws of the State of
-                Delaware, United States, without regard to its conflict of law provisions. Our failure to enforce
+                New York, United States, without regard to its conflict of law provisions. Our failure to enforce
                 any right or provision of these Terms will not be considered a waiver of those rights.
               </p>
             </section>
@@ -307,7 +307,7 @@ export default function TermsPage() {
               </p>
               <p>
                 Any formal legal proceedings shall be brought exclusively in the state or federal courts located
-                in Delaware, and you consent to the personal jurisdiction of such courts.
+                in New York, and you consent to the personal jurisdiction of such courts.
               </p>
             </section>
 
