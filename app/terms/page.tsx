@@ -188,6 +188,10 @@ export default function TermsPage() {
                 You are solely responsible for the accuracy, quality, integrity, legality, reliability, and
                 appropriateness of your User Data.
               </p>
+              <p>
+                The operator maintains commercially reasonable security measures but cannot guarantee absolute
+                security. By using the Service, you acknowledge the inherent risks of internet-based data storage.
+              </p>
             </section>
 
             {/* Section 12 */}
@@ -270,6 +274,12 @@ export default function TermsPage() {
                 OR LOSSES, ARISING OUT OF OR RELATED TO YOUR USE OF OR INABILITY TO USE THE SERVICE. SOME
                 JURISDICTIONS DO NOT ALLOW THE EXCLUSION OR LIMITATION OF INCIDENTAL OR CONSEQUENTIAL DAMAGES,
                 SO THE ABOVE LIMITATION MAY NOT APPLY TO YOU.
+              </p>
+              <p>
+                Shugsy is operated as an unincorporated sole proprietorship. Limitations of liability in these
+                Terms reflect the maximum extent permitted by law for individual operators, which may vary by
+                jurisdiction. Nothing in these Terms limits liability for fraud, gross negligence, or intentional
+                misconduct.
               </p>
             </section>
 
