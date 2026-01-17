@@ -25,7 +25,7 @@ export default function TermsPage() {
       <main className="max-w-3xl mx-auto px-4 py-12">
         <article className="bg-white rounded-lg shadow p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Terms of Service</h1>
-          <p className="text-sm text-gray-500 mb-8">Last Updated: January 17, 2025</p>
+          <p className="text-sm text-gray-500 mb-8">Last Updated: January 17, 2026</p>
 
           <div className="prose prose-gray max-w-none space-y-6 text-gray-700 leading-relaxed">
             {/* Section 1 */}
@@ -81,9 +81,10 @@ export default function TermsPage() {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">5. Eligibility</h2>
               <p>
-                To use our Service, you must be at least 13 years old. By using our Service, you represent and
-                warrant that you meet the eligibility requirements. If you are using the Service on behalf of
-                an organization, you represent and warrant that the organization agrees to be bound by these Terms.
+                To use our Service, you must be at least 18 years old or the age of legal majority in your
+                jurisdiction, whichever is greater. By using our Service, you represent and warrant that you
+                meet the eligibility requirements. If you are using the Service on behalf of an organization,
+                you represent and warrant that the organization agrees to be bound by these Terms.
               </p>
             </section>
 
@@ -97,6 +98,10 @@ export default function TermsPage() {
                 The Service is provided for entertainment purposes only and does not involve real money prizes
                 or gambling.
               </p>
+              <p>
+                The Service may not be available in all states or jurisdictions. You are responsible for
+                determining whether your use of the Service is lawful in your jurisdiction.
+              </p>
             </section>
 
             {/* Section 7 */}
@@ -109,7 +114,7 @@ export default function TermsPage() {
                 <li>Lineups must stay within the $100 salary cap</li>
                 <li>Lineups must be submitted before the Contest lock time (typically Thursday 8PM ET)</li>
                 <li>Lineups cannot be modified after the lock time</li>
-                <li>Scoring is based on official domestic opening weekend box office figures (Friday-Sunday)</li>
+                <li>Scoring is based on official domestic opening weekend box office figures (Friday-Sunday) from Box Office Mojo</li>
                 <li>Points are awarded at a rate of 1 point per $1 million in box office gross</li>
                 <li>All decisions regarding scoring and rankings are final</li>
               </ul>

@@ -24,7 +24,7 @@ export default function PrivacyPage() {
       <main className="max-w-3xl mx-auto px-4 py-12">
         <article className="bg-white rounded-lg shadow p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Privacy Policy</h1>
-          <p className="text-sm text-gray-500 mb-8">Effective Date: January 17, 2025</p>
+          <p className="text-sm text-gray-500 mb-8">Effective Date: January 17, 2026</p>
 
           <div className="prose prose-gray max-w-none space-y-6 text-gray-700 leading-relaxed">
             {/* Section 1 */}
@@ -309,16 +309,11 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">11. Children's Privacy</h2>
               <p>
-                Our Service does not address anyone under the age of 13. We do not knowingly collect personally
-                identifiable information from anyone under the age of 13. If you are a parent or guardian and you
-                are aware that your child has provided us with Personal Data, please contact us. If we become aware
-                that we have collected Personal Data from anyone under the age of 13 without verification of
-                parental consent, we take steps to remove that information from our servers.
-              </p>
-              <p>
-                If we need to rely on consent as a legal basis for processing your information and your country
-                requires consent from a parent, we may require your parent's consent before we collect and use
-                that information.
+                Our Service is intended for users who are at least 18 years old. We do not knowingly collect
+                personally identifiable information from anyone under the age of 18. If you are a parent or
+                guardian and you are aware that your child has provided us with Personal Data, please contact us.
+                If we become aware that we have collected Personal Data from anyone under the age of 18, we take
+                steps to remove that information from our servers and terminate the associated account.
               </p>
             </section>
 
