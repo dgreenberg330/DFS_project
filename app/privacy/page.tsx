@@ -153,6 +153,13 @@ export default function PrivacyPage() {
                 comply with our legal obligations (for example, if we are required to retain your data to comply
                 with applicable laws), resolve disputes, and enforce our legal agreements and policies.
               </p>
+              <p className="mb-2">We retain personal data according to the following schedules:</p>
+              <ul className="list-disc pl-6 space-y-1">
+                <li><strong>Account information:</strong> Duration of account plus 90 days after account closure request</li>
+                <li><strong>Contest entries and scores:</strong> 2 years after contest resolution for audit and dispute purposes</li>
+                <li><strong>Usage data:</strong> 24 months, then anonymized for analytics</li>
+                <li><strong>Email communications:</strong> Duration of account plus 30 days</li>
+              </ul>
               <p>
                 Shugsy will also retain Usage Data for internal analysis purposes. Usage Data is generally
                 retained for a shorter period of time, except when this data is used to strengthen the security
@@ -282,7 +289,24 @@ export default function PrivacyPage() {
 
             {/* Section 10 */}
             <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">10. Children's Privacy</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">10. Data Breach Notification</h2>
+              <p className="mb-2">
+                In the event of a data breach affecting your personal information, we will:
+              </p>
+              <ul className="list-disc pl-6 space-y-1">
+                <li>Notify affected individuals within 72 hours of discovery when feasible</li>
+                <li>Notify the relevant supervisory authorities as required by applicable law</li>
+                <li>Provide information about the nature of the breach, categories of data affected, and steps you can take to protect yourself</li>
+              </ul>
+              <p>
+                We maintain incident response procedures to detect, respond to, and recover from potential security
+                incidents affecting your personal data.
+              </p>
+            </section>
+
+            {/* Section 11 */}
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">11. Children's Privacy</h2>
               <p>
                 Our Service does not address anyone under the age of 13. We do not knowingly collect personally
                 identifiable information from anyone under the age of 13. If you are a parent or guardian and you
@@ -297,9 +321,9 @@ export default function PrivacyPage() {
               </p>
             </section>
 
-            {/* Section 11 */}
+            {/* Section 12 */}
             <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">11. Your Data Protection Rights</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">12. Your Data Protection Rights</h2>
               <p>
                 Depending on your location and applicable laws, you may have certain rights regarding your personal
                 information, including rights to access, correct, delete, or restrict use of your information. We
@@ -307,7 +331,7 @@ export default function PrivacyPage() {
                 the information that you have shared with us.
               </p>
 
-              <h3 className="text-lg font-medium text-gray-900 mt-4 mb-2">11.1 General Data Access & Deletion Rights</h3>
+              <h3 className="text-lg font-medium text-gray-900 mt-4 mb-2">12.1 General Data Access & Deletion Rights</h3>
               <p className="mb-2">Regardless of your location, you can make the following requests regarding your personal data:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>
@@ -326,7 +350,7 @@ export default function PrivacyPage() {
                 may need to verify your identity before processing your request.
               </p>
 
-              <h3 className="text-lg font-medium text-gray-900 mt-4 mb-2">11.2 CCPA Privacy Rights (California Residents)</h3>
+              <h3 className="text-lg font-medium text-gray-900 mt-4 mb-2">12.2 CCPA Privacy Rights (California Residents)</h3>
               <p className="mb-2">
                 If you are a California resident, you are entitled to learn what data we collect about you, ask to
                 delete your data and not to sell (share) it. To exercise your data protection rights, you can make
@@ -374,11 +398,18 @@ export default function PrivacyPage() {
                   team@shugsy.com
                 </a>
               </p>
+
+              <h3 className="text-lg font-medium text-gray-900 mt-4 mb-2">12.3 Global Privacy Control (GPC)</h3>
+              <p>
+                We honor Global Privacy Control (GPC) signals. If your browser sends a GPC signal, we will treat
+                it as a valid request to opt out of the sale or sharing of your personal information as defined
+                under applicable privacy laws, including the CCPA.
+              </p>
             </section>
 
-            {/* Section 12 */}
+            {/* Section 13 */}
             <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">12. Service Providers</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">13. Service Providers</h2>
               <p>
                 We may employ third-party companies and individuals to facilitate our Service ("Service Providers"),
                 to provide the Service on our behalf, to perform Service-related services or to assist us in
@@ -390,9 +421,9 @@ export default function PrivacyPage() {
               </p>
             </section>
 
-            {/* Section 13 */}
+            {/* Section 14 */}
             <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">13. Links to Other Sites</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">14. Links to Other Sites</h2>
               <p>
                 Our Service may contain links to other sites that are not operated by us. If you click on a third
                 party link, you will be directed to that third party's site. We strongly advise you to review the
@@ -404,9 +435,9 @@ export default function PrivacyPage() {
               </p>
             </section>
 
-            {/* Section 14 */}
+            {/* Section 15 */}
             <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">14. Changes to This Privacy Policy</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">15. Changes to This Privacy Policy</h2>
               <p>
                 We may update our Privacy Policy from time to time. We will notify you of any changes by posting
                 the new Privacy Policy on this page.
@@ -421,9 +452,9 @@ export default function PrivacyPage() {
               </p>
             </section>
 
-            {/* Section 15 */}
+            {/* Section 16 */}
             <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">15. Contact Us</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">16. Contact Us</h2>
               <p className="mb-2">If you have any questions about this Privacy Policy, please contact us:</p>
               <ul className="list-disc pl-6 space-y-1">
                 <li>
