@@ -294,8 +294,9 @@ export default function PrivacyPage() {
                 In the event of a data breach affecting your personal information, we will:
               </p>
               <ul className="list-disc pl-6 space-y-1">
-                <li>Notify affected individuals within 72 hours of discovery when feasible</li>
-                <li>Notify the relevant supervisory authorities as required by applicable law</li>
+                <li>Notify affected California residents within 30 days of discovery</li>
+                <li>Notify affected Delaware residents within 60 days of discovery</li>
+                <li>Notify the California Attorney General within 15 days if 500 or more California residents are affected</li>
                 <li>Provide information about the nature of the breach, categories of data affected, and steps you can take to protect yourself</li>
               </ul>
               <p>
