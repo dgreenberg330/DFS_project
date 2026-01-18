@@ -155,11 +155,12 @@ export async function lockExpiredContests(): Promise<string[]> {
   // Admin access required
   await checkAdminAccess();
 
-  const supabase = await createClient();
+  // Use admin client throughout to bypass RLS (entries table restricts to own entries)
+  const adminClient = createAdminClient();
   const now = new Date().toISOString();
 
   // Find all upcoming contests whose lock_time has passed
-  const { data: expiredContests, error: fetchError } = await supabase
+  const { data: expiredContests, error: fetchError } = await adminClient
     .from('contests')
     .select('id')
     .eq('status', ContestStatus.UPCOMING)
@@ -181,7 +182,7 @@ export async function lockExpiredContests(): Promise<string[]> {
   }
 
   // Update contests to locked status
-  const { error: contestError } = await supabase
+  const { error: contestError } = await adminClient
     .from('contests')
     .update({ status: ContestStatus.LOCKED })
     .in('id', contestIds);
@@ -190,8 +191,8 @@ export async function lockExpiredContests(): Promise<string[]> {
     throw new Error(`Failed to lock contests. Please try again: ${contestError.message}`);
   }
 
-  // Get all lineups for these contests via entries
-  const { data: entries, error: entriesError } = await supabase
+  // Get all lineups for these contests via entries (admin client bypasses RLS)
+  const { data: entries, error: entriesError } = await adminClient
     .from('entries')
     .select('lineup_id')
     .in('contest_id', contestIds);
@@ -205,9 +206,6 @@ export async function lockExpiredContests(): Promise<string[]> {
 
     // Defensive check: only proceed if we have lineup IDs
     if (lineupIds.length > 0) {
-      // Use admin client to bypass RLS for updating other users' lineups
-      const adminClient = createAdminClient();
-
       // Update all lineups to locked status
       const { error: lineupError } = await adminClient
         .from('lineups')
