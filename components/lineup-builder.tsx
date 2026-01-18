@@ -4,10 +4,16 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { submitLineup } from '@/actions/lineups';
 import { validateLineup } from '@/lib/validation';
 import { toast } from 'sonner';
+import {
+  trackLineupBuilderOpened,
+  trackLineupSubmitted,
+  trackLineupAbandoned,
+  getAbandonedStage,
+} from '@/lib/gtm';
 import type { ContestWithMovies, Movie } from '@/types';
 
 interface LineupBuilderProps {
@@ -15,6 +21,7 @@ interface LineupBuilderProps {
   movies: Movie[];
   existingMovieIds: string[];
   isLocked: boolean;
+  userId: string;
 }
 
 export function LineupBuilder({
@@ -22,6 +29,7 @@ export function LineupBuilder({
   movies,
   existingMovieIds,
   isLocked,
+  userId,
 }: LineupBuilderProps) {
   // Defensive check: ensure existingMovieIds is an array
   const safeExistingIds = Array.isArray(existingMovieIds) ? existingMovieIds : [];
@@ -30,6 +38,9 @@ export function LineupBuilder({
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Track if lineup was submitted (to prevent abandoned tracking after submit)
+  const hasSubmittedRef = useRef(false);
 
   // Defensive check: ensure movies is an array
   const safeMovies = Array.isArray(movies) ? movies : [];
@@ -48,6 +59,44 @@ export function LineupBuilder({
     (sum, movie) => sum + (movie.projected_gross || 0),
     0
   );
+
+  // GTM: Track lineup builder opened on mount
+  useEffect(() => {
+    if (!isLocked) {
+      trackLineupBuilderOpened({
+        contest_id: contest.id,
+        user_id: userId,
+      });
+    }
+  }, [contest.id, userId, isLocked]);
+
+  // GTM: Track abandoned lineup on page unload/navigation
+  const trackAbandoned = useCallback(() => {
+    // Don't track if already submitted or if contest is locked
+    if (hasSubmittedRef.current || isLocked) return;
+
+    const stage = getAbandonedStage(selectedMovieIds.length, validation.isValid);
+    trackLineupAbandoned({
+      contest_id: contest.id,
+      user_id: userId,
+      stage_abandoned: stage,
+    });
+  }, [contest.id, userId, selectedMovieIds.length, validation.isValid, isLocked]);
+
+  useEffect(() => {
+    // Track on beforeunload (page close/refresh)
+    const handleBeforeUnload = () => {
+      trackAbandoned();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Also track on component unmount (navigation away)
+      trackAbandoned();
+    };
+  }, [trackAbandoned]);
 
   // Toggle movie selection
   function toggleMovie(movieId: string) {
@@ -96,7 +145,19 @@ export function LineupBuilder({
         contest_id: contest.id,
         movie_ids: selectedMovieIds,
       });
+
+      // Mark as submitted to prevent abandoned tracking
+      hasSubmittedRef.current = true;
       setSubmitted(true);
+
+      // GTM: Track successful lineup submission
+      trackLineupSubmitted({
+        contest_id: contest.id,
+        user_id: userId,
+        salary_used: totalSalary,
+        num_movies: selectedMovieIds.length,
+      });
+
       toast.success('Lineup submitted successfully!');
     } catch (err: unknown) {
       // Provide more helpful error messages

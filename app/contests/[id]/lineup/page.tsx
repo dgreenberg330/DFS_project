@@ -95,6 +95,7 @@ export default async function LineupPage({ params }: PageProps) {
           movies={contest.movies}
           existingMovieIds={existingMovieIds}
           isLocked={contest.status !== 'upcoming'}
+          userId={user.id}
         />
       </div>
     </div>

@@ -8,10 +8,12 @@ import { getUserEntry } from '@/actions/lineups';
 import { ExpandableMovieList } from '@/components/expandable-movie-list';
 import { Header } from '@/components/header';
 import { ContestEventJsonLd, BreadcrumbJsonLd } from '@/components/json-ld';
+import { ContestViewTracker } from '@/components/gtm-tracker';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import type { Movie } from '@/types';
+import type { ContestStatus } from '@/lib/gtm';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -79,6 +81,10 @@ export default async function ContestPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ContestViewTracker
+        contestId={contestId}
+        contestStatus={contest.status as ContestStatus}
+      />
       <ContestEventJsonLd
         name={`${contest.name} - Box Office Fantasy`}
         description={`Predict opening weekend box office for movies like ${contest.movies?.slice(0, 3).map((m: Movie) => m.title).join(', ') || 'this weekend\'s releases'}. Free fantasy sports game.`}

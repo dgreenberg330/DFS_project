@@ -7,6 +7,7 @@ import { getLeaderboard } from '@/actions/scoring';
 import { getUser } from '@/lib/supabase-server';
 import { Header } from '@/components/header';
 import { BreadcrumbJsonLd } from '@/components/json-ld';
+import { LeaderboardViewTracker } from '@/components/gtm-tracker';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import type { Movie } from '@/types';
@@ -90,6 +91,10 @@ export default async function LeaderboardPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <LeaderboardViewTracker
+        contestId={contestId}
+        totalEntries={leaderboard.length}
+      />
       <BreadcrumbJsonLd
         items={[
           { name: 'Home', url: 'https://shugsy.com' },
