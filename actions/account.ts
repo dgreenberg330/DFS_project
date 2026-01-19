@@ -9,6 +9,83 @@ import { createAdminClient } from '@/lib/supabase-admin';
 import { redirect } from 'next/navigation';
 
 /**
+ * Gets the count of entries for the current user
+ * Used for analytics (contest_sequence dimension)
+ */
+export async function getUserEntryCount(): Promise<number> {
+  const user = await getUser();
+
+  if (!user) {
+    return 0;
+  }
+
+  const supabase = await createClient();
+
+  const { count, error } = await supabase
+    .from('entries')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error('Failed to fetch entry count:', error.message);
+    return 0;
+  }
+
+  return count || 0;
+}
+
+/**
+ * Gets the user's cohort - which contest week they first joined
+ * Returns the sequential contest number (1, 2, 3, etc.)
+ * Used for analytics (user_cohort dimension)
+ */
+export async function getUserCohort(): Promise<number> {
+  const user = await getUser();
+
+  if (!user) {
+    return 0;
+  }
+
+  const supabase = await createClient();
+
+  // Get user's first entry (earliest by created_at)
+  const { data: firstEntry, error: entryError } = await supabase
+    .from('entries')
+    .select('contest_id, contests(weekend_start)')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .single();
+
+  if (entryError || !firstEntry) {
+    return 0;
+  }
+
+  // Get the contest's weekend_start
+  const contest = Array.isArray(firstEntry.contests)
+    ? firstEntry.contests[0]
+    : firstEntry.contests;
+
+  if (!contest?.weekend_start) {
+    return 0;
+  }
+
+  // Count how many contests have weekend_start <= this contest's weekend_start
+  // This gives us the sequential contest number (cohort)
+  const { count, error: countError } = await supabase
+    .from('contests')
+    .select('*', { count: 'exact', head: true })
+    .lte('weekend_start', contest.weekend_start);
+
+  if (countError) {
+    console.error('Failed to calculate user cohort:', countError.message);
+    return 0;
+  }
+
+  return count || 0;
+}
+
+/**
  * Gets all past contest entries for current user
  * Includes contest info, lineup, movies, and rank
  * Ordered by most recent first

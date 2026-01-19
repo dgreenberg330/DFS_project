@@ -15,7 +15,14 @@ export type GTMEvent =
   | 'lineup_submitted'
   | 'lineup_abandoned'
   | 'contest_viewed'
-  | 'leaderboard_viewed';
+  | 'leaderboard_viewed'
+  | 'user_properties_set';
+
+// User property types for GA4 custom dimensions
+export interface UserProperties {
+  contest_sequence?: number; // 1, 2, 3, etc. (how many contests user has entered)
+  user_cohort?: number; // Which contest week the user first joined (1, 2, 3, etc.)
+}
 
 export type AbandonedStage = 'start' | 'midway' | 'near_end';
 export type ContestStatus = 'upcoming' | 'locked' | 'resolved';
@@ -135,4 +142,15 @@ export function getAbandonedStage(
     return 'near_end';
   }
   return 'midway';
+}
+
+/**
+ * Set user properties for GA4 custom dimensions
+ * These are user-scoped and persist across sessions in GA4
+ */
+export function setUserProperties(props: UserProperties): void {
+  pushToDataLayer({
+    event: 'user_properties_set',
+    user_properties: props,
+  });
 }

@@ -5,12 +5,21 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { getUser } from '@/lib/supabase-server';
+import { getUserEntryCount, getUserCohort } from '@/actions/account';
+import { UserPropertiesTracker } from '@/components/user-properties-tracker';
 
 export async function Header() {
   const user = await getUser();
+  const [entryCount, userCohort] = user
+    ? await Promise.all([getUserEntryCount(), getUserCohort()])
+    : [0, 0];
 
   return (
     <>
+      {/* Track user properties for GA4 custom dimensions */}
+      {user && (entryCount > 0 || userCohort > 0) && (
+        <UserPropertiesTracker contestSequence={entryCount} userCohort={userCohort} />
+      )}
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-teal-500 focus:text-white focus:rounded">
         Skip to content
       </a>
