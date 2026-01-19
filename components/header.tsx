@@ -10,9 +10,21 @@ import { UserPropertiesTracker } from '@/components/user-properties-tracker';
 
 export async function Header() {
   const user = await getUser();
-  const [entryCount, userCohort] = user
-    ? await Promise.all([getUserEntryCount(), getUserCohort()])
-    : [0, 0];
+
+  // Fetch analytics data - wrapped in try-catch to never crash the page
+  let entryCount = 0;
+  let userCohort = 0;
+  if (user) {
+    try {
+      [entryCount, userCohort] = await Promise.all([
+        getUserEntryCount(),
+        getUserCohort(),
+      ]);
+    } catch (error) {
+      // Silently fail - analytics should never crash the page
+      console.error('Failed to fetch user analytics data:', error);
+    }
+  }
 
   return (
     <>
