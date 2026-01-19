@@ -5,6 +5,7 @@
 'use server';
 
 import { createClient, getUser } from '@/lib/supabase-server';
+import { createAdminClient } from '@/lib/supabase-admin';
 import { validateLineup, validateMoviesInContest } from '@/lib/validation';
 import { ContestStatus, LineupStatus, SubmitLineupInput } from '@/types';
 import { revalidatePath } from 'next/cache';
@@ -162,7 +163,10 @@ export async function submitLineup(input: SubmitLineupInput) {
   }
 
   // No existing entry - create new lineup + entry
-  const { data: newLineup, error: lineupError } = await supabase
+  // Use admin client for lineup creation since lineups have no user_id
+  // (ownership is established through entries table, which uses RLS)
+  const adminClient = createAdminClient();
+  const { data: newLineup, error: lineupError } = await adminClient
     .from('lineups')
     .insert({
       status: LineupStatus.EDITABLE,
