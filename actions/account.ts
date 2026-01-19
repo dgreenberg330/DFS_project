@@ -49,15 +49,21 @@ export async function getUserCohort(): Promise<number> {
   const supabase = await createClient();
 
   // Get user's first entry (earliest by created_at)
+  // Use maybeSingle() to return null instead of throwing when no entries exist
   const { data: firstEntry, error: entryError } = await supabase
     .from('entries')
     .select('contest_id, contests(weekend_start)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: true })
     .limit(1)
-    .single();
+    .maybeSingle();
 
-  if (entryError || !firstEntry) {
+  if (entryError) {
+    console.error('Failed to fetch first entry:', entryError.message);
+    return 0;
+  }
+
+  if (!firstEntry) {
     return 0;
   }
 
