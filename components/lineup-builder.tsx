@@ -153,26 +153,35 @@ export function LineupBuilder({
     setSubmitting(true);
     setError(null);
 
+    // Mark as submitted early to prevent abandoned tracking
+    hasSubmittedRef.current = true;
+
+    // GTM: Track submission before server action (redirect prevents code after)
+    trackLineupSubmitted({
+      contest_id: contest.id,
+      user_id: userId,
+      salary_used: totalSalary,
+      num_movies: selectedMovieIds.length,
+    });
+
     try {
       await submitLineup({
         contest_id: contest.id,
         movie_ids: selectedMovieIds,
       });
 
-      // Mark as submitted to prevent abandoned tracking
-      hasSubmittedRef.current = true;
+      // This won't run - submitLineup redirects on success
       setSubmitted(true);
-
-      // GTM: Track successful lineup submission
-      trackLineupSubmitted({
-        contest_id: contest.id,
-        user_id: userId,
-        salary_used: totalSalary,
-        num_movies: selectedMovieIds.length,
-      });
-
       toast.success('Lineup submitted successfully!');
     } catch (err: unknown) {
+      // Re-throw redirect errors so Next.js handles them
+      if (err instanceof Error && err.message === 'NEXT_REDIRECT') {
+        throw err;
+      }
+
+      // Reset submitted flag on actual errors
+      hasSubmittedRef.current = false;
+
       // Provide more helpful error messages
       const errorMessage = err instanceof Error ? err.message : 'Failed to submit lineup. Please try again.';
       setError(errorMessage);
