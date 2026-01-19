@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { submitLineup } from '@/actions/lineups';
 import { validateLineup } from '@/lib/validation';
 import { toast } from 'sonner';
@@ -42,6 +42,10 @@ export function LineupBuilder({
   // Track if lineup was submitted (to prevent abandoned tracking after submit)
   const hasSubmittedRef = useRef(false);
 
+  // Refs to store latest values for abandoned tracking (avoids useEffect re-running)
+  const selectedCountRef = useRef(0);
+  const isValidRef = useRef(false);
+
   // Defensive check: ensure movies is an array
   const safeMovies = Array.isArray(movies) ? movies : [];
 
@@ -60,6 +64,12 @@ export function LineupBuilder({
     0
   );
 
+  // Keep refs updated with latest values for abandoned tracking
+  useEffect(() => {
+    selectedCountRef.current = selectedMovieIds.length;
+    isValidRef.current = validation.isValid;
+  }, [selectedMovieIds.length, validation.isValid]);
+
   // GTM: Track lineup builder opened on mount
   useEffect(() => {
     if (!isLocked) {
@@ -71,19 +81,20 @@ export function LineupBuilder({
   }, [contest.id, userId, isLocked]);
 
   // GTM: Track abandoned lineup on page unload/navigation
-  const trackAbandoned = useCallback(() => {
-    // Don't track if already submitted or if contest is locked
-    if (hasSubmittedRef.current || isLocked) return;
-
-    const stage = getAbandonedStage(selectedMovieIds.length, validation.isValid);
-    trackLineupAbandoned({
-      contest_id: contest.id,
-      user_id: userId,
-      stage_abandoned: stage,
-    });
-  }, [contest.id, userId, selectedMovieIds.length, validation.isValid, isLocked]);
-
+  // Only fires on actual page close/refresh or navigation away
   useEffect(() => {
+    const trackAbandoned = () => {
+      // Don't track if already submitted or if contest is locked
+      if (hasSubmittedRef.current || isLocked) return;
+
+      const stage = getAbandonedStage(selectedCountRef.current, isValidRef.current);
+      trackLineupAbandoned({
+        contest_id: contest.id,
+        user_id: userId,
+        stage_abandoned: stage,
+      });
+    };
+
     // Track on beforeunload (page close/refresh)
     const handleBeforeUnload = () => {
       trackAbandoned();
@@ -96,7 +107,9 @@ export function LineupBuilder({
       // Also track on component unmount (navigation away)
       trackAbandoned();
     };
-  }, [trackAbandoned]);
+    // Only run on mount/unmount - refs provide latest values
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contest.id, userId, isLocked]);
 
   // Toggle movie selection
   function toggleMovie(movieId: string) {
