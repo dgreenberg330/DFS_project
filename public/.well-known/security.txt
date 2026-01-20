@@ -1,0 +1,7 @@
+# Security Policy for Shugsy
+# https://securitytxt.org/
+
+Contact: mailto:team@shugsy.com
+Expires: 2027-01-20T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://www.shugsy.com/.well-known/security.txt

@@ -95,6 +95,10 @@ export async function middleware(request: NextRequest) {
     res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.headers.set('X-DNS-Prefetch-Control', 'on');
     res.headers.set(
+      'Strict-Transport-Security',
+      'max-age=31536000; includeSubDomains; preload'
+    );
+    res.headers.set(
       'Permissions-Policy',
       'camera=(), microphone=(), geolocation=(), interest-cohort=()'
     );
