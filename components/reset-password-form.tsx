@@ -23,8 +23,9 @@ export function ResetPasswordForm() {
       return;
     }
 
-    if (password.length < 6) {
-      toast.error('Password must be at least 6 characters.');
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      toast.error('Password must be at least 8 characters with uppercase, lowercase, and a number.');
       return;
     }
 
@@ -57,7 +58,7 @@ export function ResetPasswordForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base"
-          placeholder="At least 6 characters"
+          placeholder="Min 8 chars, upper, lower, number"
         />
       </div>
 

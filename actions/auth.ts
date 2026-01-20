@@ -10,6 +10,29 @@ import { headers } from 'next/headers';
 import { USERNAME_CONSTRAINTS } from '@/types';
 
 /**
+ * Password requirements:
+ * - At least 8 characters
+ * - At least one uppercase letter
+ * - At least one lowercase letter
+ * - At least one number
+ */
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const PASSWORD_ERROR = 'Password must be at least 8 characters with uppercase, lowercase, and a number.';
+
+/**
+ * Validates password strength
+ */
+function validatePassword(password: string): { isValid: boolean; error?: string } {
+  if (!password) {
+    return { isValid: false, error: 'Password is required.' };
+  }
+  if (!PASSWORD_REGEX.test(password)) {
+    return { isValid: false, error: PASSWORD_ERROR };
+  }
+  return { isValid: true };
+}
+
+/**
  * Signs in user with email and password
  */
 export async function signIn(email: string, password: string) {
@@ -17,8 +40,9 @@ export async function signIn(email: string, password: string) {
     return { error: 'Email address is required.' };
   }
 
-  if (!password || password.length < 6) {
-    return { error: 'Password must be at least 6 characters.' };
+  // For sign in, just check password exists (don't enforce new rules on existing passwords)
+  if (!password) {
+    return { error: 'Password is required.' };
   }
 
   const supabase = await createClient();
@@ -51,8 +75,10 @@ export async function signUp(email: string, password: string, username: string) 
     return { error: 'Please enter a valid email address.' };
   }
 
-  if (!password || password.length < 6) {
-    return { error: 'Password must be at least 6 characters.' };
+  // Validate password strength
+  const passwordValidation = validatePassword(password);
+  if (!passwordValidation.isValid) {
+    return { error: passwordValidation.error };
   }
 
   // Validate username
@@ -142,8 +168,9 @@ export async function resetPassword(email: string) {
  * Updates user password (after reset)
  */
 export async function updatePassword(password: string) {
-  if (!password || password.length < 6) {
-    return { error: 'Password must be at least 6 characters.' };
+  const passwordValidation = validatePassword(password);
+  if (!passwordValidation.isValid) {
+    return { error: passwordValidation.error };
   }
 
   const supabase = await createClient();

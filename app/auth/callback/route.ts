@@ -71,8 +71,11 @@ export async function GET(request: Request) {
         }
       }
 
-      // Defensive check: validate next path starts with /
-      const safePath = next.startsWith('/') ? next : '/account';
+      // Defensive check: validate next path is a safe relative path
+      // Prevents open redirect attacks (e.g., //evil.com or /\evil.com)
+      const safePath = next.startsWith('/') && !next.startsWith('//') && !next.startsWith('/\\')
+        ? next
+        : '/account';
       // Successful authentication, redirect to account or specified page
       return NextResponse.redirect(`${origin}${safePath}`);
     }
