@@ -77,21 +77,22 @@ export function LoginForm() {
         {loading ? 'Signing in...' : 'Sign In'}
       </button>
 
-      <p className="text-center text-sm text-gray-600">
-        Don't have an account?{' '}
-        <Link href="/signup" className="text-teal-600 hover:text-teal-700 hover:underline font-medium">
-          Sign up
-        </Link>
-      </p>
-
-      <p className="text-center text-sm">
-        <Link
-          href="/forgot-password"
-          className="text-teal-600 hover:text-teal-700 hover:underline"
-        >
-          Forgot your password?
-        </Link>
-      </p>
+      <div className="text-center text-sm space-y-2">
+        <p className="text-gray-600">
+          Don't have an account?{' '}
+          <Link href="/signup" className="text-teal-600 hover:text-teal-700 hover:underline font-medium">
+            Sign up
+          </Link>
+        </p>
+        <p>
+          <Link
+            href="/forgot-password"
+            className="text-teal-600 hover:text-teal-700 hover:underline"
+          >
+            Forgot your password?
+          </Link>
+        </p>
+      </div>
     </form>
   );
 }

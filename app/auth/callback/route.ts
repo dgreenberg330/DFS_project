@@ -44,8 +44,30 @@ export async function GET(request: Request) {
           .maybeSingle();
 
         if (!profile) {
-          // First login - redirect to username setup
-          return NextResponse.redirect(`${origin}/setup-username`);
+          // Check if username was provided during signup (stored in user metadata)
+          const usernameFromMetadata = user.user_metadata?.username;
+
+          if (usernameFromMetadata) {
+            // Create profile with username from signup
+            const { error: profileError } = await supabase
+              .from('user_profiles')
+              .insert({
+                user_id: user.id,
+                username: usernameFromMetadata,
+              });
+
+            if (profileError) {
+              console.error('Failed to create profile:', profileError.message);
+              // If username is taken (race condition), redirect to setup
+              if (profileError.code === '23505') {
+                return NextResponse.redirect(`${origin}/setup-username?error=username_taken`);
+              }
+            }
+            // Profile created successfully, continue to account
+          } else {
+            // No username in metadata - redirect to username setup (legacy flow)
+            return NextResponse.redirect(`${origin}/setup-username`);
+          }
         }
       }
 

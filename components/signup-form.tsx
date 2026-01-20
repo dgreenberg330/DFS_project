@@ -11,6 +11,7 @@ import Link from 'next/link';
 
 export function SignupForm() {
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [ageConfirmed, setAgeConfirmed] = useState(false);
@@ -39,7 +40,7 @@ export function SignupForm() {
     setLoading(true);
     setEmailExistsError(false);
 
-    const result = await signUp(email, password);
+    const result = await signUp(email, password, username);
 
     setLoading(false);
 
@@ -92,6 +93,24 @@ export function SignupForm() {
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base"
           placeholder="you@example.com"
         />
+      </div>
+
+      <div>
+        <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+          Username
+        </label>
+        <input
+          id="username"
+          name="username"
+          type="text"
+          autoComplete="username"
+          required
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base"
+          placeholder="Choose a username"
+        />
+        <p className="mt-1 text-xs text-gray-500">3-20 characters, letters, numbers, and underscores only</p>
       </div>
 
       <div>

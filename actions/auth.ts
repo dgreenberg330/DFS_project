@@ -7,6 +7,7 @@
 import { createClient } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
+import { USERNAME_CONSTRAINTS } from '@/types';
 
 /**
  * Signs in user with email and password
@@ -38,9 +39,9 @@ export async function signIn(email: string, password: string) {
 }
 
 /**
- * Signs up new user with email and password
+ * Signs up new user with email, password, and username
  */
-export async function signUp(email: string, password: string) {
+export async function signUp(email: string, password: string, username: string) {
   if (!email || email.trim() === '') {
     return { error: 'Email address is required.' };
   }
@@ -54,21 +55,54 @@ export async function signUp(email: string, password: string) {
     return { error: 'Password must be at least 6 characters.' };
   }
 
+  // Validate username
+  if (!username || username.trim() === '') {
+    return { error: 'Username is required.' };
+  }
+
+  const trimmedUsername = username.trim();
+
+  if (trimmedUsername.length < USERNAME_CONSTRAINTS.MIN_LENGTH) {
+    return { error: `Username must be at least ${USERNAME_CONSTRAINTS.MIN_LENGTH} characters.` };
+  }
+
+  if (trimmedUsername.length > USERNAME_CONSTRAINTS.MAX_LENGTH) {
+    return { error: `Username must be at most ${USERNAME_CONSTRAINTS.MAX_LENGTH} characters.` };
+  }
+
+  if (!USERNAME_CONSTRAINTS.PATTERN.test(trimmedUsername)) {
+    return { error: `Username can only contain ${USERNAME_CONSTRAINTS.PATTERN_DESCRIPTION}.` };
+  }
+
   const supabase = await createClient();
   const headersList = await headers();
   const origin = headersList.get('origin') || 'http://localhost:3000';
+
+  // Check if username is already taken
+  const { data: existingUsername } = await supabase
+    .from('user_profiles')
+    .select('user_id')
+    .eq('username', trimmedUsername)
+    .maybeSingle();
+
+  if (existingUsername) {
+    return { error: 'Username is already taken. Please choose another.' };
+  }
 
   const { error } = await supabase.auth.signUp({
     email: email.trim(),
     password,
     options: {
       emailRedirectTo: `${origin}/auth/callback`,
+      data: {
+        username: trimmedUsername, // Store in user metadata
+      },
     },
   });
 
   if (error) {
     if (error.message.includes('already registered') || error.message.includes('already been registered')) {
-      return { error: 'This email is already in use.', code: 'EMAIL_EXISTS' };
+      return { error: 'An account with this email already exists.', code: 'EMAIL_EXISTS' };
     }
     return { error: error.message };
   }
