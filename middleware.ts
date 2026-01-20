@@ -168,7 +168,7 @@ export async function middleware(request: NextRequest) {
     );
     res.headers.set(
       'Permissions-Policy',
-      'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+      'camera=(), microphone=(), geolocation=(), payment=(), interest-cohort=()'
     );
   };
 
