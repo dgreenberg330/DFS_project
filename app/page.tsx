@@ -10,8 +10,8 @@ import { WebApplicationJsonLd, FAQJsonLd } from '@/components/json-ld';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Shugsy - Fantasy Sports for the Box Office | Predict Opening Weekend Grosses',
-  description: 'Play free box office fantasy sports. Pick your lineup of movies, stay under the salary cap, and score points based on domestic opening weekend gross. Compete weekly!',
+  title: 'Shugsy - Fantasy Sports for the Box Office',
+  description: 'Play free box office fantasy sports. Pick your lineup of movies, stay under the salary cap, and score points based on domestic weekend gross. Compete weekly!',
   alternates: {
     canonical: 'https://www.shugsy.com',
   },
