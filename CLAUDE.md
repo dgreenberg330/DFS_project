@@ -222,9 +222,9 @@ Current version: v1.0.0 (January 2025)
 ## Environment Variables
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://...      # Public - Supabase project URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...         # Public - Anonymous key (RLS enforced)
-SUPABASE_SERVICE_ROLE_KEY=...             # Private - Bypasses RLS (server only)
+SUPABASE_URL=https://...                  # Server-only - Supabase project URL
+SUPABASE_ANON_KEY=...                     # Server-only - Anonymous key (RLS enforced)
+SUPABASE_SERVICE_ROLE_KEY=...             # Server-only - Bypasses RLS (admin operations)
 ```
 
-Variables prefixed with `NEXT_PUBLIC_` are exposed to the browser. Never expose the service role key.
+All Supabase variables are server-only (no `NEXT_PUBLIC_` prefix) since all database operations happen server-side. This prevents API keys from being exposed in the client JavaScript bundle.

@@ -10,8 +10,8 @@ const siteUrl = 'https://shugsy.com'
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Create a simple Supabase client for sitemap generation (no auth needed)
   const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_ANON_KEY!
   )
 
   // Fetch all public contests (locked or resolved)

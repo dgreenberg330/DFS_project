@@ -58,9 +58,9 @@ git push
 
 | Name | Value | Description |
 |------|-------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://xxx.supabase.co` | Your Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJhbG...` | Public anon key (safe to expose) |
-| `SUPABASE_SERVICE_ROLE_KEY` | `eyJhbG...` | Secret service role key (never expose!) |
+| `SUPABASE_URL` | `https://xxx.supabase.co` | Your Supabase project URL |
+| `SUPABASE_ANON_KEY` | `eyJhbG...` | Anonymous key (RLS enforced) |
+| `SUPABASE_SERVICE_ROLE_KEY` | `eyJhbG...` | Service role key (bypasses RLS) |
 
 **Where to find these values:**
 
@@ -90,16 +90,17 @@ Vercel auto-detects Next.js. Verify these settings:
 
 ### Required Variables
 
-| Variable | Public? | Description |
-|----------|---------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Public key for client-side auth |
-| `SUPABASE_SERVICE_ROLE_KEY` | **NO** | Admin key - server-side only |
+| Variable | Description |
+|----------|-------------|
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_ANON_KEY` | Anonymous key (RLS enforced) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (bypasses RLS) |
 
 ### Security Notes
 
-- Variables starting with `NEXT_PUBLIC_` are exposed to the browser
-- `SUPABASE_SERVICE_ROLE_KEY` bypasses Row Level Security - never expose it
+- All Supabase variables are server-only (no `NEXT_PUBLIC_` prefix)
+- This prevents API keys from being exposed in client JavaScript bundles
+- `SUPABASE_SERVICE_ROLE_KEY` bypasses Row Level Security - admin operations only
 - Never commit `.env.local` to git (already in `.gitignore`)
 
 ---
@@ -170,7 +171,7 @@ Run through this checklist after deploying:
 |---------|-------|----------|
 | Magic links don't work | Supabase redirect URLs not configured | Add your Vercel URL to Supabase → Auth → URL Configuration |
 | "Missing Supabase admin credentials" | Missing env variable | Add `SUPABASE_SERVICE_ROLE_KEY` to Vercel |
-| Page loads but no data | Wrong Supabase URL | Check `NEXT_PUBLIC_SUPABASE_URL` is correct |
+| Page loads but no data | Wrong Supabase URL | Check `SUPABASE_URL` is correct |
 | Admin pages show "Unauthorized" | User not in admin_users table | Add your user_id to `admin_users` table in Supabase |
 | Build fails on Vercel | TypeScript or dependency error | Run `npm run build` locally to see detailed errors |
 | "Invalid login credentials" | Using wrong Supabase keys | Verify you're using keys from the correct Supabase project |

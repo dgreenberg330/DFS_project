@@ -30,18 +30,18 @@ Once project is ready:
 ```
 https://[your-project-ref].supabase.co
 ```
-Copy this to `NEXT_PUBLIC_SUPABASE_URL`
+Copy this to `SUPABASE_URL`
 
 ### API Keys
 You'll see two keys:
 
-**anon/public key** (safe to use in browser)
+**anon/public key** (used for authenticated requests with RLS)
 ```
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
-Copy this to `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+Copy this to `SUPABASE_ANON_KEY`
 
-**service_role key** (⚠️ KEEP SECRET - server only)
+**service_role key** (bypasses RLS - admin operations only)
 ```
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
@@ -52,10 +52,12 @@ Copy this to `SUPABASE_SERVICE_ROLE_KEY`
 Edit `/home/derek/DFS_project/.env.local`:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=https://yourprojectref.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...your-anon-key
+SUPABASE_URL=https://yourprojectref.supabase.co
+SUPABASE_ANON_KEY=eyJhbGc...your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...your-service-role-key
 ```
+
+Note: All variables are server-only (no `NEXT_PUBLIC_` prefix) to prevent exposure in client JavaScript.
 
 ## Step 5: Configure Authentication
 
