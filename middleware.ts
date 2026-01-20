@@ -1,9 +1,37 @@
 // ============================================================================
-// Middleware - Auth & Security Headers
+// Middleware - Auth, Security Headers & Rate Limiting
 // ============================================================================
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+// Initialize Redis client (only if env vars are set)
+const redis = process.env.UPSTASH_REDIS_REST_URL
+  ? new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    })
+  : null;
+
+// Rate limiters with different limits for different routes
+const rateLimiters = redis
+  ? {
+      // Strict limit for auth routes: 5 requests per minute
+      auth: new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(5, '1 m'),
+        prefix: 'ratelimit:auth',
+      }),
+      // General limit: 60 requests per minute
+      general: new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(60, '1 m'),
+        prefix: 'ratelimit:general',
+      }),
+    }
+  : null;
 
 /**
  * Generate a cryptographically secure nonce for CSP
@@ -74,11 +102,51 @@ function buildCSP(nonce: string): string {
 }
 
 /**
- * Middleware to handle Supabase auth session refresh and security headers
+ * Get client IP address from request
+ */
+function getClientIP(request: NextRequest): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  const realIP = request.headers.get('x-real-ip');
+
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  if (realIP) {
+    return realIP;
+  }
+  return '127.0.0.1';
+}
+
+/**
+ * Middleware to handle Supabase auth session refresh, security headers, and rate limiting
  */
 export async function middleware(request: NextRequest) {
   // Generate nonce for this request
   const nonce = generateNonce();
+  const pathname = request.nextUrl.pathname;
+
+  // Apply rate limiting if Redis is configured
+  if (rateLimiters) {
+    const ip = getClientIP(request);
+
+    // Use stricter rate limit for auth routes
+    const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/auth');
+    const limiter = isAuthRoute ? rateLimiters.auth : rateLimiters.general;
+
+    const { success, limit, reset } = await limiter.limit(ip);
+
+    if (!success) {
+      return new NextResponse('Too Many Requests', {
+        status: 429,
+        headers: {
+          'Retry-After': Math.ceil((reset - Date.now()) / 1000).toString(),
+          'X-RateLimit-Limit': limit.toString(),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': reset.toString(),
+        },
+      });
+    }
+  }
 
   let response = NextResponse.next({
     request: {
