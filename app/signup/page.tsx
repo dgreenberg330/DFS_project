@@ -1,31 +1,31 @@
 // ============================================================================
-// Login Page - Email + Password
+// Signup Page
 // ============================================================================
 
-import { LoginForm } from '@/components/login-form';
+import { SignupForm } from '@/components/signup-form';
 import { getUser } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { Header } from '@/components/header';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Sign In',
-  description: 'Sign in to Shugsy to play box office fantasy sports. Create lineups, predict opening weekend grosses, and compete on the leaderboard.',
+  title: 'Sign Up',
+  description: 'Create a free Shugsy account to play box office fantasy sports. Pick movies, predict opening weekend grosses, and compete on the leaderboard.',
   openGraph: {
-    title: 'Sign In to Shugsy',
-    description: 'Sign in to play free box office fantasy sports.',
-    url: 'https://www.shugsy.com/login',
+    title: 'Sign Up for Shugsy',
+    description: 'Create a free account to play box office fantasy sports.',
+    url: 'https://www.shugsy.com/signup',
     images: [{ url: '/shugsy-share.png', width: 1200, height: 628 }],
   },
   twitter: {
     images: [{ url: '/shugsy-share.png', width: 1200, height: 628 }],
   },
   alternates: {
-    canonical: 'https://www.shugsy.com/login',
+    canonical: 'https://www.shugsy.com/signup',
   },
 };
 
-export default async function LoginPage() {
+export default async function SignupPage() {
   // If already logged in, redirect to account
   const user = await getUser();
   if (user) {
@@ -39,14 +39,14 @@ export default async function LoginPage() {
         <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
           <div>
             <h2 className="text-center text-3xl font-bold text-gray-900">
-              Sign In
+              Create Account
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              Enter your email and password
+              Sign up to start playing
             </p>
           </div>
 
-          <LoginForm />
+          <SignupForm />
         </div>
       </div>
     </div>

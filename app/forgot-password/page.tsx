@@ -1,32 +1,20 @@
 // ============================================================================
-// Login Page - Email + Password
+// Forgot Password Page
 // ============================================================================
 
-import { LoginForm } from '@/components/login-form';
+import { ForgotPasswordForm } from '@/components/forgot-password-form';
 import { getUser } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { Header } from '@/components/header';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Sign In',
-  description: 'Sign in to Shugsy to play box office fantasy sports. Create lineups, predict opening weekend grosses, and compete on the leaderboard.',
-  openGraph: {
-    title: 'Sign In to Shugsy',
-    description: 'Sign in to play free box office fantasy sports.',
-    url: 'https://www.shugsy.com/login',
-    images: [{ url: '/shugsy-share.png', width: 1200, height: 628 }],
-  },
-  twitter: {
-    images: [{ url: '/shugsy-share.png', width: 1200, height: 628 }],
-  },
-  alternates: {
-    canonical: 'https://www.shugsy.com/login',
-  },
+  title: 'Reset Password',
+  description: 'Reset your Shugsy account password.',
+  robots: { index: false },
 };
 
-export default async function LoginPage() {
-  // If already logged in, redirect to account
+export default async function ForgotPasswordPage() {
   const user = await getUser();
   if (user) {
     redirect('/account');
@@ -39,14 +27,14 @@ export default async function LoginPage() {
         <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
           <div>
             <h2 className="text-center text-3xl font-bold text-gray-900">
-              Sign In
+              Reset Password
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              Enter your email and password
+              Enter your email and we'll send you a reset link
             </p>
           </div>
 
-          <LoginForm />
+          <ForgotPasswordForm />
         </div>
       </div>
     </div>

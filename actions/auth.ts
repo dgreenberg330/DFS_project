@@ -8,85 +8,118 @@ import { createClient } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 
-// Simple rate limiter for magic link requests
-// Note: In-memory, resets on server restart. For production, use Redis.
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 3; // Max 3 requests per minute per email
-
-function isRateLimited(email: string): boolean {
-  const now = Date.now();
-  const normalizedEmail = email.toLowerCase().trim();
-  const entry = rateLimitMap.get(normalizedEmail);
-
-  // Clean up expired entries periodically
-  if (rateLimitMap.size > 1000) {
-    for (const [key, value] of rateLimitMap.entries()) {
-      if (now > value.resetAt) {
-        rateLimitMap.delete(key);
-      }
-    }
-  }
-
-  if (!entry || now > entry.resetAt) {
-    // New window
-    rateLimitMap.set(normalizedEmail, {
-      count: 1,
-      resetAt: now + RATE_LIMIT_WINDOW_MS,
-    });
-    return false;
-  }
-
-  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
-    return true;
-  }
-
-  // Increment count
-  entry.count++;
-  return false;
-}
-
 /**
- * Sends magic link email to user
- *
- * @param email User's email address
- * @returns Success message or error
- *
- * Usage:
- * const result = await sendMagicLink('user@example.com');
+ * Signs in user with email and password
  */
-export async function sendMagicLink(email: string) {
-  // Defensive check: validate email
+export async function signIn(email: string, password: string) {
   if (!email || email.trim() === '') {
     return { error: 'Email address is required.' };
   }
 
-  // Basic email format validation
+  if (!password || password.length < 6) {
+    return { error: 'Password must be at least 6 characters.' };
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email: email.trim(),
+    password,
+  });
+
+  if (error) {
+    if (error.message.includes('Invalid login credentials')) {
+      return { error: 'Invalid email or password.' };
+    }
+    return { error: error.message };
+  }
+
+  return { success: true };
+}
+
+/**
+ * Signs up new user with email and password
+ */
+export async function signUp(email: string, password: string) {
+  if (!email || email.trim() === '') {
+    return { error: 'Email address is required.' };
+  }
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return { error: 'Please enter a valid email address.' };
   }
 
-  // Rate limiting check
-  if (isRateLimited(email)) {
-    return { error: 'Too many requests. Please wait a minute before trying again.' };
+  if (!password || password.length < 6) {
+    return { error: 'Password must be at least 6 characters.' };
   }
 
   const supabase = await createClient();
   const headersList = await headers();
   const origin = headersList.get('origin') || 'http://localhost:3000';
 
-  // Send magic link via Supabase Auth
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
+  const { error } = await supabase.auth.signUp({
+    email: email.trim(),
+    password,
     options: {
-      // User will be redirected here after clicking link
       emailRedirectTo: `${origin}/auth/callback`,
     },
   });
 
   if (error) {
-    return { error: `Unable to send login link: ${error.message}` };
+    if (error.message.includes('already registered') || error.message.includes('already been registered')) {
+      return { error: 'This email is already in use.', code: 'EMAIL_EXISTS' };
+    }
+    return { error: error.message };
+  }
+
+  return { success: true, message: 'Check your email to confirm your account.' };
+}
+
+/**
+ * Sends password reset email
+ */
+export async function resetPassword(email: string) {
+  if (!email || email.trim() === '') {
+    return { error: 'Email address is required.' };
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return { error: 'Please enter a valid email address.' };
+  }
+
+  const supabase = await createClient();
+  const headersList = await headers();
+  const origin = headersList.get('origin') || 'http://localhost:3000';
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+    redirectTo: `${origin}/auth/callback?next=/account/reset-password`,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true };
+}
+
+/**
+ * Updates user password (after reset)
+ */
+export async function updatePassword(password: string) {
+  if (!password || password.length < 6) {
+    return { error: 'Password must be at least 6 characters.' };
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.updateUser({
+    password,
+  });
+
+  if (error) {
+    return { error: error.message };
   }
 
   return { success: true };

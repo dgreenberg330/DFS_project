@@ -1,36 +1,51 @@
 // ============================================================================
-// Login Form - Client Component
+// Forgot Password Form - Client Component
 // ============================================================================
 
 'use client';
 
-import { signIn } from '@/actions/auth';
+import { resetPassword } from '@/actions/auth';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
-export function LoginForm() {
+export function ForgotPasswordForm() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [success, setSuccess] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
 
-    const result = await signIn(email, password);
+    const result = await resetPassword(email);
 
     setLoading(false);
 
     if (result.error) {
       toast.error(result.error);
     } else {
-      toast.success('Signed in successfully!');
-      router.push('/account');
-      router.refresh();
+      toast.success('Check your email for the reset link!');
+      setSuccess(true);
     }
+  }
+
+  if (success) {
+    return (
+      <div className="mt-8 space-y-6">
+        <div className="p-4 rounded bg-green-50 text-green-800 text-center">
+          <p className="font-medium">Check your email!</p>
+          <p className="mt-2 text-sm">
+            We've sent a password reset link to <strong>{email}</strong>.
+          </p>
+        </div>
+        <p className="text-center text-sm text-gray-600">
+          <Link href="/login" className="text-teal-600 hover:text-teal-700 hover:underline font-medium">
+            Back to sign in
+          </Link>
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -52,44 +67,18 @@ export function LoginForm() {
         />
       </div>
 
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-          Password
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base"
-          placeholder="Enter your password"
-        />
-      </div>
-
       <button
         type="submit"
         disabled={loading}
         className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {loading ? 'Signing in...' : 'Sign In'}
+        {loading ? 'Sending...' : 'Send Reset Link'}
       </button>
 
       <p className="text-center text-sm text-gray-600">
-        Don't have an account?{' '}
-        <Link href="/signup" className="text-teal-600 hover:text-teal-700 hover:underline font-medium">
-          Sign up
-        </Link>
-      </p>
-
-      <p className="text-center text-sm">
-        <Link
-          href="/forgot-password"
-          className="text-teal-600 hover:text-teal-700 hover:underline"
-        >
-          Forgot your password?
+        Remember your password?{' '}
+        <Link href="/login" className="text-teal-600 hover:text-teal-700 hover:underline font-medium">
+          Sign in
         </Link>
       </p>
     </form>
