@@ -1,6 +1,6 @@
 // ============================================================================
 // Auth Callback Route Handler
-// Handles redirect after user clicks magic link in email
+// Handles redirect after user clicks email links (magic link, password reset)
 // ============================================================================
 
 import { createClient } from '@/lib/supabase-server';
@@ -15,6 +15,7 @@ export async function GET(request: Request) {
 
     const { searchParams, origin } = new URL(request.url);
     const code = searchParams.get('code');
+    const type = searchParams.get('type'); // 'recovery' for password reset
     const next = searchParams.get('next') ?? '/account';
 
     // Defensive check: validate code exists
@@ -69,6 +70,11 @@ export async function GET(request: Request) {
             return NextResponse.redirect(`${origin}/setup-username`);
           }
         }
+      }
+
+      // For password recovery flow, always redirect to reset-password page
+      if (type === 'recovery') {
+        return NextResponse.redirect(`${origin}/account/reset-password`);
       }
 
       // Defensive check: validate next path is a safe relative path
