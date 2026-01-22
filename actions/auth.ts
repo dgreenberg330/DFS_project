@@ -8,6 +8,66 @@ import { createClient } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { USERNAME_CONSTRAINTS } from '@/types';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+// ============================================================================
+// Rate Limiting for Auth Actions
+// ============================================================================
+
+// Initialize Redis client (only if env vars are set)
+const redis = process.env.UPSTASH_REDIS_REST_URL
+  ? new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    })
+  : null;
+
+// Strict rate limiter for actual auth attempts: 5 per minute per IP
+const authActionLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(5, '1 m'),
+      prefix: 'ratelimit:auth-action',
+    })
+  : null;
+
+/**
+ * Get client IP address from request headers
+ */
+async function getClientIP(): Promise<string> {
+  const headersList = await headers();
+  const forwarded = headersList.get('x-forwarded-for');
+  const realIP = headersList.get('x-real-ip');
+
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  if (realIP) {
+    return realIP;
+  }
+  return '127.0.0.1';
+}
+
+/**
+ * Check rate limit for auth actions
+ * Returns error message if rate limited, null if allowed
+ */
+async function checkAuthRateLimit(): Promise<string | null> {
+  if (!authActionLimiter) {
+    return null; // No rate limiting if Redis not configured
+  }
+
+  const ip = await getClientIP();
+  const { success, reset } = await authActionLimiter.limit(ip);
+
+  if (!success) {
+    const retryAfter = Math.ceil((reset - Date.now()) / 1000);
+    return `Too many attempts. Please try again in ${retryAfter} seconds.`;
+  }
+
+  return null;
+}
 
 /**
  * Password requirements:
@@ -36,6 +96,12 @@ function validatePassword(password: string): { isValid: boolean; error?: string 
  * Signs in user with email and password
  */
 export async function signIn(email: string, password: string) {
+  // Check rate limit first
+  const rateLimitError = await checkAuthRateLimit();
+  if (rateLimitError) {
+    return { error: rateLimitError };
+  }
+
   if (!email || email.trim() === '') {
     return { error: 'Email address is required.' };
   }
@@ -66,6 +132,12 @@ export async function signIn(email: string, password: string) {
  * Signs up new user with email, password, and username
  */
 export async function signUp(email: string, password: string, username: string) {
+  // Check rate limit first
+  const rateLimitError = await checkAuthRateLimit();
+  if (rateLimitError) {
+    return { error: rateLimitError };
+  }
+
   if (!email || email.trim() === '') {
     return { error: 'Email address is required.' };
   }
@@ -140,6 +212,12 @@ export async function signUp(email: string, password: string, username: string) 
  * Sends password reset email
  */
 export async function resetPassword(email: string) {
+  // Check rate limit first
+  const rateLimitError = await checkAuthRateLimit();
+  if (rateLimitError) {
+    return { error: rateLimitError };
+  }
+
   if (!email || email.trim() === '') {
     return { error: 'Email address is required.' };
   }

@@ -16,12 +16,15 @@ const redis = process.env.UPSTASH_REDIS_REST_URL
   : null;
 
 // Rate limiters with different limits for different routes
+// Note: Actual auth attempts (signIn, signUp, resetPassword) have stricter
+// action-level rate limiting in actions/auth.ts (5 attempts/min)
 const rateLimiters = redis
   ? {
-      // Strict limit for auth routes: 5 requests per minute
+      // Page-level limit for auth routes: 20 requests per minute
+      // (allows normal navigation, prefetching, RSC streaming)
       auth: new Ratelimit({
         redis,
-        limiter: Ratelimit.slidingWindow(5, '1 m'),
+        limiter: Ratelimit.slidingWindow(20, '1 m'),
         prefix: 'ratelimit:auth',
       }),
       // General limit: 60 requests per minute
