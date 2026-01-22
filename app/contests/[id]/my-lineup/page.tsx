@@ -138,24 +138,27 @@ export default async function MyLineupPage({ params }: PageProps) {
 
         {/* Rank Section - only shown for scored contests */}
         {rank !== null && totalEntries !== null && (
-          <div className={`rounded-lg shadow-md border p-6 mb-6 text-center ${
+          <div className={`rounded-lg shadow-md border p-6 mb-6 ${
             rank === 1
               ? 'bg-yellow-100 border-yellow-400'
               : rank === 2
               ? 'bg-gray-100 border-gray-400'
               : rank === 3
-              ? 'bg-orange-100 border-orange-400'
+              ? 'bg-[#CE894640] border-[#CE8946]'
               : 'bg-slate-100 border-slate-300'
           }`}>
-            <div className="flex items-center justify-center gap-3">
-              <div>
-                <div className={`text-xl sm:text-2xl font-bold ${
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 items-center">
+              {/* Empty left column for alignment */}
+              <div></div>
+              {/* Center: Rank text */}
+              <div className="text-center">
+                <div className={`text-base sm:text-2xl font-bold ${
                   rank === 1
                     ? 'text-yellow-700'
                     : rank === 2
                     ? 'text-gray-600'
                     : rank === 3
-                    ? 'text-orange-700'
+                    ? 'text-[#8B5A2B]'
                     : 'text-slate-700'
                 }`}>
                   #{getOrdinalSuffix(rank)} place
@@ -166,20 +169,23 @@ export default async function MyLineupPage({ params }: PageProps) {
                     : rank === 2
                     ? 'text-gray-500'
                     : rank === 3
-                    ? 'text-orange-600'
+                    ? 'text-[#CE8946]'
                     : 'text-slate-500'
                 }`}>
                   out of {totalEntries} {totalEntries === 1 ? 'entry' : 'entries'}
                 </div>
               </div>
-              {isPerfectLineup && (
-                <img
-                  src="/perfect-lineup-badge.png"
-                  alt="Perfect Lineup"
-                  title="Perfect Lineup - Achieved the maximum possible score!"
-                  className="h-8 w-auto"
-                />
-              )}
+              {/* Right: Perfect lineup badge */}
+              <div className="text-center overflow-hidden">
+                {isPerfectLineup && (
+                  <img
+                    src="/perfect-lineup-badge.png"
+                    alt="Perfect Lineup"
+                    title="Perfect Lineup - Achieved the maximum possible score!"
+                    className="h-7 sm:h-8 w-auto mx-auto max-w-full object-contain"
+                  />
+                )}
+              </div>
             </div>
           </div>
         )}
