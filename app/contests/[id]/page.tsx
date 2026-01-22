@@ -102,12 +102,12 @@ export default async function ContestPage({ params }: PageProps) {
       <main className="max-w-3xl mx-auto px-4 py-8">
         {/* Contest Title */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">{contest.name}</h1>
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900">{contest.name}</h1>
         </div>
 
         {/* Status Banner */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">
                 {isLocked ? 'Contest Locked' : 'Contest Open'}
@@ -131,8 +131,8 @@ export default async function ContestPage({ params }: PageProps) {
                 )}
               </p>
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-gray-900">{entryCount || 0}</div>
+            <div className="sm:text-right">
+              <div className="text-xl sm:text-2xl font-bold text-gray-900">{entryCount || 0}</div>
               <div className="text-sm text-gray-600">
                 {entryCount === 1 ? 'Entry' : 'Entries'}
               </div>
@@ -154,17 +154,17 @@ export default async function ContestPage({ params }: PageProps) {
         ) : userEntry ? (
           <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
             <p className="text-green-900 mb-4">You're entered in this contest!</p>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Link
                 href={`/contests/${contestId}/my-lineup`}
-                className="inline-block px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700"
+                className="inline-block px-6 py-3 sm:py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 text-center"
               >
                 View My Lineup
               </Link>
               {!isLocked && (
                 <Link
                   href={`/contests/${contestId}/lineup`}
-                  className="inline-block px-6 py-2 bg-white border border-green-600 text-green-700 font-medium rounded-lg hover:bg-green-50"
+                  className="inline-block px-6 py-3 sm:py-2 bg-white border border-green-600 text-green-700 font-medium rounded-lg hover:bg-green-50 text-center"
                 >
                   Edit Lineup
                 </Link>

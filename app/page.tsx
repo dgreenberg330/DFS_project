@@ -37,14 +37,14 @@ export default async function LandingPage() {
 
       <main id="main-content">
         {/* Hero */}
-        <section aria-label="Introduction" className="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-100 pt-16 pb-24">
+        <section aria-label="Introduction" className="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-100 pt-12 sm:pt-16 pb-16 sm:pb-24">
           <div className="max-w-4xl mx-auto px-4">
             <div className="text-center">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
                 Fantasy Sports for the
                 <span className="text-teal-400"> Box Office</span>
               </h1>
-            <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-gray-300 mb-8 sm:mb-10 max-w-2xl mx-auto">
               Predict what America watches this weekend. Draft the top movies.
             </p>
             {/* CTA */}
@@ -78,15 +78,15 @@ export default async function LandingPage() {
 
         {/* Movie Slate Preview */}
         {currentContest && currentContest.movies.length > 0 && (
-          <div className="max-w-4xl mx-auto px-4 -mt-8 mb-16">
+          <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 mb-12 sm:mb-16">
             <ExpandableMovieList movies={currentContest.movies} />
           </div>
         )}
 
-        <div className="max-w-4xl mx-auto px-4 -mt-8">
+        <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8">
           {/* How It Works */}
-          <section aria-label="How it works" className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">How It Works</h2>
+          <section aria-label="How it works" className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6 sm:mb-8 border border-gray-200">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">How It Works</h2>
             <div className="grid md:grid-cols-3 gap-8">
               <div className="text-center">
                 <div className="w-12 h-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">1</div>
@@ -113,8 +113,8 @@ export default async function LandingPage() {
           </section>
 
           {/* Rules */}
-          <section aria-label="Contest rules" className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Contest Rules</h2>
+          <section aria-label="Contest rules" className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6 sm:mb-8 border border-gray-200">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Contest Rules</h2>
             <div className="grid md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-700">
               <div className="flex items-center gap-3">
                 <span className="w-1.5 h-1.5 bg-teal-500 rounded-full"></span>

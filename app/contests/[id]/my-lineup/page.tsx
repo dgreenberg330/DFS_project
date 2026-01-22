@@ -61,8 +61,8 @@ export default async function MyLineupPage({ params }: PageProps) {
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Page Title */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">My Lineup</h1>
-          <p className="text-sm text-gray-600 mt-1">{contest.name}</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">My Lineup</h1>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">{contest.name}</p>
         </div>
 
         {/* Status */}
@@ -99,17 +99,17 @@ export default async function MyLineupPage({ params }: PageProps) {
 
         {/* Score Summary */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
             <div>
-              <div className="text-2xl font-bold text-gray-900">{movies.length}</div>
+              <div className="text-xl sm:text-2xl font-bold text-gray-900">{movies.length}</div>
               <div className="text-xs text-gray-600">Movies</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-gray-900">${totalSalary}</div>
+              <div className="text-xl sm:text-2xl font-bold text-gray-900">${totalSalary}</div>
               <div className="text-xs text-gray-600">Total Salary</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-xl sm:text-2xl font-bold text-blue-600">
                 {isScored && lineup.total_score !== null
                   ? lineup.total_score.toFixed(1)
                   : projectedScore.toFixed(1)}

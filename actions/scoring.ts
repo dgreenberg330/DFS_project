@@ -5,9 +5,85 @@
 'use server';
 
 import { createAdminClient } from '@/lib/supabase-admin';
-import { ContestStatus, LineupStatus, ScoredLineup } from '@/types';
+import { calculateMaxPossibleScore } from '@/lib/perfect-lineup';
+import { ContestStatus, LineupStatus, ScoredLineup, Movie } from '@/types';
 import { checkAdminAccess } from '@/lib/admin';
 import { revalidatePath } from 'next/cache';
+
+// ============================================================================
+// Perfect Lineup Detection (Server Action)
+// ============================================================================
+
+/**
+ * Gets perfect lineup status for a contest
+ * Returns the max possible score and which users (if any) achieved it
+ *
+ * @param contestId Contest to check
+ * @returns Perfect lineup info including max score and users who achieved it
+ */
+export async function getPerfectLineupInfo(contestId: string): Promise<{
+  maxScore: number;
+  optimalLineup: { id: string; title: string; salary: number; actual_gross: number }[];
+  perfectLineupUserIds: string[];
+}> {
+  if (!contestId || contestId.trim() === '') {
+    throw new Error('Contest ID is required.');
+  }
+
+  const supabase = createAdminClient();
+
+  // Fetch all movies in the contest
+  const { data: movies, error: moviesError } = await supabase
+    .from('movies')
+    .select('*')
+    .eq('contest_id', contestId);
+
+  if (moviesError) {
+    throw new Error(`Unable to load movies: ${moviesError.message}`);
+  }
+
+  if (!movies || movies.length === 0) {
+    return { maxScore: 0, optimalLineup: [], perfectLineupUserIds: [] };
+  }
+
+  // Calculate max possible score
+  const { maxScore, optimalLineup } = calculateMaxPossibleScore(movies as Movie[]);
+
+  // Find all entries that achieved the max score
+  const { data: entries, error: entriesError } = await supabase
+    .from('entries')
+    .select(`
+      user_id,
+      lineup:lineups (
+        total_score
+      )
+    `)
+    .eq('contest_id', contestId);
+
+  if (entriesError) {
+    throw new Error(`Unable to load entries: ${entriesError.message}`);
+  }
+
+  const perfectLineupUserIds: string[] = [];
+
+  for (const entry of entries || []) {
+    const lineup = Array.isArray(entry.lineup) ? entry.lineup[0] : entry.lineup;
+    if (lineup && Math.abs((lineup.total_score ?? 0) - maxScore) < 0.001) {
+      perfectLineupUserIds.push(entry.user_id);
+    }
+  }
+
+  return {
+    maxScore,
+    optimalLineup: optimalLineup.map(m => ({
+      id: m.id,
+      title: m.title,
+      salary: m.salary,
+      actual_gross: m.actual_gross ?? 0,
+    })),
+    perfectLineupUserIds,
+  };
+}
 
 /**
  * Scores a contest and generates leaderboard

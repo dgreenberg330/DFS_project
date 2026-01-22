@@ -230,14 +230,14 @@ export function LineupBuilder({
 
       {/* Lineup Summary */}
       <div className="bg-white rounded-lg shadow p-4">
-        <div className="grid grid-cols-3 gap-4 text-center">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
           <div>
-            <div className="text-2xl font-bold text-gray-900">{movieCount}/4</div>
+            <div className="text-xl sm:text-2xl font-bold text-gray-900">{movieCount}/4</div>
             <div className="text-xs text-gray-600">Movies</div>
           </div>
           <div>
             <div
-              className={`text-2xl font-bold ${
+              className={`text-xl sm:text-2xl font-bold ${
                 remainingSalary < 0 ? 'text-red-600' : 'text-gray-900'
               }`}
             >
@@ -246,7 +246,7 @@ export function LineupBuilder({
             <div className="text-xs text-gray-600">Remaining</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-xl sm:text-2xl font-bold text-blue-600">
               {projectedScore.toFixed(1)}
             </div>
             <div className="text-xs text-gray-600">Projected Pts</div>
@@ -267,10 +267,10 @@ export function LineupBuilder({
 
       {/* Movie List */}
       <div className="bg-white rounded-lg shadow">
-        <div className="p-4 border-b border-gray-200">
-          <h2 className="font-semibold text-gray-900">Available Movies</h2>
+        <div className="p-3 sm:p-4 border-b border-gray-200">
+          <h2 className="text-sm sm:text-base font-semibold text-gray-900">Available Movies</h2>
           <p className="text-xs text-gray-600 mt-1">
-            Select 2-4 movies within $100 salary cap
+            Select 2-4 movies within $100 cap
           </p>
         </div>
 

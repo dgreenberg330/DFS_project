@@ -75,7 +75,7 @@ export default async function LineupPage({ params }: PageProps) {
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Contest Info */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">{contest.name}</h1>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">{contest.name}</h1>
           <p className="text-sm text-gray-600 mt-1">
             Locks: {new Date(contest.lock_time).toLocaleString('en-US', {
               timeZone: 'America/New_York',

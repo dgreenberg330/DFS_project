@@ -3,19 +3,14 @@
 // ============================================================================
 
 import { getContest } from '@/actions/contests';
-import { getLeaderboard } from '@/actions/scoring';
+import { getLeaderboard, getPerfectLineupInfo } from '@/actions/scoring';
 import { getUser } from '@/lib/supabase-server';
 import { Header } from '@/components/header';
 import { BreadcrumbJsonLd } from '@/components/json-ld';
 import { LeaderboardViewTracker } from '@/components/gtm-tracker';
+import { LeaderboardEntry } from '@/components/leaderboard-entry';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import type { Movie } from '@/types';
-
-// Type for lineup movie with nested movie data from Supabase joins
-interface LineupMovieData {
-  movie: Movie | Movie[];
-}
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -81,8 +76,11 @@ export default async function LeaderboardPage({ params }: PageProps) {
     );
   }
 
-  // Get leaderboard data
-  const leaderboard = await getLeaderboard(contestId);
+  // Get leaderboard data and perfect lineup info
+  const [leaderboard, perfectLineupInfo] = await Promise.all([
+    getLeaderboard(contestId),
+    getPerfectLineupInfo(contestId),
+  ]);
 
   // Find user's entry if logged in
   const userEntryIndex = user
@@ -106,19 +104,19 @@ export default async function LeaderboardPage({ params }: PageProps) {
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Page Title */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Final Leaderboard</h1>
-          <p className="text-sm text-gray-600 mt-1">{contest.name}</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Final Leaderboard</h1>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">{contest.name}</p>
         </div>
 
         {/* Contest Info */}
         <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
             <div>
-              <div className="text-2xl font-bold text-gray-900">{leaderboard.length}</div>
+              <div className="text-xl sm:text-2xl font-bold text-gray-900">{leaderboard.length}</div>
               <div className="text-xs text-gray-600">Total Entries</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-xl sm:text-2xl font-bold text-blue-600">
                 {leaderboard[0]
                   ? (() => {
                       const lineup = Array.isArray(leaderboard[0].lineup)
@@ -131,7 +129,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
               <div className="text-xs text-gray-600">Winning Score</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-xl sm:text-2xl font-bold text-gray-900">
                 {userEntryIndex >= 0 ? userEntryIndex + 1 : '-'}
               </div>
               <div className="text-xs text-gray-600">Your Rank</div>
@@ -149,75 +147,21 @@ export default async function LeaderboardPage({ params }: PageProps) {
             {leaderboard.map((entry, index) => {
               const lineup = Array.isArray(entry.lineup) ? entry.lineup[0] : entry.lineup;
               const movies = lineup.movies || [];
-              const isUserEntry = user && entry.user_id === user.id;
+              const isUserEntry = !!(user && entry.user_id === user.id);
+
+              const isPerfectLineup = perfectLineupInfo.perfectLineupUserIds.includes(entry.user_id);
 
               return (
-                <div
+                <LeaderboardEntry
                   key={entry.id}
-                  className={`p-4 ${
-                    isUserEntry ? 'bg-blue-50 border-l-4 border-blue-500' : ''
-                  } ${index < 3 ? 'bg-yellow-50' : ''}`}
-                >
-                  <div className="flex items-start gap-4">
-                    {/* Rank */}
-                    <div className="flex-shrink-0 w-12 text-center">
-                      <div
-                        className={`text-2xl font-bold ${
-                          index === 0
-                            ? 'text-yellow-600'
-                            : index === 1
-                            ? 'text-gray-500'
-                            : index === 2
-                            ? 'text-orange-600'
-                            : 'text-gray-900'
-                        }`}
-                      >
-                        #{entry.rank}
-                      </div>
-                    </div>
-
-                    {/* Entry Details */}
-                    <div className="flex-1 min-w-0">
-                      {/* User */}
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-medium text-gray-900">
-                          {isUserEntry ? 'You' : entry.user.username}
-                        </span>
-                        {isUserEntry && (
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                            Your Entry
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Movies */}
-                      <div className="space-y-1">
-                        {movies.map((lm: LineupMovieData) => {
-                          const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
-                          return (
-                            <div
-                              key={movie.id}
-                              className="flex items-center justify-between text-sm"
-                            >
-                              <span className="text-gray-700 truncate">{movie.title}</span>
-                              <span className="text-gray-600 flex-shrink-0 ml-2">
-                                {movie.actual_gross?.toFixed(1)}M
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Score */}
-                    <div className="text-right flex-shrink-0">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {lineup.total_score?.toFixed(1) || '0.0'}
-                      </div>
-                      <div className="text-xs text-gray-600">points</div>
-                    </div>
-                  </div>
-                </div>
+                  rank={entry.rank ?? index + 1}
+                  index={index}
+                  username={entry.user.username}
+                  isUserEntry={isUserEntry}
+                  isPerfectLineup={isPerfectLineup}
+                  totalScore={lineup.total_score ?? 0}
+                  movies={movies}
+                />
               );
             })}
           </div>

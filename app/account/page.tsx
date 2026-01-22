@@ -80,18 +80,18 @@ export default async function AccountPage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Account Header */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Account</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Account</h1>
               {profile && (
-                <p className="text-lg text-gray-700 mt-1">@{profile.username}</p>
+                <p className="text-base sm:text-lg text-gray-700 mt-1">@{profile.username}</p>
               )}
               <p className="text-sm text-gray-600 mt-1">{user.email}</p>
             </div>
-            <div className="space-y-2">
+            <div className="flex sm:flex-col gap-4 sm:gap-2 sm:text-right">
               <Link
                 href="/account/edit-username"
-                className="block text-sm text-blue-600 hover:text-blue-700"
+                className="text-sm text-blue-600 hover:text-blue-700"
               >
                 Edit Username
               </Link>
@@ -103,9 +103,9 @@ export default async function AccountPage() {
         {/* Active Contests */}
         {activeEntries.length > 0 && (
           <div className="bg-white rounded-lg shadow mb-6">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Active Contests</h2>
-              <p className="text-sm text-gray-600 mt-1">In progress or awaiting results</p>
+            <div className="p-4 sm:p-6 border-b border-gray-200">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Active Contests</h2>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">In progress or awaiting results</p>
             </div>
 
             <div className="divide-y divide-gray-200">
@@ -133,9 +133,9 @@ export default async function AccountPage() {
                     className="block p-6 hover:bg-gray-50 transition-colors"
                   >
                     {/* Contest Info */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{contest.name}</h3>
+                    <div className="flex items-start justify-between gap-4 mb-4">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-sm sm:text-base font-semibold text-gray-900">{contest.name}</h3>
                         <div className="flex items-center gap-3 mt-1">
                           <p className="text-sm text-gray-600">
                             {new Date(contest.weekend_start + 'T00:00:00').toLocaleDateString()} -{' '}
@@ -154,7 +154,7 @@ export default async function AccountPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl font-bold text-blue-600">
+                        <div className="text-lg sm:text-xl font-bold text-blue-600">
                           {projectedScore.toFixed(1)}
                         </div>
                         <div className="text-xs text-gray-600">Projected pts</div>
@@ -209,8 +209,8 @@ export default async function AccountPage() {
 
         {/* Past Results */}
         <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Past Contests</h2>
+          <div className="p-4 sm:p-6 border-b border-gray-200">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Past Contests</h2>
           </div>
 
           {pastEntries.length === 0 && activeEntries.length === 0 ? (
@@ -234,75 +234,61 @@ export default async function AccountPage() {
                   <Link
                     key={entry.id}
                     href={`/contests/${contest.id}/my-lineup`}
-                    className="block p-6 hover:bg-gray-50 transition-colors"
+                    className="block p-4 sm:p-6 hover:bg-gray-50 transition-colors"
                   >
                     {/* Contest Info */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{contest.name}</h3>
-                        <p className="text-sm text-gray-500">
+                    <div className="flex items-start justify-between gap-3 mb-4">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-xs sm:text-sm font-semibold text-gray-900">{contest.name}</h3>
+                        <p className="text-xs text-gray-500">
                           {new Date(contest.weekend_start + 'T00:00:00').toLocaleDateString()} -{' '}
                           {new Date(contest.weekend_end + 'T00:00:00').toLocaleDateString()}
                         </p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right flex-shrink-0">
                         {lineup.status === 'scored' && lineup.total_score !== null ? (
                           <>
-                            <div className="text-2xl font-bold text-blue-600">
+                            <div className="text-base sm:text-lg font-bold text-blue-600">
                               {lineup.total_score.toFixed(1)} pts
                             </div>
                             {entry.rank && (
-                              <div className="text-sm text-gray-600">
-                                Rank #{entry.rank}{entry.totalEntries && ` (${entry.totalEntries} entries)`}
+                              <div className="text-xs sm:text-sm text-gray-600">
+                                #{entry.rank}{entry.totalEntries && ` of ${entry.totalEntries}`}
                               </div>
                             )}
                           </>
                         ) : (
-                          <div className="text-sm text-gray-600">Awaiting results</div>
+                          <div className="text-xs sm:text-sm text-gray-600">Awaiting results</div>
                         )}
                       </div>
                     </div>
 
                     {/* Lineup Movies */}
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       {movies.map((lm: LineupMovieData) => {
                         const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
                         return (
                           <div
                             key={movie.id}
-                            className="flex items-center justify-between text-sm"
+                            className="flex items-start justify-between gap-2 text-xs sm:text-sm"
                           >
-                            <div className="flex-1">
+                            <div className="min-w-0 flex-1">
                               <span className="font-medium text-gray-900">{movie.title}</span>
-                              <span className="text-gray-500 ml-2">${movie.salary}</span>
                             </div>
-                            {movie.actual_gross !== null && (
-                              <div className="text-gray-600">
-                                ${movie.actual_gross.toFixed(1)}M (
-                                {movie.actual_gross.toFixed(1)} pts)
-                              </div>
-                            )}
+                            <div className="flex-shrink-0 text-gray-600 w-14 text-right">
+                              {movie.actual_gross !== null ? (
+                                <span>{movie.actual_gross.toFixed(1)} pts</span>
+                              ) : (
+                                <span>${movie.salary}</span>
+                              )}
+                            </div>
                           </div>
                         );
                       })}
                     </div>
 
-                    {/* Total Salary */}
-                    <div className="mt-3 pt-3 border-t border-gray-100 text-sm">
-                      <div className="flex justify-between text-gray-600">
-                        <span>Total Salary:</span>
-                        <span>
-                          $
-                          {movies.reduce((sum: number, lm: LineupMovieData) => {
-                            const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
-                            return sum + movie.salary;
-                          }, 0)}
-                        </span>
-                      </div>
-                    </div>
-
                     {/* View link */}
-                    <div className="mt-3 text-sm text-blue-600">View details →</div>
+                    <div className="mt-2 text-xs sm:text-sm text-blue-600">View details →</div>
                   </Link>
                 );
               })}
@@ -312,25 +298,25 @@ export default async function AccountPage() {
 
         {/* Stats Summary (if has entries) */}
         {allEntries.length > 0 && (
-          <div className="mt-6 grid grid-cols-3 gap-4">
-            <div className="bg-white rounded-lg shadow p-4 text-center">
-              <div className="text-2xl font-bold text-gray-900">{allEntries.length}</div>
-              <div className="text-sm text-gray-600">Total Contests</div>
+          <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-4">
+            <div className="bg-white rounded-lg shadow p-3 sm:p-4 text-center">
+              <div className="text-xl sm:text-2xl font-bold text-gray-900">{allEntries.length}</div>
+              <div className="text-xs sm:text-sm text-gray-600">Total Contests</div>
             </div>
-            <div className="bg-white rounded-lg shadow p-4 text-center">
-              <div className="text-2xl font-bold text-gray-900">
+            <div className="bg-white rounded-lg shadow p-3 sm:p-4 text-center">
+              <div className="text-xl sm:text-2xl font-bold text-gray-900">
                 {allEntries.filter((e) => {
                   const lineup = Array.isArray(e.lineup) ? e.lineup[0] : e.lineup;
                   return lineup.status === 'scored';
                 }).length}
               </div>
-              <div className="text-sm text-gray-600">Completed</div>
+              <div className="text-xs sm:text-sm text-gray-600">Completed</div>
             </div>
-            <div className="bg-white rounded-lg shadow p-4 text-center">
-              <div className="text-2xl font-bold text-gray-900">
+            <div className="bg-white rounded-lg shadow p-3 sm:p-4 text-center">
+              <div className="text-xl sm:text-2xl font-bold text-gray-900">
                 {allEntries.filter((e) => e.rank === 1).length}
               </div>
-              <div className="text-sm text-gray-600">Wins</div>
+              <div className="text-xs sm:text-sm text-gray-600">Wins</div>
             </div>
           </div>
         )}

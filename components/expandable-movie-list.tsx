@@ -16,8 +16,8 @@ export function ExpandableMovieList({ movies }: ExpandableMovieListProps) {
   const displayMovies = isExpanded ? movies : movies.slice(0, 5);
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+    <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+      <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
         This Week's Movies ({movies.length})
       </h3>
       <div className="space-y-2">
@@ -26,13 +26,13 @@ export function ExpandableMovieList({ movies }: ExpandableMovieListProps) {
             key={movie.id}
             className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
           >
-            <div>
-              <div className="font-medium text-gray-900">{movie.title}</div>
+            <div className="min-w-0 flex-1">
+              <div className="font-medium text-gray-900 text-sm sm:text-base truncate">{movie.title}</div>
               <div className="text-xs text-gray-600">
                 {movie.distributor} • Proj: {movie.projected_gross.toFixed(1)}M
               </div>
             </div>
-            <div className="text-lg font-bold text-gray-900">${movie.salary}</div>
+            <div className="text-base sm:text-lg font-bold text-gray-900 flex-shrink-0">${movie.salary}</div>
           </div>
         ))}
         {movies.length > 5 && (
