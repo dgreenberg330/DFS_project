@@ -15,24 +15,15 @@ const redis = process.env.UPSTASH_REDIS_REST_URL
     })
   : null;
 
-// Rate limiters with different limits for different routes
-// Note: Actual auth attempts (signIn, signUp, resetPassword) have stricter
-// action-level rate limiting in actions/auth.ts (5 attempts/min)
+// Rate limiter for auth pages (login, signup, forgot-password)
+// Note: Actual auth attempts have stricter action-level limiting (5/min) in actions/auth.ts
 const rateLimiters = redis
   ? {
-      // Page-level limit for auth routes: 20 requests per minute
-      // (allows normal navigation, prefetching, RSC streaming)
+      // Page-level limit for auth routes: 30 requests per minute
       auth: new Ratelimit({
         redis,
-        limiter: Ratelimit.slidingWindow(20, '1 m'),
+        limiter: Ratelimit.slidingWindow(30, '1 m'),
         prefix: 'ratelimit:auth',
-      }),
-      // General limit: 200 requests per minute
-      // (accounts for page loads, prefetches, RSC streaming)
-      general: new Ratelimit({
-        redis,
-        limiter: Ratelimit.slidingWindow(200, '1 m'),
-        prefix: 'ratelimit:general',
       }),
     }
   : null;
@@ -129,27 +120,28 @@ export async function middleware(request: NextRequest) {
   const nonce = generateNonce();
   const pathname = request.nextUrl.pathname;
 
-  // Apply rate limiting if Redis is configured
+  // Apply rate limiting only to auth routes (login, signup, forgot-password)
+  // General browsing is not rate limited - action-level limits protect against abuse
   if (rateLimiters) {
-    const ip = getClientIP(request);
+    const isAuthRoute = pathname.startsWith('/login')
+      || pathname.startsWith('/signup')
+      || pathname.startsWith('/forgot-password');
 
-    // Use stricter rate limit for auth routes (excluding callback which is just code exchange)
-    const isAuthRoute = (pathname.startsWith('/login') || pathname.startsWith('/auth'))
-      && !pathname.startsWith('/auth/callback');
-    const limiter = isAuthRoute ? rateLimiters.auth : rateLimiters.general;
+    if (isAuthRoute) {
+      const ip = getClientIP(request);
+      const { success, limit, reset } = await rateLimiters.auth.limit(ip);
 
-    const { success, limit, reset } = await limiter.limit(ip);
-
-    if (!success) {
-      return new NextResponse('Too Many Requests', {
-        status: 429,
-        headers: {
-          'Retry-After': Math.ceil((reset - Date.now()) / 1000).toString(),
-          'X-RateLimit-Limit': limit.toString(),
-          'X-RateLimit-Remaining': '0',
-          'X-RateLimit-Reset': reset.toString(),
-        },
-      });
+      if (!success) {
+        return new NextResponse('Too Many Requests', {
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil((reset - Date.now()) / 1000).toString(),
+            'X-RateLimit-Limit': limit.toString(),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': reset.toString(),
+          },
+        });
+      }
     }
   }
 

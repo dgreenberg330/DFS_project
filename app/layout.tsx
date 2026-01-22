@@ -106,7 +106,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           />
         </noscript>
         <OrganizationJsonLd />
-        <Toaster position="top-center" richColors closeButton />
+        <Toaster position="top-center" richColors />
         <div className="flex-1">{children}</div>
         <Footer />
       </body>
