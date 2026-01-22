@@ -132,8 +132,9 @@ export async function middleware(request: NextRequest) {
   if (rateLimiters) {
     const ip = getClientIP(request);
 
-    // Use stricter rate limit for auth routes
-    const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/auth');
+    // Use stricter rate limit for auth routes (excluding callback which is just code exchange)
+    const isAuthRoute = (pathname.startsWith('/login') || pathname.startsWith('/auth'))
+      && !pathname.startsWith('/auth/callback');
     const limiter = isAuthRoute ? rateLimiters.auth : rateLimiters.general;
 
     const { success, limit, reset } = await limiter.limit(ip);
