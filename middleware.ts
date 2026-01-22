@@ -27,10 +27,11 @@ const rateLimiters = redis
         limiter: Ratelimit.slidingWindow(20, '1 m'),
         prefix: 'ratelimit:auth',
       }),
-      // General limit: 60 requests per minute
+      // General limit: 200 requests per minute
+      // (accounts for page loads, prefetches, RSC streaming)
       general: new Ratelimit({
         redis,
-        limiter: Ratelimit.slidingWindow(60, '1 m'),
+        limiter: Ratelimit.slidingWindow(200, '1 m'),
         prefix: 'ratelimit:general',
       }),
     }
