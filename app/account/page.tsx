@@ -80,23 +80,23 @@ export default async function AccountPage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Account Header */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Account</h1>
-              {profile && (
-                <p className="text-base sm:text-lg text-gray-700 mt-1">@{profile.username}</p>
-              )}
-              <p className="text-sm text-gray-600 mt-1">{user.email}</p>
-            </div>
-            <div className="flex sm:flex-col gap-4 sm:gap-2 sm:text-right">
-              <Link
-                href="/account/edit-username"
-                className="text-sm text-blue-600 hover:text-blue-700"
-              >
-                Edit Username
-              </Link>
               <SignOutButton />
             </div>
+            {profile && (
+              <div className="flex items-center justify-between">
+                <p className="text-base sm:text-lg text-gray-700">@{profile.username}</p>
+                <Link
+                  href="/account/edit-username"
+                  className="text-sm text-blue-600 hover:text-blue-700"
+                >
+                  Edit Username
+                </Link>
+              </div>
+            )}
+            <p className="text-sm text-gray-600">{user.email}</p>
           </div>
         </div>
 
@@ -236,36 +236,42 @@ export default async function AccountPage() {
                     href={`/contests/${contest.id}/my-lineup`}
                     className="block p-4 sm:p-6 hover:bg-gray-50 transition-colors"
                   >
-                    {/* Contest Info */}
-                    <div className="flex items-start justify-between gap-3 mb-4">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-xs sm:text-sm font-semibold text-gray-900">{contest.name}</h3>
-                        <p className="text-xs text-gray-500">
+                    {/* Contest Info - Two rows for alignment */}
+                    <div className="mb-4 space-y-1">
+                      {/* Row 1: Title + Points */}
+                      <div className="flex items-center justify-between gap-3">
+                        <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-gray-900 min-w-0 truncate">{contest.name}</h3>
+                        {lineup.status === 'scored' && lineup.total_score !== null ? (
+                          <span className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-blue-600 flex-shrink-0">
+                            {lineup.total_score.toFixed(1)} pts
+                          </span>
+                        ) : (
+                          <span className="text-xs sm:text-sm md:text-base text-gray-600 flex-shrink-0">Awaiting results</span>
+                        )}
+                      </div>
+                      {/* Row 2: Date + Rank */}
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-xs sm:text-sm md:text-sm text-gray-500">
                           {new Date(contest.weekend_start + 'T00:00:00').toLocaleDateString()} -{' '}
                           {new Date(contest.weekend_end + 'T00:00:00').toLocaleDateString()}
                         </p>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        {lineup.status === 'scored' && lineup.total_score !== null ? (
-                          <>
-                            <div className="text-base sm:text-lg font-bold text-blue-600">
-                              {lineup.total_score.toFixed(1)} pts
-                            </div>
-                            {entry.rank && (
-                              <div className="text-xs sm:text-sm text-gray-600">
-                                #{entry.rank}{entry.totalEntries && ` of ${entry.totalEntries}`}
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <div className="text-xs sm:text-sm text-gray-600">Awaiting results</div>
+                        {lineup.status === 'scored' && entry.rank && (
+                          <span className="text-xs sm:text-sm md:text-sm text-gray-600 flex-shrink-0">
+                            Rank: #{entry.rank}{entry.totalEntries && ` of ${entry.totalEntries}`}
+                          </span>
                         )}
                       </div>
                     </div>
 
-                    {/* Lineup Movies */}
+                    {/* Lineup Movies - sorted by points (highest first) */}
                     <div className="space-y-1">
-                      {movies.map((lm: LineupMovieData) => {
+                      {[...movies]
+                        .sort((a, b) => {
+                          const movieA = Array.isArray(a.movie) ? a.movie[0] : a.movie;
+                          const movieB = Array.isArray(b.movie) ? b.movie[0] : b.movie;
+                          return (movieB.actual_gross ?? 0) - (movieA.actual_gross ?? 0);
+                        })
+                        .map((lm: LineupMovieData) => {
                         const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
                         return (
                           <div

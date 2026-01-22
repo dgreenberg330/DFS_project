@@ -6,9 +6,18 @@ import { getUser } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { getContest } from '@/actions/contests';
 import { getUserEntry } from '@/actions/lineups';
+import { getPerfectLineupInfo } from '@/actions/scoring';
+import { createAdminClient } from '@/lib/supabase-admin';
 import { Header } from '@/components/header';
 import Link from 'next/link';
 import type { Movie } from '@/types';
+
+// Helper to get ordinal suffix (1st, 2nd, 3rd, etc.)
+function getOrdinalSuffix(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
 
 // Type for lineup movie with nested movie data from Supabase joins
 interface LineupMovieData {
@@ -55,6 +64,36 @@ export default async function MyLineupPage({ params }: PageProps) {
   const isLocked = contest.status !== 'upcoming' || lineup.status !== 'editable';
   const isScored = lineup.status === 'scored';
 
+  // Calculate rank and check for perfect lineup for scored contests
+  let rank: number | null = null;
+  let totalEntries: number | null = null;
+  let isPerfectLineup = false;
+
+  if (isScored && contest.status === 'resolved') {
+    const adminClient = createAdminClient();
+    const { data: allEntries } = await adminClient
+      .from('entries')
+      .select('lineup:lineups(total_score)')
+      .eq('contest_id', contestId);
+
+    if (allEntries && allEntries.length > 0) {
+      const scores = allEntries
+        .map((e) => {
+          const l = Array.isArray(e.lineup) ? e.lineup[0] : e.lineup;
+          return l?.total_score ?? 0;
+        })
+        .sort((a, b) => b - a);
+
+      const userRank = scores.findIndex((score) => score === lineup.total_score) + 1;
+      rank = userRank > 0 ? userRank : null;
+      totalEntries = allEntries.length;
+    }
+
+    // Check if user achieved a perfect lineup
+    const perfectLineupInfo = await getPerfectLineupInfo(contestId);
+    isPerfectLineup = perfectLineupInfo.perfectLineupUserIds.includes(user.id);
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -97,6 +136,54 @@ export default async function MyLineupPage({ params }: PageProps) {
           )}
         </div>
 
+        {/* Rank Section - only shown for scored contests */}
+        {rank !== null && totalEntries !== null && (
+          <div className={`rounded-lg shadow-md border p-6 mb-6 text-center ${
+            rank === 1
+              ? 'bg-yellow-100 border-yellow-400'
+              : rank === 2
+              ? 'bg-gray-100 border-gray-400'
+              : rank === 3
+              ? 'bg-orange-100 border-orange-400'
+              : 'bg-slate-100 border-slate-300'
+          }`}>
+            <div className="flex items-center justify-center gap-3">
+              <div>
+                <div className={`text-xl sm:text-2xl font-bold ${
+                  rank === 1
+                    ? 'text-yellow-700'
+                    : rank === 2
+                    ? 'text-gray-600'
+                    : rank === 3
+                    ? 'text-orange-700'
+                    : 'text-slate-700'
+                }`}>
+                  #{getOrdinalSuffix(rank)} place
+                </div>
+                <div className={`text-xs ${
+                  rank === 1
+                    ? 'text-yellow-600'
+                    : rank === 2
+                    ? 'text-gray-500'
+                    : rank === 3
+                    ? 'text-orange-600'
+                    : 'text-slate-500'
+                }`}>
+                  out of {totalEntries} {totalEntries === 1 ? 'entry' : 'entries'}
+                </div>
+              </div>
+              {isPerfectLineup && (
+                <img
+                  src="/perfect-lineup-badge.png"
+                  alt="Perfect Lineup"
+                  title="Perfect Lineup - Achieved the maximum possible score!"
+                  className="h-8 w-auto"
+                />
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Score Summary */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
@@ -115,7 +202,7 @@ export default async function MyLineupPage({ params }: PageProps) {
                   : projectedScore.toFixed(1)}
               </div>
               <div className="text-xs text-gray-600">
-                {isScored ? 'Final Points' : 'Projected Pts'}
+                {isScored ? 'Final Points' : 'Proj. Points'}
               </div>
             </div>
           </div>
@@ -148,13 +235,25 @@ export default async function MyLineupPage({ params }: PageProps) {
                     {/* Stats */}
                     <div className="text-right flex-shrink-0">
                       <div className="text-lg font-bold text-gray-900">${movie.salary}</div>
-                      {isScored && movie.actual_gross !== null ? (
+                      {(isLocked || isScored) && movie.actual_gross !== null ? (
                         <>
-                          <div className="text-sm text-blue-600 font-medium">
-                            {movie.actual_gross.toFixed(1)}M
-                          </div>
-                          <div className="text-xs text-gray-600">
+                          <div className={`text-sm font-medium flex items-center justify-end gap-1 ${
+                            movie.actual_gross > movie.projected_gross
+                              ? 'text-green-600'
+                              : movie.actual_gross < movie.projected_gross
+                              ? 'text-red-600'
+                              : 'text-gray-900'
+                          }`}>
+                            {movie.actual_gross > movie.projected_gross && (
+                              <img src="/uptick.png" alt="" className="w-3 h-3" />
+                            )}
+                            {movie.actual_gross < movie.projected_gross && (
+                              <img src="/downtick.png" alt="" className="w-3 h-3" />
+                            )}
                             {movie.actual_gross.toFixed(1)} pts
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Proj: {movie.projected_gross.toFixed(1)}M
                           </div>
                         </>
                       ) : (
@@ -178,7 +277,7 @@ export default async function MyLineupPage({ params }: PageProps) {
                 <div className="text-sm text-blue-600 font-medium">
                   {isScored && lineup.total_score !== null
                     ? `${lineup.total_score.toFixed(1)} pts`
-                    : `${projectedScore.toFixed(1)} pts (proj)`}
+                    : `Proj: ${projectedScore.toFixed(1)} pts`}
                 </div>
               </div>
             </div>
