@@ -120,14 +120,11 @@ export async function middleware(request: NextRequest) {
   const nonce = generateNonce();
   const pathname = request.nextUrl.pathname;
 
-  // Check if user has pending password reset - force them to complete it
-  const pendingReset = request.cookies.get('pending_password_reset')?.value;
-  if (pendingReset === 'true' && !pathname.startsWith('/account/reset-password')) {
-    // Allow auth callback and static assets, redirect everything else
-    if (!pathname.startsWith('/auth/callback') && !pathname.startsWith('/_next')) {
-      return NextResponse.redirect(new URL('/account/reset-password', request.url));
-    }
-  }
+  // Check if user has pending password reset via cookie (fast path)
+  const pendingResetCookie = request.cookies.get('pending_password_reset')?.value === 'true';
+
+  // We'll check user metadata later after supabase client is created
+  let pendingResetMetadata = false;
 
   // Apply rate limiting only to auth routes (login, signup, forgot-password)
   // General browsing is not rate limited - action-level limits protect against abuse
@@ -229,8 +226,20 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh session if expired
-  await supabase.auth.getUser();
+  // Refresh session and check for pending password reset
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Check user metadata for pending reset (fallback if cookies disabled)
+  if (user?.user_metadata?.pending_password_reset) {
+    pendingResetMetadata = true;
+  }
+
+  // Redirect to reset-password if pending reset (from cookie or metadata)
+  if ((pendingResetCookie || pendingResetMetadata) && !pathname.startsWith('/account/reset-password')) {
+    if (!pathname.startsWith('/auth/callback') && !pathname.startsWith('/_next')) {
+      return NextResponse.redirect(new URL('/account/reset-password', request.url));
+    }
+  }
 
   return response;
 }

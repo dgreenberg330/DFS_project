@@ -72,9 +72,15 @@ export async function GET(request: Request) {
         }
       }
 
-      // For password recovery flow, set cookie and redirect to reset-password page
-      // Cookie ensures user must complete password reset before accessing other pages
+      // For password recovery flow, set flag and redirect to reset-password page
+      // This ensures user must complete password reset before accessing other pages
       if (type === 'recovery') {
+        // Set flag in user metadata (server-side, can't be bypassed)
+        await supabase.auth.updateUser({
+          data: { pending_password_reset: true }
+        });
+
+        // Also set cookie for faster middleware checks
         const response = NextResponse.redirect(`${origin}/account/reset-password`);
         response.cookies.set('pending_password_reset', 'true', {
           httpOnly: true,

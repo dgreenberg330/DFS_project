@@ -255,6 +255,7 @@ export async function updatePassword(password: string) {
 
   const { error } = await supabase.auth.updateUser({
     password,
+    data: { pending_password_reset: null }, // Clear the metadata flag
   });
 
   if (error) {
