@@ -5,7 +5,6 @@
 import { ResetPasswordForm } from '@/components/reset-password-form';
 import { getUser } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
 import type { Metadata } from 'next';
 
@@ -27,15 +26,13 @@ export default async function ResetPasswordPage() {
       {/* Minimal header - no navigation until password is reset */}
       <header className="bg-gray-900 border-b border-gray-800">
         <div className="max-w-4xl mx-auto px-4 py-1 flex items-center justify-center">
-          <Link href="/" className="hover:opacity-90 transition-opacity">
-            <Image
-              src="/logo_full.png"
-              alt="Shugsy"
-              width={160}
-              height={64}
-              priority
-            />
-          </Link>
+          <Image
+            src="/logo_full.png"
+            alt="Shugsy"
+            width={160}
+            height={64}
+            priority
+          />
         </div>
       </header>
       <div className="flex items-center justify-center py-12">
