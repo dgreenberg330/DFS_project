@@ -232,7 +232,7 @@ export async function resetPassword(email: string) {
   const origin = headersList.get('origin') || 'http://localhost:3000';
 
   const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-    redirectTo: `${origin}/auth/callback?next=/account/reset-password`,
+    redirectTo: `${origin}/auth/callback?type=recovery`,
   });
 
   if (error) {
