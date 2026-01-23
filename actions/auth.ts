@@ -6,7 +6,7 @@
 
 import { createClient } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
-import { headers } from 'next/headers';
+import { headers, cookies } from 'next/headers';
 import { USERNAME_CONSTRAINTS } from '@/types';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
@@ -260,6 +260,10 @@ export async function updatePassword(password: string) {
   if (error) {
     return { error: error.message };
   }
+
+  // Clear the pending password reset cookie
+  const cookieStore = await cookies();
+  cookieStore.delete('pending_password_reset');
 
   return { success: true };
 }

@@ -120,6 +120,15 @@ export async function middleware(request: NextRequest) {
   const nonce = generateNonce();
   const pathname = request.nextUrl.pathname;
 
+  // Check if user has pending password reset - force them to complete it
+  const pendingReset = request.cookies.get('pending_password_reset')?.value;
+  if (pendingReset === 'true' && !pathname.startsWith('/account/reset-password')) {
+    // Allow auth callback and static assets, redirect everything else
+    if (!pathname.startsWith('/auth/callback') && !pathname.startsWith('/_next')) {
+      return NextResponse.redirect(new URL('/account/reset-password', request.url));
+    }
+  }
+
   // Apply rate limiting only to auth routes (login, signup, forgot-password)
   // General browsing is not rate limited - action-level limits protect against abuse
   if (rateLimiters) {

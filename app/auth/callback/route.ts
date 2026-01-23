@@ -72,9 +72,18 @@ export async function GET(request: Request) {
         }
       }
 
-      // For password recovery flow, always redirect to reset-password page
+      // For password recovery flow, set cookie and redirect to reset-password page
+      // Cookie ensures user must complete password reset before accessing other pages
       if (type === 'recovery') {
-        return NextResponse.redirect(`${origin}/account/reset-password`);
+        const response = NextResponse.redirect(`${origin}/account/reset-password`);
+        response.cookies.set('pending_password_reset', 'true', {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 60 * 30, // 30 minutes to complete reset
+        });
+        return response;
       }
 
       // Defensive check: validate next path is a safe relative path

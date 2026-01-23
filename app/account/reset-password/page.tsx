@@ -5,7 +5,7 @@
 import { ResetPasswordForm } from '@/components/reset-password-form';
 import { getUser } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
-import Image from 'next/image';
+import { Header } from '@/components/header';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -23,18 +23,7 @@ export default async function ResetPasswordPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Minimal header - no navigation until password is reset */}
-      <header className="bg-gray-900 border-b border-gray-800">
-        <div className="max-w-4xl mx-auto px-4 py-1 flex items-center justify-center">
-          <Image
-            src="/logo_full.png"
-            alt="Shugsy"
-            width={160}
-            height={64}
-            priority
-          />
-        </div>
-      </header>
+      <Header />
       <div className="flex items-center justify-center py-12">
         <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
           <div>
