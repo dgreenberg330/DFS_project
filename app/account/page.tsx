@@ -130,74 +130,63 @@ export default async function AccountPage() {
                         ? `/contests/${contest.id}/my-lineup`
                         : `/contests/${contest.id}/lineup`
                     }
-                    className="block p-6 hover:bg-gray-50 transition-colors"
+                    className="block p-4 sm:p-6 hover:bg-gray-50 transition-colors"
                   >
-                    {/* Contest Info */}
-                    <div className="flex items-start justify-between gap-4 mb-4">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-sm sm:text-base font-semibold text-gray-900">{contest.name}</h3>
-                        <div className="flex items-center gap-3 mt-1">
-                          <p className="text-sm text-gray-600">
-                            {new Date(contest.weekend_start + 'T00:00:00').toLocaleDateString()} -{' '}
-                            {new Date(contest.weekend_end + 'T00:00:00').toLocaleDateString()}
-                          </p>
-                          {contest.status === 'upcoming' && (
-                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-                              Open
-                            </span>
-                          )}
-                          {contest.status === 'locked' && (
-                            <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
-                              Locked
-                            </span>
-                          )}
-                        </div>
+                    {/* Status Badge */}
+                    <div className="mb-2">
+                      {contest.status === 'upcoming' && (
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                          Open
+                        </span>
+                      )}
+                      {contest.status === 'locked' && (
+                        <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
+                          Locked
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Contest Info - Two rows for alignment */}
+                    <div className="mb-4 space-y-1">
+                      {/* Row 1: Title + Projected Points */}
+                      <div className="flex items-center justify-between gap-3">
+                        <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-gray-900 min-w-0 truncate">{contest.name}</h3>
+                        <span className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-blue-600 flex-shrink-0">
+                          {projectedScore.toFixed(1)} pts
+                        </span>
                       </div>
-                      <div className="text-right">
-                        <div className="text-lg sm:text-xl font-bold text-blue-600">
-                          {projectedScore.toFixed(1)}
-                        </div>
-                        <div className="text-xs text-gray-600">Projected pts</div>
+                      {/* Row 2: Date + Projected label */}
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-xs sm:text-sm md:text-sm text-gray-500">
+                          {new Date(contest.weekend_start + 'T00:00:00').toLocaleDateString()} -{' '}
+                          {new Date(contest.weekend_end + 'T00:00:00').toLocaleDateString()}
+                        </p>
+                        <span className="text-xs sm:text-sm text-gray-500 flex-shrink-0">Projected pts</span>
                       </div>
                     </div>
 
                     {/* Lineup Movies */}
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       {movies.map((lm: LineupMovieData) => {
                         const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
                         return (
                           <div
                             key={movie.id}
-                            className="flex items-center justify-between text-sm"
+                            className="flex items-start justify-between gap-2 text-xs sm:text-sm"
                           >
-                            <div className="flex-1">
+                            <div className="min-w-0 flex-1">
                               <span className="font-medium text-gray-900">{movie.title}</span>
-                              <span className="text-gray-500 ml-2">${movie.salary}</span>
                             </div>
-                            <div className="text-gray-600">
-                              Proj: {movie.projected_gross.toFixed(1)}M
+                            <div className="flex-shrink-0 text-gray-600 w-14 text-right">
+                              ${movie.salary}
                             </div>
                           </div>
                         );
                       })}
                     </div>
 
-                    {/* Total Salary */}
-                    <div className="mt-3 pt-3 border-t border-gray-100 text-sm">
-                      <div className="flex justify-between text-gray-600">
-                        <span>Total Salary:</span>
-                        <span>
-                          $
-                          {movies.reduce((sum: number, lm: LineupMovieData) => {
-                            const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
-                            return sum + movie.salary;
-                          }, 0)}
-                        </span>
-                      </div>
-                    </div>
-
                     {/* Action hint */}
-                    <div className="mt-3 text-sm text-blue-600">
+                    <div className="mt-2 text-xs sm:text-sm text-blue-600">
                       {isLocked ? 'View lineup →' : 'Edit lineup →'}
                     </div>
                   </Link>

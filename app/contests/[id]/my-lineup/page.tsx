@@ -221,7 +221,16 @@ export default async function MyLineupPage({ params }: PageProps) {
           </div>
 
           <div className="divide-y divide-gray-200">
-            {movies.map((lm: LineupMovieData) => {
+            {[...movies]
+              .sort((a, b) => {
+                const movieA = Array.isArray(a.movie) ? a.movie[0] : a.movie;
+                const movieB = Array.isArray(b.movie) ? b.movie[0] : b.movie;
+                // Sort by actual_gross if scored, otherwise by projected_gross
+                const valueA = isScored && movieA.actual_gross !== null ? movieA.actual_gross : movieA.projected_gross;
+                const valueB = isScored && movieB.actual_gross !== null ? movieB.actual_gross : movieB.projected_gross;
+                return valueB - valueA; // Highest first
+              })
+              .map((lm: LineupMovieData) => {
               const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
               return (
                 <div key={movie.id} className="p-4">
