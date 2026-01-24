@@ -5,6 +5,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase-server';
+import { createAdminClient } from '@/lib/supabase-admin';
 import { redirect } from 'next/navigation';
 import { headers, cookies } from 'next/headers';
 import { USERNAME_CONSTRAINTS } from '@/types';
@@ -187,13 +188,13 @@ export async function signUp(email: string, password: string, username: string) 
     return { error: 'Username is already taken. Please choose another.' };
   }
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: email.trim(),
     password,
     options: {
       emailRedirectTo: `${origin}/auth/callback`,
       data: {
-        username: trimmedUsername, // Store in user metadata
+        username: trimmedUsername, // Store in user metadata as backup
       },
     },
   });
@@ -203,6 +204,24 @@ export async function signUp(email: string, password: string, username: string) 
       return { error: 'An account with this email already exists.', code: 'EMAIL_EXISTS' };
     }
     return { error: error.message };
+  }
+
+  // Create user profile immediately using admin client (bypasses RLS)
+  // This ensures profile exists when user confirms email, avoiding second username prompt
+  if (data.user) {
+    const adminClient = createAdminClient();
+    const { error: profileError } = await adminClient
+      .from('user_profiles')
+      .insert({
+        user_id: data.user.id,
+        username: trimmedUsername,
+      });
+
+    if (profileError) {
+      // If profile creation fails (e.g., username race condition),
+      // the callback will handle it via user_metadata fallback
+      console.error('Failed to create profile during signup:', profileError.message);
+    }
   }
 
   return { success: true, message: 'Check your email to confirm your account.' };

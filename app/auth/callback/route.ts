@@ -71,10 +71,11 @@ export async function GET(request: Request) {
 
       if (!profile) {
         // Check if username was provided during signup (stored in user metadata)
+        // Profile should already exist from signup, but this serves as a fallback
         const usernameFromMetadata = user.user_metadata?.username;
 
         if (usernameFromMetadata) {
-          // Create profile with username from signup
+          // Try to create profile with username from signup metadata
           const { error: profileError } = await supabase
             .from('user_profiles')
             .insert({
@@ -84,10 +85,12 @@ export async function GET(request: Request) {
 
           if (profileError) {
             console.error('Failed to create profile:', profileError.message);
-            // If username is taken (race condition), redirect to setup
+            // If username is taken (race condition or duplicate), redirect to setup
             if (profileError.code === '23505') {
               return NextResponse.redirect(`${origin}/setup-username?error=username_taken`);
             }
+            // For any other error, also redirect to setup to let user choose username
+            return NextResponse.redirect(`${origin}/setup-username?error=profile_error`);
           }
           // Profile created successfully, continue to account
         } else {
