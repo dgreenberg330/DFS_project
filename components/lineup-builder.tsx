@@ -295,10 +295,10 @@ export function LineupBuilder({
                     : 'hover:bg-gray-50'
                 } ${wouldExceedCount ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
               >
-                <div className="flex items-start justify-between gap-4">
-                  {/* Movie Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                <div>
+                  {/* Row 1: Checkbox + Title + Salary */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
                       {/* Checkbox */}
                       <div
                         className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
@@ -321,32 +321,28 @@ export function LineupBuilder({
                           </svg>
                         )}
                       </div>
-
                       {/* Title */}
                       <h3 className="font-medium text-gray-900 truncate">
                         {movie.title}
                       </h3>
                     </div>
-
-                    {/* Metadata */}
-                    <div className="mt-1 text-xs text-gray-600 flex flex-wrap gap-x-3 gap-y-1">
-                      <span>{new Date(movie.release_date).toLocaleDateString()}</span>
-                      {movie.distributor && <span>{movie.distributor}</span>}
-                      {movie.theater_count && (
-                        <span>{movie.theater_count.toLocaleString()} theaters</span>
-                      )}
+                    <div className="text-sm sm:text-base font-bold text-gray-900 flex-shrink-0">
+                      ${movie.salary}
                     </div>
                   </div>
-
-                  {/* Salary & Projection */}
-                  <div className="text-right flex-shrink-0">
-                    <div className="text-lg font-bold text-gray-900">
-                      ${movie.salary}
+                  {/* Row 2: Release date + Proj */}
+                  <div className="flex items-center justify-between mt-1 pl-7">
+                    <div className="text-xs text-gray-600">
+                      Release date: {new Date(movie.release_date + 'T00:00:00').toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                     </div>
                     <div className="text-xs text-gray-600">
                       Proj: {movie.projected_gross.toFixed(1)}M
                     </div>
                   </div>
+                  {/* Row 3: Distributor */}
+                  {movie.distributor && (
+                    <div className="text-xs text-gray-600 pl-7">{movie.distributor}</div>
+                  )}
                 </div>
               </button>
             );

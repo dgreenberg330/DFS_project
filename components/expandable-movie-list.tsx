@@ -24,15 +24,24 @@ export function ExpandableMovieList({ movies }: ExpandableMovieListProps) {
         {displayMovies.map((movie) => (
           <div
             key={movie.id}
-            className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
+            className="py-2 border-b border-gray-100 last:border-0"
           >
-            <div className="min-w-0 flex-1">
-              <div className="font-medium text-gray-900 text-sm sm:text-base truncate">{movie.title}</div>
-              <div className="text-xs text-gray-600">
-                {movie.distributor} • Proj: {movie.projected_gross.toFixed(1)}M
-              </div>
+            {/* Row 1: Title + Salary */}
+            <div className="flex items-center justify-between">
+              <div className="font-medium text-gray-900 text-sm sm:text-base truncate min-w-0 flex-1">{movie.title}</div>
+              <div className="text-sm sm:text-base font-bold text-gray-900 flex-shrink-0">${movie.salary}</div>
             </div>
-            <div className="text-base sm:text-lg font-bold text-gray-900 flex-shrink-0">${movie.salary}</div>
+            {/* Row 2: Release date + Proj */}
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-gray-600">
+                Release date: {new Date(movie.release_date + 'T00:00:00').toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
+              </div>
+              <div className="text-xs text-gray-600">Proj: {movie.projected_gross.toFixed(1)}M</div>
+            </div>
+            {/* Row 3: Distributor */}
+            {movie.distributor && (
+              <div className="text-xs text-gray-600">{movie.distributor}</div>
+            )}
           </div>
         ))}
         {movies.length > 5 && (
