@@ -61,8 +61,8 @@ export async function getContestEntryCount(contestId: string): Promise<number> {
 }
 
 /**
- * Deletes a contest (admin only)
- * Checks if contest has entries and prevents deletion if so
+ * Deletes a contest and all associated data (admin only)
+ * Cascades: entries, lineups, lineup_movies, movies
  *
  * Usage:
  * await deleteContest(contestId);
@@ -76,21 +76,31 @@ export async function deleteContest(contestId: string): Promise<void> {
 
   const supabase = createAdminClient();
 
-  // Check if contest has entries
-  const { count, error: countError } = await supabase
+  // Get all lineup IDs associated with this contest's entries
+  // (lineups don't have a direct FK to contests, so we need to delete them manually)
+  const { data: entries, error: entriesError } = await supabase
     .from('entries')
-    .select('*', { count: 'exact', head: true })
+    .select('lineup_id')
     .eq('contest_id', contestId);
 
-  if (countError) {
-    throw new Error(`Failed to check entries: ${countError.message}`);
+  if (entriesError) {
+    throw new Error(`Failed to fetch entries: ${entriesError.message}`);
   }
 
-  if (count && count > 0) {
-    throw new Error(`Cannot delete contest: ${count} user entries exist. Delete entries first.`);
+  // Delete lineups first (this will cascade to lineup_movies)
+  if (entries && entries.length > 0) {
+    const lineupIds = entries.map(e => e.lineup_id);
+    const { error: lineupsError } = await supabase
+      .from('lineups')
+      .delete()
+      .in('id', lineupIds);
+
+    if (lineupsError) {
+      throw new Error(`Failed to delete lineups: ${lineupsError.message}`);
+    }
   }
 
-  // Delete contest (movies will cascade delete due to foreign key)
+  // Delete contest (entries and movies will cascade delete due to foreign keys)
   const { error: deleteError } = await supabase
     .from('contests')
     .delete()

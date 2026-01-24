@@ -362,6 +362,27 @@ CREATE POLICY "Users can check own admin status"
   USING (user_id = (select auth.uid()));
 
 -- ============================================================================
+-- CLEANUP TRIGGER FOR ORPHANED LINEUPS
+-- ============================================================================
+-- When entries are deleted (e.g., contest cascade delete), clean up orphaned lineups
+-- Since lineups don't have a direct FK to contests, this trigger ensures they're deleted
+CREATE OR REPLACE FUNCTION cleanup_orphaned_lineup()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+  -- Delete the lineup that was associated with the deleted entry
+  DELETE FROM public.lineups WHERE id = OLD.lineup_id;
+  RETURN OLD;
+END;
+$$;
+
+CREATE TRIGGER delete_lineup_on_entry_delete
+  AFTER DELETE ON entries
+  FOR EACH ROW EXECUTE FUNCTION cleanup_orphaned_lineup();
+
+-- ============================================================================
 -- NOTES
 -- ============================================================================
 -- Assumptions and design choices:
