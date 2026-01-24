@@ -3,10 +3,9 @@
 // ============================================================================
 
 import type { Movie } from '@/types';
+import { LINEUP_CONSTRAINTS } from '@/types';
 
-const SALARY_CAP = 100;
-const MIN_MOVIES = 2;
-const MAX_MOVIES = 4;
+const { SALARY_CAP, MIN_MOVIES, MAX_MOVIES } = LINEUP_CONSTRAINTS;
 
 /**
  * Generates all combinations of a given size from an array
@@ -75,17 +74,4 @@ export function calculateMaxPossibleScore(movies: Movie[]): {
   }
 
   return { maxScore, optimalLineup };
-}
-
-/**
- * Checks if a user's lineup is a perfect lineup (achieved max possible score)
- *
- * @param userScore The user's total score
- * @param contestMovies All movies in the contest
- * @returns Whether the lineup is perfect
- */
-export function isPerfectLineup(userScore: number, contestMovies: Movie[]): boolean {
-  const { maxScore } = calculateMaxPossibleScore(contestMovies);
-  // Use small epsilon for floating point comparison
-  return Math.abs(userScore - maxScore) < 0.001;
 }

@@ -79,6 +79,7 @@ async function checkAuthRateLimit(): Promise<string | null> {
  */
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 const PASSWORD_ERROR = 'Password must be at least 8 characters with uppercase, lowercase, and a number.';
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * Validates password strength
@@ -143,8 +144,7 @@ export async function signUp(email: string, password: string, username: string) 
     return { error: 'Email address is required.' };
   }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
+  if (!EMAIL_REGEX.test(email)) {
     return { error: 'Please enter a valid email address.' };
   }
 
@@ -241,8 +241,7 @@ export async function resetPassword(email: string) {
     return { error: 'Email address is required.' };
   }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
+  if (!EMAIL_REGEX.test(email)) {
     return { error: 'Please enter a valid email address.' };
   }
 

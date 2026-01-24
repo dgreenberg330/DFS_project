@@ -8,18 +8,19 @@ This is a box office fantasy sports game where users create lineups of movies to
 
 ## Tech Stack
 
-- **Framework**: Next.js 14 with App Router
+- **Framework**: Next.js 16 with App Router
 - **Language**: TypeScript (required for all files)
 - **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth with email magic links (no passwords)
+- **Authentication**: Supabase Auth with email/password (password required)
 - **Styling**: Tailwind CSS
+- **Rate Limiting**: Upstash Redis (optional, graceful degradation)
 - **Deployment**: Vercel
 
 ## Development Commands
 
 - `npm run dev` - Start development server
 - `npm run build` - Production build
-- `npm run test` - Run tests
+- `npm run lint` - Run ESLint
 - `supabase start` - Local database
 
 ## Project Structure
@@ -101,15 +102,14 @@ Note: Manual data entry acceptable until 100+ weekly users. Carryover movies (se
 
 ## Supabase Client Patterns
 
-Three client types exist - use the correct one:
+Two client types exist - use the correct one:
 
 | Client | Location | Use Case |
 |--------|----------|----------|
 | `createClient()` | `lib/supabase-server.ts` | Default for all server operations. Subject to RLS. |
 | `createAdminClient()` | `lib/supabase-admin.ts` | Admin operations that bypass RLS (scoring, leaderboards). |
-| Browser client | `lib/supabase-browser.ts` | Client components (rarely needed). |
 
-**Rule**: Always use `createClient()` unless you specifically need to bypass Row Level Security.
+**Rule**: Always use `createClient()` unless you specifically need to bypass Row Level Security. All database operations are server-side; no browser client is needed.
 
 ## Authorization Patterns
 
@@ -129,6 +129,7 @@ Admin users are stored in the `admin_users` table.
 - Prefer server components by default (use 'use client' only when needed)
 - TypeScript required for all files
 - All types defined in `types.ts` (centralized)
+- Constants (`LINEUP_CONSTRAINTS`, `USERNAME_CONSTRAINTS`) defined in `types.ts` - import from there
 
 ### Component Patterns
 
@@ -225,6 +226,8 @@ Current version: v1.0.0 (January 2025)
 SUPABASE_URL=https://...                  # Server-only - Supabase project URL
 SUPABASE_ANON_KEY=...                     # Server-only - Anonymous key (RLS enforced)
 SUPABASE_SERVICE_ROLE_KEY=...             # Server-only - Bypasses RLS (admin operations)
+UPSTASH_REDIS_REST_URL=...                # Optional - Rate limiting (graceful degradation if missing)
+UPSTASH_REDIS_REST_TOKEN=...              # Optional - Rate limiting token
 ```
 
-All Supabase variables are server-only (no `NEXT_PUBLIC_` prefix) since all database operations happen server-side. This prevents API keys from being exposed in the client JavaScript bundle.
+All variables are server-only (no `NEXT_PUBLIC_` prefix) since all database operations happen server-side. This prevents API keys from being exposed in the client JavaScript bundle.

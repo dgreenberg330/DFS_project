@@ -2,13 +2,7 @@
 // Validation Helpers
 // ============================================================================
 
-import { Movie } from '@/types';
-
-export const LINEUP_CONSTRAINTS = {
-  MIN_MOVIES: 2,
-  MAX_MOVIES: 4,
-  SALARY_CAP: 100,
-} as const;
+import { Movie, LINEUP_CONSTRAINTS } from '@/types';
 
 /**
  * Validates lineup movie selection
