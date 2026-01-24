@@ -3,6 +3,7 @@
 // ============================================================================
 
 import Link from 'next/link';
+import { CookieSettingsButton } from './cookie-consent';
 
 export function Footer() {
   return (
@@ -25,6 +26,8 @@ export function Footer() {
           <Link href="/privacy" className="text-gray-500 hover:text-gray-700 hover:underline">
             Privacy Policy
           </Link>
+          <span className="text-gray-300">|</span>
+          <CookieSettingsButton />
         </div>
       </div>
     </footer>
