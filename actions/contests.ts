@@ -114,6 +114,7 @@ export async function getCurrentContest() {
     .from('contests')
     .select('*')
     .in('status', [ContestStatus.UPCOMING, ContestStatus.LOCKED])
+    .eq('published', true)
     .order('lock_time', { ascending: false })
     .limit(1)
     .single();
@@ -279,4 +280,123 @@ export async function lockContest(contestId: string): Promise<void> {
 
   revalidatePath('/contests');
   revalidatePath(`/contests/${contestId}`);
+}
+
+/**
+ * Publishes a contest, making it visible to users on the home page
+ * Requires at least 6 movies before publishing
+ */
+export async function publishContest(contestId: string): Promise<void> {
+  // Admin access required
+  await checkAdminAccess();
+
+  // Defensive check: validate contestId
+  if (!contestId || contestId.trim() === '') {
+    throw new Error('Contest ID is required.');
+  }
+
+  const supabase = await createClient();
+
+  // Check that contest exists and is not already published
+  const { data: contest, error: contestFetchError } = await supabase
+    .from('contests')
+    .select('id, published, status')
+    .eq('id', contestId)
+    .single();
+
+  if (contestFetchError) {
+    if (contestFetchError.code === 'PGRST116') {
+      throw new Error('Contest not found.');
+    }
+    throw new Error(`Failed to fetch contest: ${contestFetchError.message}`);
+  }
+
+  if (contest.published) {
+    throw new Error('Contest is already published.');
+  }
+
+  // Count movies for this contest
+  const { count, error: countError } = await supabase
+    .from('movies')
+    .select('*', { count: 'exact', head: true })
+    .eq('contest_id', contestId);
+
+  if (countError) {
+    throw new Error(`Failed to count movies: ${countError.message}`);
+  }
+
+  const movieCount = count || 0;
+  if (movieCount < 6) {
+    throw new Error(`Cannot publish contest with fewer than 6 movies. Currently has ${movieCount} movie(s).`);
+  }
+
+  // Publish the contest
+  const { error: updateError } = await supabase
+    .from('contests')
+    .update({ published: true })
+    .eq('id', contestId);
+
+  if (updateError) {
+    throw new Error(`Failed to publish contest: ${updateError.message}`);
+  }
+
+  revalidatePath('/');
+  revalidatePath('/contests');
+  revalidatePath(`/contests/${contestId}`);
+  revalidatePath('/admin');
+  revalidatePath(`/admin/contests/${contestId}/movies`);
+}
+
+/**
+ * Unpublishes a contest, hiding it from users
+ * Only allowed if contest is still 'upcoming' (not locked or resolved)
+ */
+export async function unpublishContest(contestId: string): Promise<void> {
+  // Admin access required
+  await checkAdminAccess();
+
+  // Defensive check: validate contestId
+  if (!contestId || contestId.trim() === '') {
+    throw new Error('Contest ID is required.');
+  }
+
+  const supabase = await createClient();
+
+  // Check that contest exists and is upcoming
+  const { data: contest, error: contestFetchError } = await supabase
+    .from('contests')
+    .select('id, published, status')
+    .eq('id', contestId)
+    .single();
+
+  if (contestFetchError) {
+    if (contestFetchError.code === 'PGRST116') {
+      throw new Error('Contest not found.');
+    }
+    throw new Error(`Failed to fetch contest: ${contestFetchError.message}`);
+  }
+
+  if (!contest.published) {
+    throw new Error('Contest is not published.');
+  }
+
+  if (contest.status !== 'upcoming') {
+    throw new Error('Cannot unpublish a contest that is locked or resolved.');
+  }
+
+  // Unpublish the contest
+  const { error: updateError } = await supabase
+    .from('contests')
+    .update({ published: false })
+    .eq('id', contestId);
+
+  if (updateError) {
+    throw new Error(`Failed to unpublish contest: ${updateError.message}`);
+  }
+
+  revalidatePath('/');
+  revalidatePath('/contests');
+  revalidatePath(`/contests/${contestId}`);
+  revalidatePath('/admin');
+  revalidatePath(`/admin/contests/${contestId}/movies`);
 }

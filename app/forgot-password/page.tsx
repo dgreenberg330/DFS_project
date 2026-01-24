@@ -14,11 +14,17 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-export default async function ForgotPasswordPage() {
+interface PageProps {
+  searchParams: Promise<{ error?: string; message?: string }>;
+}
+
+export default async function ForgotPasswordPage({ searchParams }: PageProps) {
   const user = await getUser();
   if (user) {
     redirect('/account');
   }
+
+  const { error, message } = await searchParams;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -33,6 +39,17 @@ export default async function ForgotPasswordPage() {
               Enter your email and we'll send you a reset link
             </p>
           </div>
+
+          {error && (
+            <div className="p-4 rounded bg-amber-50 border border-amber-200 text-amber-800 text-center">
+              <p className="font-medium">
+                {error === 'expired' ? 'Link Expired' : 'Reset Failed'}
+              </p>
+              <p className="mt-1 text-sm">
+                {message || 'Please request a new password reset link.'}
+              </p>
+            </div>
+          )}
 
           <ForgotPasswordForm />
         </div>

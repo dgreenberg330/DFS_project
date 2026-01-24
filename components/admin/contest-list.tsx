@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import { deleteContest } from '@/actions/admin-contests';
-import { lockExpiredContests } from '@/actions/contests';
+import { lockExpiredContests, publishContest, unpublishContest } from '@/actions/contests';
 import { Contest } from '@/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -20,6 +20,7 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
   const [contests, setContests] = useState(initialContests);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
   const [lockLoading, setLockLoading] = useState(false);
+  const [publishLoading, setPublishLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -61,6 +62,44 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
       setError(err instanceof Error ? err.message : 'Failed to delete contest');
     } finally {
       setDeleteLoading(null);
+    }
+  }
+
+  async function handlePublish(contest: Contest) {
+    setPublishLoading(contest.id);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      await publishContest(contest.id);
+      setContests(contests.map(c => c.id === contest.id ? { ...c, published: true } : c));
+      setSuccessMessage(`"${contest.name}" has been published!`);
+      router.refresh();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to publish contest');
+    } finally {
+      setPublishLoading(null);
+    }
+  }
+
+  async function handleUnpublish(contest: Contest) {
+    if (!confirm(`Unpublish "${contest.name}"? It will be hidden from users.`)) {
+      return;
+    }
+
+    setPublishLoading(contest.id);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      await unpublishContest(contest.id);
+      setContests(contests.map(c => c.id === contest.id ? { ...c, published: false } : c));
+      setSuccessMessage(`"${contest.name}" has been unpublished.`);
+      router.refresh();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to unpublish contest');
+    } finally {
+      setPublishLoading(null);
     }
   }
 
@@ -115,6 +154,14 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
                     >
                       {contest.status}
                     </span>
+                    {' · '}
+                    <span
+                      className={`font-medium ${
+                        contest.published ? 'text-green-600' : 'text-orange-600'
+                      }`}
+                    >
+                      {contest.published ? 'Published' : 'Draft'}
+                    </span>
                   </p>
                   <p className="text-xs text-gray-400 mt-1">
                     Lock: {new Date(contest.lock_time).toLocaleDateString('en-US', {
@@ -126,7 +173,25 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
                     })}
                   </p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-3 items-center">
+                  {!contest.published && contest.status === 'upcoming' && (
+                    <button
+                      onClick={() => handlePublish(contest)}
+                      disabled={publishLoading === contest.id}
+                      className="text-sm text-green-600 hover:underline font-medium disabled:opacity-50"
+                    >
+                      {publishLoading === contest.id ? 'Publishing...' : 'Publish'}
+                    </button>
+                  )}
+                  {contest.published && contest.status === 'upcoming' && (
+                    <button
+                      onClick={() => handleUnpublish(contest)}
+                      disabled={publishLoading === contest.id}
+                      className="text-sm text-orange-600 hover:underline font-medium disabled:opacity-50"
+                    >
+                      {publishLoading === contest.id ? 'Unpublishing...' : 'Unpublish'}
+                    </button>
+                  )}
                   <Link
                     href={`/admin/contests/${contest.id}/movies`}
                     className="text-sm text-blue-600 hover:underline font-medium"

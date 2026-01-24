@@ -30,6 +30,7 @@ CREATE TABLE contests (
 
   -- State management
   status contest_status NOT NULL DEFAULT 'upcoming',
+  published BOOLEAN NOT NULL DEFAULT FALSE, -- Contest visible to users only when true
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

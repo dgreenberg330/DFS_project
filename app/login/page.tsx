@@ -6,6 +6,7 @@ import { LoginForm } from '@/components/login-form';
 import { getUser } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { Header } from '@/components/header';
+import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -25,12 +26,39 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function LoginPage() {
+const ERROR_MESSAGES: Record<string, { title: string; message: string; showResetLink?: boolean }> = {
+  link_expired: {
+    title: 'Link Expired',
+    message: 'Your verification link has expired.',
+    showResetLink: true,
+  },
+  auth_failed: {
+    title: 'Authentication Failed',
+    message: 'Unable to verify your account. Please try again.',
+  },
+  missing_code: {
+    title: 'Invalid Link',
+    message: 'The link appears to be incomplete. Please request a new one.',
+  },
+  unexpected_error: {
+    title: 'Something Went Wrong',
+    message: 'An unexpected error occurred. Please try again.',
+  },
+};
+
+interface PageProps {
+  searchParams: Promise<{ error?: string }>;
+}
+
+export default async function LoginPage({ searchParams }: PageProps) {
   // If already logged in, redirect to account
   const user = await getUser();
   if (user) {
     redirect('/account');
   }
+
+  const { error } = await searchParams;
+  const errorInfo = error ? ERROR_MESSAGES[error] : null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -45,6 +73,21 @@ export default async function LoginPage() {
               Enter your email and password
             </p>
           </div>
+
+          {errorInfo && (
+            <div className="p-4 rounded bg-amber-50 border border-amber-200 text-amber-800 text-center">
+              <p className="font-medium">{errorInfo.title}</p>
+              <p className="mt-1 text-sm">{errorInfo.message}</p>
+              {errorInfo.showResetLink && (
+                <Link
+                  href="/forgot-password"
+                  className="mt-2 inline-block text-sm text-teal-600 hover:text-teal-700 hover:underline font-medium"
+                >
+                  Request a new reset link
+                </Link>
+              )}
+            </div>
+          )}
 
           <LoginForm />
         </div>

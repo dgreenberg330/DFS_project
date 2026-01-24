@@ -181,7 +181,7 @@ export default async function ContestPage({ params }: PageProps) {
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <h3 className="font-semibold text-gray-900 mb-2">Ready to play?</h3>
             <p className="text-sm text-gray-600 mb-4">
-              Build your lineup and compete on the leaderboard.
+              Build your lineup and compete in this contest.
             </p>
             <Link
               href={`/contests/${contestId}/lineup`}
@@ -215,7 +215,7 @@ export default async function ContestPage({ params }: PageProps) {
             <div className="flex gap-3">
               <span className="text-blue-600 font-semibold">Scoring:</span>
               <span>
-                Total domestic opening weekend gross (Fri-Sun). $1M box office = 1 point
+                Total domestic weekend gross (Fri-Sun). $1M box office = 1 point
               </span>
             </div>
             <div className="flex gap-3">

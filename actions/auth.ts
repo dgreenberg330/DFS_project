@@ -231,8 +231,9 @@ export async function resetPassword(email: string) {
   const headersList = await headers();
   const origin = headersList.get('origin') || 'http://localhost:3000';
 
+  // Use dedicated recovery route - more reliable than query params which can get stripped
   const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-    redirectTo: `${origin}/auth/callback?type=recovery`,
+    redirectTo: `${origin}/auth/recovery`,
   });
 
   if (error) {

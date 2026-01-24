@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { createMovie, batchCreateMovies } from '@/actions/movies';
 import { updateMovie, deleteMovie, copyMovieToContest } from '@/actions/admin-movies';
+import { publishContest, unpublishContest } from '@/actions/contests';
 import { ContestWithMovies, Movie } from '@/types';
 import { useRouter } from 'next/navigation';
 
@@ -50,6 +51,11 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
   const [csvLoading, setCsvLoading] = useState(false);
   const [csvError, setCsvError] = useState<string | null>(null);
   const [csvSuccess, setCsvSuccess] = useState(false);
+
+  // Publish state
+  const [isPublished, setIsPublished] = useState(contest.published);
+  const [publishLoading, setPublishLoading] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   async function handleAddMovie(e: React.FormEvent) {
     e.preventDefault();
@@ -221,6 +227,40 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
       setCsvError(err instanceof Error ? err.message : 'Failed to upload CSV');
     } finally {
       setCsvLoading(false);
+    }
+  }
+
+  async function handlePublish() {
+    setPublishLoading(true);
+    setPublishError(null);
+
+    try {
+      await publishContest(contest.id);
+      setIsPublished(true);
+      router.refresh();
+    } catch (err: unknown) {
+      setPublishError(err instanceof Error ? err.message : 'Failed to publish contest');
+    } finally {
+      setPublishLoading(false);
+    }
+  }
+
+  async function handleUnpublish() {
+    if (!confirm('Unpublish this contest? It will be hidden from users until published again.')) {
+      return;
+    }
+
+    setPublishLoading(true);
+    setPublishError(null);
+
+    try {
+      await unpublishContest(contest.id);
+      setIsPublished(false);
+      router.refresh();
+    } catch (err: unknown) {
+      setPublishError(err instanceof Error ? err.message : 'Failed to unpublish contest');
+    } finally {
+      setPublishLoading(false);
     }
   }
 
@@ -649,6 +689,54 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+      </div>
+
+      {/* Publish Contest Section */}
+      <div className={`rounded-lg shadow p-6 ${isPublished ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'}`}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold">
+              {isPublished ? 'Contest Published' : 'Publish Contest'}
+            </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              {isPublished
+                ? 'This contest is visible to users on the home page.'
+                : `Add at least 6 movies to publish. Currently: ${movies.length} movie(s).`}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {isPublished ? (
+              <>
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  Published
+                </span>
+                {contest.status === 'upcoming' && (
+                  <button
+                    onClick={handleUnpublish}
+                    disabled={publishLoading}
+                    className="px-4 py-2 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700 disabled:opacity-50"
+                  >
+                    {publishLoading ? 'Unpublishing...' : 'Unpublish'}
+                  </button>
+                )}
+              </>
+            ) : (
+              <button
+                onClick={handlePublish}
+                disabled={publishLoading || movies.length < 6}
+                className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {publishLoading ? 'Publishing...' : 'Publish Contest'}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {publishError && (
+          <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-800 text-sm">{publishError}</p>
           </div>
         )}
       </div>

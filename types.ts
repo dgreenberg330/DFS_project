@@ -41,6 +41,7 @@ export interface Contest {
 
   // State
   status: ContestStatus;
+  published: boolean; // Contest visible to users only when true
 
   created_at: string;
   updated_at: string;
