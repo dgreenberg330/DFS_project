@@ -140,6 +140,12 @@ CREATE TABLE user_profiles (
   -- Username (unique, alphanumeric + underscore, 3-20 chars)
   username TEXT NOT NULL,
 
+  -- Email notification preferences
+  email_lock_reminders BOOLEAN NOT NULL DEFAULT TRUE,
+  email_contest_results BOOLEAN NOT NULL DEFAULT TRUE,
+  email_new_contests BOOLEAN NOT NULL DEFAULT TRUE,
+  unsubscribe_token TEXT UNIQUE, -- For one-click unsubscribe links
+
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
@@ -151,6 +157,40 @@ CREATE TABLE user_profiles (
 
 CREATE INDEX idx_user_profiles_user_id ON user_profiles(user_id);
 CREATE INDEX idx_user_profiles_username ON user_profiles(username);
+CREATE INDEX idx_user_profiles_unsubscribe_token ON user_profiles(unsubscribe_token)
+  WHERE unsubscribe_token IS NOT NULL;
+
+-- ============================================================================
+-- EMAIL_LOGS
+-- ============================================================================
+-- Tracks sent emails for analytics and duplicate prevention
+CREATE TABLE email_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  -- References
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  contest_id UUID REFERENCES contests(id) ON DELETE SET NULL,
+
+  -- Email details
+  email_type TEXT NOT NULL, -- 'lock_reminder', 'contest_results', 'new_contest'
+  recipient_email TEXT NOT NULL,
+  subject TEXT NOT NULL,
+
+  -- Status tracking
+  status TEXT NOT NULL DEFAULT 'pending', -- 'pending', 'sent', 'failed'
+  error_message TEXT,
+  resend_id TEXT, -- ID from Resend API for tracking
+
+  -- Timestamps
+  sent_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_email_logs_user_id ON email_logs(user_id);
+CREATE INDEX idx_email_logs_contest_id ON email_logs(contest_id);
+CREATE INDEX idx_email_logs_email_type ON email_logs(email_type);
+CREATE INDEX idx_email_logs_created_at ON email_logs(created_at);
+CREATE INDEX idx_email_logs_dedup ON email_logs(user_id, contest_id, email_type);
 
 -- ============================================================================
 -- LINEUP_MOVIES (Join Table)
@@ -194,6 +234,26 @@ CREATE TRIGGER update_lineups_updated_at BEFORE UPDATE ON lineups
 
 CREATE TRIGGER update_user_profiles_updated_at BEFORE UPDATE ON user_profiles
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- UNSUBSCRIBE TOKEN GENERATION
+-- ============================================================================
+-- Auto-generate unsubscribe token on profile creation
+CREATE OR REPLACE FUNCTION generate_unsubscribe_token()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+  IF NEW.unsubscribe_token IS NULL THEN
+    NEW.unsubscribe_token = encode(gen_random_bytes(32), 'hex');
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER set_unsubscribe_token BEFORE INSERT ON user_profiles
+  FOR EACH ROW EXECUTE FUNCTION generate_unsubscribe_token();
 
 -- ============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
@@ -365,6 +425,15 @@ CREATE POLICY "Admins can delete movies"
 CREATE POLICY "Users can check own admin status"
   ON admin_users FOR SELECT
   USING (user_id = (select auth.uid()));
+
+-- EMAIL_LOGS: Users can view their own email logs
+ALTER TABLE email_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own email logs"
+  ON email_logs FOR SELECT
+  USING (user_id = (select auth.uid()));
+
+-- No INSERT/UPDATE policies for regular users - only service role can insert
 
 -- ============================================================================
 -- CLEANUP TRIGGER FOR ORPHANED LINEUPS

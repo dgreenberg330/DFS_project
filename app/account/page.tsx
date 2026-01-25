@@ -13,6 +13,7 @@ import {
 } from '@/actions/scoring';
 import { SignOutButton } from '@/components/sign-out-button';
 import { Header } from '@/components/header';
+import { EmailPreferencesForm } from '@/components/email-preferences-form';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import type { Movie, Contest, Lineup, Entry } from '@/types';
@@ -103,6 +104,18 @@ export default async function AccountPage() {
             )}
             <p className="text-sm text-gray-600">{user.email}</p>
           </div>
+        </div>
+
+        {/* Email Preferences */}
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Email Notifications</h2>
+          <EmailPreferencesForm
+            initialPreferences={{
+              email_lock_reminders: profile.email_lock_reminders ?? true,
+              email_contest_results: profile.email_contest_results ?? true,
+              email_new_contests: profile.email_new_contests ?? true,
+            }}
+          />
         </div>
 
         {/* Active Contests */}

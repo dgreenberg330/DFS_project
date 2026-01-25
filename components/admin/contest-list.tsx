@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { deleteContest } from '@/actions/admin-contests';
 import { lockExpiredContests, publishContest, unpublishContest } from '@/actions/contests';
+import { sendNewContestEmails, sendContestResultsEmails, sendLockReminderEmails } from '@/actions/emails';
 import { Contest } from '@/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -21,6 +22,7 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
   const [lockLoading, setLockLoading] = useState(false);
   const [publishLoading, setPublishLoading] = useState<string | null>(null);
+  const [emailLoading, setEmailLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -100,6 +102,63 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
       setError(err instanceof Error ? err.message : 'Failed to unpublish contest');
     } finally {
       setPublishLoading(null);
+    }
+  }
+
+  async function handleSendNewContestEmails(contest: Contest) {
+    if (!confirm(`Send "new contest" announcement emails for "${contest.name}" to all opted-in users?`)) {
+      return;
+    }
+
+    setEmailLoading(`announce-${contest.id}`);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const result = await sendNewContestEmails(contest.id);
+      setSuccessMessage(`Sent ${result.sent} announcement email(s)${result.failed > 0 ? `, ${result.failed} failed` : ''}`);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to send emails');
+    } finally {
+      setEmailLoading(null);
+    }
+  }
+
+  async function handleSendResultsEmails(contest: Contest) {
+    if (!confirm(`Send results emails for "${contest.name}" to all participants?`)) {
+      return;
+    }
+
+    setEmailLoading(`results-${contest.id}`);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const result = await sendContestResultsEmails(contest.id);
+      setSuccessMessage(`Sent ${result.sent} results email(s)${result.failed > 0 ? `, ${result.failed} failed` : ''}`);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to send emails');
+    } finally {
+      setEmailLoading(null);
+    }
+  }
+
+  async function handleSendLockReminders(contest: Contest) {
+    if (!confirm(`Send lock reminder emails for "${contest.name}" to users who haven't entered yet?`)) {
+      return;
+    }
+
+    setEmailLoading(`reminder-${contest.id}`);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const result = await sendLockReminderEmails(contest.id, 24);
+      setSuccessMessage(`Sent ${result.sent} reminder email(s)${result.failed > 0 ? `, ${result.failed} failed` : ''}`);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to send emails');
+    } finally {
+      setEmailLoading(null);
     }
   }
 
@@ -184,13 +243,29 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
                     </button>
                   )}
                   {contest.published && contest.status === 'upcoming' && (
-                    <button
-                      onClick={() => handleUnpublish(contest)}
-                      disabled={publishLoading === contest.id}
-                      className="text-sm text-orange-600 hover:underline font-medium disabled:opacity-50"
-                    >
-                      {publishLoading === contest.id ? 'Unpublishing...' : 'Unpublish'}
-                    </button>
+                    <>
+                      <button
+                        onClick={() => handleUnpublish(contest)}
+                        disabled={publishLoading === contest.id}
+                        className="text-sm text-orange-600 hover:underline font-medium disabled:opacity-50"
+                      >
+                        {publishLoading === contest.id ? 'Unpublishing...' : 'Unpublish'}
+                      </button>
+                      <button
+                        onClick={() => handleSendNewContestEmails(contest)}
+                        disabled={emailLoading === `announce-${contest.id}`}
+                        className="text-sm text-purple-600 hover:underline font-medium disabled:opacity-50"
+                      >
+                        {emailLoading === `announce-${contest.id}` ? 'Sending...' : 'Announce'}
+                      </button>
+                      <button
+                        onClick={() => handleSendLockReminders(contest)}
+                        disabled={emailLoading === `reminder-${contest.id}`}
+                        className="text-sm text-indigo-600 hover:underline font-medium disabled:opacity-50"
+                      >
+                        {emailLoading === `reminder-${contest.id}` ? 'Sending...' : 'Remind'}
+                      </button>
+                    </>
                   )}
                   <Link
                     href={`/admin/contests/${contest.id}/movies`}
@@ -221,12 +296,21 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
                     </>
                   )}
                   {contest.status === 'resolved' && (
-                    <Link
-                      href={`/contests/${contest.id}/leaderboard`}
-                      className="text-sm text-green-600 hover:underline font-medium"
-                    >
-                      Leaderboard
-                    </Link>
+                    <>
+                      <Link
+                        href={`/contests/${contest.id}/leaderboard`}
+                        className="text-sm text-green-600 hover:underline font-medium"
+                      >
+                        Leaderboard
+                      </Link>
+                      <button
+                        onClick={() => handleSendResultsEmails(contest)}
+                        disabled={emailLoading === `results-${contest.id}`}
+                        className="text-sm text-purple-600 hover:underline font-medium disabled:opacity-50"
+                      >
+                        {emailLoading === `results-${contest.id}` ? 'Sending...' : 'Email Results'}
+                      </button>
+                    </>
                   )}
                   <button
                     onClick={() => handleDelete(contest)}

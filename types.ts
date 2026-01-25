@@ -257,8 +257,44 @@ export interface UserProfile {
   id: string;
   user_id: string;
   username: string;
+  // Email notification preferences
+  email_lock_reminders: boolean;
+  email_contest_results: boolean;
+  email_new_contests: boolean;
+  unsubscribe_token: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * Email preferences input for updates
+ */
+export interface EmailPreferencesInput {
+  email_lock_reminders?: boolean;
+  email_contest_results?: boolean;
+  email_new_contests?: boolean;
+}
+
+/**
+ * Email notification types
+ */
+export type EmailType = 'lock_reminder' | 'contest_results' | 'new_contest';
+
+/**
+ * Email log entry for tracking sent emails
+ */
+export interface EmailLog {
+  id: string;
+  user_id: string;
+  contest_id: string | null;
+  email_type: EmailType;
+  recipient_email: string;
+  subject: string;
+  status: 'pending' | 'sent' | 'failed';
+  error_message: string | null;
+  resend_id: string | null;
+  sent_at: string | null;
+  created_at: string;
 }
 
 /**

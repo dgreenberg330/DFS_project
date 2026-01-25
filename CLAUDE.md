@@ -216,9 +216,9 @@ Current version: v1.0.0 (January 2025)
 ## Weekly Operations Workflow
 
 - **Monday-Tuesday**: Enter movie slate, projections, set salaries
-- **Wednesday**: QA contest, send email reminder
-- **Thursday**: Contest locks at 8PM ET, verify entries
-- **Sunday night**: Enter actuals, run scoring, publish leaderboard, email winners
+- **Wednesday**: QA contest, publish contest, send "New Contest" announcement emails
+- **Thursday**: Lock reminder sent automatically via cron at 5PM ET (3 hours before lock). Contest locks at 8PM ET.
+- **Sunday night**: Enter actuals, run scoring, publish leaderboard, send results emails
 
 ## Environment Variables
 
@@ -228,6 +228,10 @@ SUPABASE_ANON_KEY=...                     # Server-only - Anonymous key (RLS enf
 SUPABASE_SERVICE_ROLE_KEY=...             # Server-only - Bypasses RLS (admin operations)
 UPSTASH_REDIS_REST_URL=...                # Optional - Rate limiting (graceful degradation if missing)
 UPSTASH_REDIS_REST_TOKEN=...              # Optional - Rate limiting token
+RESEND_API_KEY=...                        # Optional - Email service (graceful degradation if missing)
+EMAIL_FROM=Shugsy <noreply@shugsy.com>    # Optional - Email sender address
+NEXT_PUBLIC_APP_URL=https://shugsy.com    # Required for email links
+CRON_SECRET=...                           # Optional - Vercel Cron authorization
 ```
 
-All variables are server-only (no `NEXT_PUBLIC_` prefix) since all database operations happen server-side. This prevents API keys from being exposed in the client JavaScript bundle.
+All variables are server-only (no `NEXT_PUBLIC_` prefix) except `NEXT_PUBLIC_APP_URL`. This prevents API keys from being exposed in the client JavaScript bundle.

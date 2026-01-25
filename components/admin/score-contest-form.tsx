@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import { scoreContest } from '@/actions/scoring';
+import { sendContestResultsEmails } from '@/actions/emails';
 import { Contest, Movie, ScoredLineup } from '@/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -21,8 +22,31 @@ export function ScoreContestForm({ contest, entryCount, moviesWithoutActuals }: 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [leaderboard, setLeaderboard] = useState<ScoredLineup[] | null>(null);
+  const [emailStatus, setEmailStatus] = useState<{
+    sending: boolean;
+    sent?: number;
+    failed?: number;
+    error?: string;
+  }>({ sending: false });
 
   const canScore = moviesWithoutActuals.length === 0 && entryCount > 0;
+
+  async function handleSendEmails() {
+    setEmailStatus({ sending: true });
+    try {
+      const result = await sendContestResultsEmails(contest.id);
+      setEmailStatus({
+        sending: false,
+        sent: result.sent,
+        failed: result.failed,
+      });
+    } catch (err: unknown) {
+      setEmailStatus({
+        sending: false,
+        error: err instanceof Error ? err.message : 'Failed to send emails',
+      });
+    }
+  }
 
   async function handleScore() {
     if (!canScore) return;
@@ -58,12 +82,43 @@ export function ScoreContestForm({ contest, entryCount, moviesWithoutActuals }: 
           <p className="text-green-800 mb-4">
             {leaderboard.length} entries have been scored and the contest has been marked as resolved.
           </p>
-          <Link
-            href={`/contests/${contest.id}/leaderboard`}
-            className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-          >
-            View Full Leaderboard →
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href={`/contests/${contest.id}/leaderboard`}
+              className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+            >
+              View Full Leaderboard →
+            </Link>
+          </div>
+        </div>
+
+        {/* Email Results Section */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="font-semibold text-gray-900 mb-2">Send Results Emails</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Notify participants of their final scores and rankings.
+          </p>
+
+          {emailStatus.sent !== undefined ? (
+            <div className={`p-4 rounded-lg ${emailStatus.failed && emailStatus.failed > 0 ? 'bg-yellow-50' : 'bg-green-50'}`}>
+              <p className={`font-medium ${emailStatus.failed && emailStatus.failed > 0 ? 'text-yellow-900' : 'text-green-900'}`}>
+                {emailStatus.sent} email{emailStatus.sent !== 1 ? 's' : ''} sent successfully
+                {emailStatus.failed && emailStatus.failed > 0 && `, ${emailStatus.failed} failed`}
+              </p>
+            </div>
+          ) : emailStatus.error ? (
+            <div className="p-4 rounded-lg bg-red-50">
+              <p className="text-red-800">{emailStatus.error}</p>
+            </div>
+          ) : (
+            <button
+              onClick={handleSendEmails}
+              disabled={emailStatus.sending}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            >
+              {emailStatus.sending ? 'Sending Emails...' : 'Send Results Emails'}
+            </button>
+          )}
         </div>
 
         {/* Leaderboard Preview */}
