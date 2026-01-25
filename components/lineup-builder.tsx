@@ -247,7 +247,7 @@ export function LineupBuilder({
           </div>
           <div>
             <div className="text-xl sm:text-2xl font-bold text-blue-600">
-              {projectedScore.toFixed(1)}
+              {projectedScore.toFixed(2)}
             </div>
             <div className="text-xs text-gray-600">Projected Pts</div>
           </div>
@@ -336,7 +336,7 @@ export function LineupBuilder({
                       Release date: {new Date(movie.release_date + 'T00:00:00').toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                     </div>
                     <div className="text-xs text-gray-600">
-                      Proj: {movie.projected_gross.toFixed(1)}M
+                      Proj: {movie.projected_gross.toFixed(2)}M
                     </div>
                   </div>
                   {/* Row 3: Distributor */}

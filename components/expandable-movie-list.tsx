@@ -36,7 +36,7 @@ export function ExpandableMovieList({ movies }: ExpandableMovieListProps) {
               <div className="text-xs text-gray-600">
                 Release date: {new Date(movie.release_date + 'T00:00:00').toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
               </div>
-              <div className="text-xs text-gray-600">Proj: {movie.projected_gross.toFixed(1)}M</div>
+              <div className="text-xs text-gray-600">Proj: {movie.projected_gross.toFixed(2)}M</div>
             </div>
             {/* Row 3: Distributor */}
             {movie.distributor && (

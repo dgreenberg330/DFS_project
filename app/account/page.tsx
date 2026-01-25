@@ -132,10 +132,13 @@ export default async function AccountPage() {
                 let currentEstimatedScore = projectedScore;
 
                 if (contest.status === 'locked') {
-                  const firstMovie = movies[0] ? (Array.isArray(movies[0].movie) ? movies[0].movie[0] : movies[0].movie) : null;
-                  if (firstMovie) {
-                    const estimateDay = getCurrentEstimateDay(firstMovie);
-                    hasEstimates = estimateDay !== 'none';
+                  // Check all movies for estimates
+                  for (const lm of movies) {
+                    const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
+                    if (movie && getCurrentEstimateDay(movie) !== 'none') {
+                      hasEstimates = true;
+                      break;
+                    }
                   }
 
                   if (hasEstimates) {
@@ -180,7 +183,7 @@ export default async function AccountPage() {
                       <div className="flex items-center justify-between gap-3">
                         <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-gray-900 min-w-0 truncate">{contest.name}</h3>
                         <span className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-blue-600 flex-shrink-0">
-                          {displayScore.toFixed(1)} pts
+                          {displayScore.toFixed(2)} pts
                         </span>
                       </div>
                       {/* Row 2: Date + Score label */}
@@ -229,18 +232,14 @@ export default async function AccountPage() {
                             <div className="min-w-0 flex-1">
                               <span className="font-medium text-gray-900">{movie.title}</span>
                             </div>
-                            <div className={`flex-shrink-0 w-20 text-right flex items-center justify-end gap-1 ${scoreColor}`}>
+                            <div className={`flex-shrink-0 text-right flex items-center justify-end gap-1 ${scoreColor}`}>
                               {direction === 'uptick' && (
                                 <img src="/uptick.png" alt="" className="w-2.5 h-2.5" />
                               )}
                               {direction === 'downtick' && (
                                 <img src="/downtick.png" alt="" className="w-2.5 h-2.5" />
                               )}
-                              {hasEstimates ? (
-                                <span>{displayValue.toFixed(1)}</span>
-                              ) : (
-                                <span>${movie.salary}</span>
-                              )}
+                              <span>{displayValue.toFixed(2)} pts</span>
                             </div>
                           </div>
                         );
@@ -294,7 +293,7 @@ export default async function AccountPage() {
                         <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-gray-900 min-w-0 truncate">{contest.name}</h3>
                         {lineup.status === 'scored' && lineup.total_score !== null ? (
                           <span className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-blue-600 flex-shrink-0">
-                            {lineup.total_score.toFixed(1)} pts
+                            {lineup.total_score.toFixed(2)} pts
                           </span>
                         ) : (
                           <span className="text-xs sm:text-sm md:text-base text-gray-600 flex-shrink-0">Awaiting results</span>
@@ -334,7 +333,7 @@ export default async function AccountPage() {
                             </div>
                             <div className="flex-shrink-0 text-gray-600 w-14 text-right">
                               {movie.actual_gross !== null ? (
-                                <span>{movie.actual_gross.toFixed(1)} pts</span>
+                                <span>{movie.actual_gross.toFixed(2)} pts</span>
                               ) : (
                                 <span>${movie.salary}</span>
                               )}

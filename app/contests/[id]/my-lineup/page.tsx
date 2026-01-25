@@ -74,13 +74,25 @@ export default async function MyLineupPage({ params }: PageProps) {
   let hasEstimates = false;
   let currentEstimatedScore = 0;
   let currentRank: number | null = null;
+  let estimateDayLabel: 'Friday' | 'Saturday' | 'weekend' = 'Friday';
 
   if (isLocked && !isScored && contest.status === 'locked') {
-    // Check for estimates
-    const firstMovie = movies[0] ? (Array.isArray(movies[0].movie) ? movies[0].movie[0] : movies[0].movie) : null;
-    if (firstMovie) {
-      const estimateDay = getCurrentEstimateDay(firstMovie);
-      hasEstimates = estimateDay !== 'none';
+    // Check for estimates and determine which day (find the most advanced day)
+    for (const lm of movies) {
+      const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
+      if (movie) {
+        const day = getCurrentEstimateDay(movie);
+        if (day !== 'none') {
+          hasEstimates = true;
+          if (day === 'sunday' || day === 'final') {
+            estimateDayLabel = 'weekend';
+            break; // weekend is the max, no need to check more
+          } else if (day === 'saturday') {
+            estimateDayLabel = 'Saturday';
+          }
+          // Friday is the default, no need to set it
+        }
+      }
     }
 
     if (hasEstimates) {
@@ -191,7 +203,7 @@ export default async function MyLineupPage({ params }: PageProps) {
           )}
           {hasEstimates && !isScored && currentRank !== null && (
             <p className="text-sm text-yellow-800 mt-1">
-              Current rank: #{currentRank} (based on weekend estimates)
+              Current rank: #{currentRank} (based on {estimateDayLabel} estimates)
             </p>
           )}
         </div>
@@ -263,7 +275,7 @@ export default async function MyLineupPage({ params }: PageProps) {
             </div>
             <div>
               <div className="text-xl sm:text-2xl font-bold text-blue-600">
-                {displayScore.toFixed(1)}
+                {displayScore.toFixed(2)}
               </div>
               <div className="text-xs text-gray-600">
                 {scoreLabel}
@@ -360,15 +372,15 @@ export default async function MyLineupPage({ params }: PageProps) {
                             {direction === 'downtick' && (
                               <img src="/downtick.png" alt="" className="w-3 h-3" />
                             )}
-                            {displayValue.toFixed(1)} {displayLabel}
+                            {displayValue.toFixed(2)} {displayLabel}
                           </div>
                           <div className="text-xs text-gray-500">
-                            proj: {movie.projected_gross.toFixed(1)}M
+                            proj: {movie.projected_gross.toFixed(2)}M
                           </div>
                         </>
                       ) : (
                         <div className="text-sm text-gray-600">
-                          Proj: {movie.projected_gross.toFixed(1)}M
+                          Proj: {movie.projected_gross.toFixed(2)}M
                         </div>
                       )}
                     </div>
@@ -386,10 +398,10 @@ export default async function MyLineupPage({ params }: PageProps) {
                 <div className="text-lg font-bold text-gray-900">${totalSalary}</div>
                 <div className="text-sm text-blue-600 font-medium">
                   {isScored && lineup.total_score !== null
-                    ? `${lineup.total_score.toFixed(1)} pts`
+                    ? `${lineup.total_score.toFixed(2)} pts`
                     : hasEstimates
-                    ? `${currentEstimatedScore.toFixed(1)} est.`
-                    : `Proj: ${projectedScore.toFixed(1)} pts`}
+                    ? `${currentEstimatedScore.toFixed(2)} est.`
+                    : `Proj: ${projectedScore.toFixed(2)} pts`}
                 </div>
               </div>
             </div>

@@ -155,7 +155,7 @@ export function LeaderboardEntry({
         <div className="flex items-center gap-3">
           <div className="text-right">
             <div className="text-lg sm:text-2xl font-bold text-blue-600">
-              {totalScore?.toFixed(1) || '0.0'}
+              {totalScore?.toFixed(2) || '0.0'}
             </div>
             <div className="text-xs text-gray-600">
               {isPreliminary ? 'est. pts' : 'points'}
@@ -213,10 +213,10 @@ export function LeaderboardEntry({
                           {direction === 'downtick' && (
                             <img src="/downtick.png" alt="" className="w-3 h-3" />
                           )}
-                          {displayScore.toFixed(1)}M
+                          {displayScore.toFixed(2)}M
                         </div>
                         <div className="text-xs text-gray-500">
-                          proj: {movie.projected_gross?.toFixed(1)}M
+                          proj: {movie.projected_gross?.toFixed(2)}M
                         </div>
                       </div>
                       {/* Spacer to match chevron */}
@@ -255,10 +255,10 @@ export function LeaderboardEntry({
                         {actual < projected && (
                           <img src="/downtick.png" alt="" className="w-3 h-3" />
                         )}
-                        {movie.actual_gross?.toFixed(1)}M
+                        {movie.actual_gross?.toFixed(2)}M
                       </div>
                       <div className="text-xs text-gray-500">
-                        Proj: {movie.projected_gross?.toFixed(1)}M
+                        Proj: {movie.projected_gross?.toFixed(2)}M
                       </div>
                     </div>
                     {/* Spacer to match chevron */}

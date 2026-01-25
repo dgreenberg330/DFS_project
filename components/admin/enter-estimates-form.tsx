@@ -261,7 +261,7 @@ export function EnterEstimatesForm({ contest, movies }: EnterEstimatesFormProps)
                             : 'text-gray-900'
                         }`}
                       >
-                        ${cumulative.toFixed(1)}M
+                        ${cumulative.toFixed(2)}M
                       </span>
                     ) : (
                       <span className="text-gray-400">-</span>

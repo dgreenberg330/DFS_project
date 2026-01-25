@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { getContest } from '@/actions/contests';
-import { getLeaderboard, getPerfectLineupInfo, getPreliminaryLeaderboard } from '@/actions/scoring';
+import { getLeaderboard, getPerfectLineupInfo, getPreliminaryLeaderboard, getCurrentEstimateDay } from '@/actions/scoring';
 import { getUser } from '@/lib/supabase-server';
 import { Header } from '@/components/header';
 import { BreadcrumbJsonLd } from '@/components/json-ld';
@@ -110,6 +110,22 @@ export default async function LeaderboardPage({ params }: PageProps) {
 
       const leaderboard = preliminaryData.entries;
 
+      // Determine which day's estimates are available
+      let estimateDay: 'friday' | 'saturday' | 'weekend' = 'weekend';
+      if (contest.movies && contest.movies.length > 0) {
+        for (const movie of contest.movies) {
+          const day = getCurrentEstimateDay(movie);
+          if (day === 'sunday' || day === 'final') {
+            estimateDay = 'weekend';
+            break;
+          } else if (day === 'saturday') {
+            estimateDay = 'saturday';
+          } else if (day === 'friday' && estimateDay !== 'saturday') {
+            estimateDay = 'friday';
+          }
+        }
+      }
+
       // Find user's entry if logged in
       const userEntryIndex = user
         ? leaderboard.findIndex((entry) => entry.user_id === user.id)
@@ -134,7 +150,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
             <div className="mb-6">
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Current Rankings</h1>
               <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                Based on weekend estimates - final results coming soon
+                Based on {estimateDay === 'friday' ? 'Friday' : estimateDay === 'saturday' ? 'Saturday' : 'weekend'} estimates - final results coming soon
               </p>
             </div>
 
@@ -147,7 +163,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
                 </div>
                 <div>
                   <div className="text-xl sm:text-2xl font-bold text-blue-600">
-                    {leaderboard[0]?.currentScore?.toFixed(1) || '0.0'}
+                    {leaderboard[0]?.currentScore?.toFixed(2) || '0.0'}
                   </div>
                   <div className="text-xs text-gray-600">Leading Score</div>
                 </div>
@@ -161,10 +177,9 @@ export default async function LeaderboardPage({ params }: PageProps) {
             </div>
 
             {/* Preliminary Notice */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-blue-800">
-                These rankings are based on weekend estimates and may change as more data comes in.
-                Final results will be posted after the weekend.
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-6">
+              <p className="text-xs sm:text-sm text-blue-800 tracking-tight">
+                Rankings are based on estimates and may change. Final results will be posted after the weekend.
               </p>
             </div>
 
@@ -281,7 +296,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
                       const lineup = Array.isArray(leaderboard[0].lineup)
                         ? leaderboard[0].lineup[0]
                         : leaderboard[0].lineup;
-                      return lineup.total_score?.toFixed(1) || '0.0';
+                      return lineup.total_score?.toFixed(2) || '0.0';
                     })()
                   : '0.0'}
               </div>

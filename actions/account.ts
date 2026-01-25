@@ -127,7 +127,10 @@ export async function getPastEntries() {
             title,
             salary,
             projected_gross,
-            actual_gross
+            actual_gross,
+            friday_estimate,
+            saturday_estimate,
+            sunday_estimate
           )
         )
       )
