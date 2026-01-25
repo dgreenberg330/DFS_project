@@ -201,6 +201,12 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
                   {contest.status === 'locked' && (
                     <>
                       <Link
+                        href={`/admin/contests/${contest.id}/estimates`}
+                        className="text-sm text-purple-600 hover:underline font-medium"
+                      >
+                        Estimates
+                      </Link>
+                      <Link
                         href={`/admin/contests/${contest.id}/actuals`}
                         className="text-sm text-blue-600 hover:underline font-medium"
                       >

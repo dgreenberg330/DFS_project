@@ -1,9 +1,9 @@
 // ============================================================================
-// Leaderboard Page - Final Scores Only (No Live Updates)
+// Leaderboard Page - Final and Preliminary Rankings
 // ============================================================================
 
 import { getContest } from '@/actions/contests';
-import { getLeaderboard, getPerfectLineupInfo } from '@/actions/scoring';
+import { getLeaderboard, getPerfectLineupInfo, getPreliminaryLeaderboard } from '@/actions/scoring';
 import { getUser } from '@/lib/supabase-server';
 import { Header } from '@/components/header';
 import { BreadcrumbJsonLd } from '@/components/json-ld';
@@ -20,12 +20,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { id: contestId } = await params;
   const contest = await getContest(contestId);
 
+  const isPreliminary = contest.status === 'locked';
+  const title = isPreliminary
+    ? `${contest.name} Current Rankings`
+    : `${contest.name} Leaderboard - Results`;
+  const description = isPreliminary
+    ? `View current rankings for the ${contest.name} box office fantasy contest. Based on weekend estimates - final results coming soon.`
+    : `View the final leaderboard and results for the ${contest.name} box office fantasy contest. See how players scored based on opening weekend gross.`;
+
   return {
-    title: `${contest.name} Leaderboard - Results`,
-    description: `View the final leaderboard and results for the ${contest.name} box office fantasy contest. See how players scored based on opening weekend gross.`,
+    title,
+    description,
     openGraph: {
-      title: `${contest.name} Leaderboard`,
-      description: `Final results for the ${contest.name} box office fantasy contest.`,
+      title: isPreliminary ? `${contest.name} Current Rankings` : `${contest.name} Leaderboard`,
+      description,
       url: `https://www.shugsy.com/contests/${contestId}/leaderboard`,
       images: [{ url: '/shugsy-share.png', width: 1200, height: 628 }],
     },
@@ -43,8 +51,8 @@ export default async function LeaderboardPage({ params }: PageProps) {
   const user = await getUser();
   const contest = await getContest(contestId);
 
-  // Only show leaderboard for resolved contests
-  if (contest.status !== 'resolved') {
+  // For upcoming contests, show waiting message
+  if (contest.status === 'upcoming') {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -58,25 +66,176 @@ export default async function LeaderboardPage({ params }: PageProps) {
               Leaderboard Not Available Yet
             </p>
             <p className="text-sm text-yellow-800">
-              Results will be posted after the contest is scored (Sunday night).
+              Results will be posted after the contest locks.
             </p>
-            {contest.status === 'upcoming' && (
-              <p className="text-sm text-yellow-800 mt-2">
-                Contest status: <span className="font-medium">Open for entries</span>
-              </p>
-            )}
-            {contest.status === 'locked' && (
-              <p className="text-sm text-yellow-800 mt-2">
-                Contest status: <span className="font-medium">Locked, awaiting results</span>
-              </p>
-            )}
+            <p className="text-sm text-yellow-800 mt-2">
+              Contest status: <span className="font-medium">Open for entries</span>
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
-  // Get leaderboard data and perfect lineup info
+  // For locked contests, try to show preliminary leaderboard
+  if (contest.status === 'locked') {
+    try {
+      const preliminaryData = await getPreliminaryLeaderboard(contestId);
+
+      // If no estimates yet, show waiting message
+      if (!preliminaryData.hasEstimates) {
+        return (
+          <div className="min-h-screen bg-gray-50">
+            <Header />
+            <div className="max-w-3xl mx-auto px-4 py-8">
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-gray-900">Leaderboard</h1>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+                <p className="text-yellow-900 font-medium mb-2">
+                  Waiting for Weekend Estimates
+                </p>
+                <p className="text-sm text-yellow-800">
+                  Check back later for preliminary rankings as box office estimates come in.
+                </p>
+                <p className="text-sm text-yellow-800 mt-2">
+                  Contest status: <span className="font-medium">Locked, awaiting results</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      const leaderboard = preliminaryData.entries;
+
+      // Find user's entry if logged in
+      const userEntryIndex = user
+        ? leaderboard.findIndex((entry) => entry.user_id === user.id)
+        : -1;
+
+      return (
+        <div className="min-h-screen bg-gray-50">
+          <LeaderboardViewTracker
+            contestId={contestId}
+            totalEntries={leaderboard.length}
+          />
+          <BreadcrumbJsonLd
+            items={[
+              { name: 'Home', url: 'https://shugsy.com' },
+              { name: contest.name, url: `https://shugsy.com/contests/${contestId}` },
+              { name: 'Rankings', url: `https://shugsy.com/contests/${contestId}/leaderboard` },
+            ]}
+          />
+          <Header />
+          <main className="max-w-4xl mx-auto px-4 py-8">
+            {/* Page Title - Preliminary */}
+            <div className="mb-6">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Current Rankings</h1>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                Based on weekend estimates - final results coming soon
+              </p>
+            </div>
+
+            {/* Contest Info */}
+            <div className="bg-white rounded-lg shadow p-4 mb-6">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
+                <div>
+                  <div className="text-xl sm:text-2xl font-bold text-gray-900">{leaderboard.length}</div>
+                  <div className="text-xs text-gray-600">Total Entries</div>
+                </div>
+                <div>
+                  <div className="text-xl sm:text-2xl font-bold text-blue-600">
+                    {leaderboard[0]?.currentScore?.toFixed(1) || '0.0'}
+                  </div>
+                  <div className="text-xs text-gray-600">Leading Score</div>
+                </div>
+                <div>
+                  <div className="text-xl sm:text-2xl font-bold text-gray-900">
+                    {userEntryIndex >= 0 ? leaderboard[userEntryIndex].rank : '-'}
+                  </div>
+                  <div className="text-xs text-gray-600">Your Rank</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Preliminary Notice */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <p className="text-sm text-blue-800">
+                These rankings are based on weekend estimates and may change as more data comes in.
+                Final results will be posted after the weekend.
+              </p>
+            </div>
+
+            {/* Leaderboard */}
+            <div className="bg-white rounded-lg shadow">
+              <div className="p-4 border-b border-gray-200">
+                <h2 className="font-semibold text-gray-900">Rankings</h2>
+              </div>
+
+              <div className="divide-y divide-gray-200">
+                {leaderboard.map((entry, index) => {
+                  const lineup = Array.isArray(entry.lineup) ? entry.lineup[0] : entry.lineup;
+                  const movies = lineup?.movies || [];
+                  const isUserEntry = !!(user && entry.user_id === user.id);
+
+                  return (
+                    <LeaderboardEntry
+                      key={entry.id}
+                      rank={entry.rank ?? index + 1}
+                      index={index}
+                      username={entry.user.username}
+                      isUserEntry={isUserEntry}
+                      isPerfectLineup={false}
+                      isPreliminary={true}
+                      totalScore={entry.currentScore ?? 0}
+                      movies={movies}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Navigation */}
+            {user && (
+              <div className="mt-6 text-right">
+                <Link href="/account" className="text-sm text-blue-600 hover:text-blue-700">
+                  View All My Entries &rarr;
+                </Link>
+              </div>
+            )}
+          </main>
+        </div>
+      );
+    } catch {
+      // If preliminary leaderboard fails, show waiting message
+      return (
+        <div className="min-h-screen bg-gray-50">
+          <Header />
+          <div className="max-w-3xl mx-auto px-4 py-8">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900">Leaderboard</h1>
+            </div>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+              <p className="text-yellow-900 font-medium mb-2">
+                Leaderboard Not Available Yet
+              </p>
+              <p className="text-sm text-yellow-800">
+                Results will be posted after the contest is scored (Sunday night).
+              </p>
+              <p className="text-sm text-yellow-800 mt-2">
+                Contest status: <span className="font-medium">Locked, awaiting results</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // For resolved contests, show final leaderboard
   const [leaderboard, perfectLineupInfo] = await Promise.all([
     getLeaderboard(contestId),
     getPerfectLineupInfo(contestId),
@@ -159,6 +318,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
                   username={entry.user.username}
                   isUserEntry={isUserEntry}
                   isPerfectLineup={isPerfectLineup}
+                  isPreliminary={false}
                   totalScore={lineup.total_score ?? 0}
                   movies={movies}
                 />
@@ -171,7 +331,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
         {user && (
           <div className="mt-6 text-right">
             <Link href="/account" className="text-sm text-blue-600 hover:text-blue-700">
-              View All My Entries →
+              View All My Entries &rarr;
             </Link>
           </div>
         )}

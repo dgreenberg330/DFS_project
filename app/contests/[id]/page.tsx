@@ -5,6 +5,7 @@
 import { getContest } from '@/actions/contests';
 import { getUser, createClient } from '@/lib/supabase-server';
 import { getUserEntry } from '@/actions/lineups';
+import { getPreliminaryLeaderboard } from '@/actions/scoring';
 import { ExpandableMovieList } from '@/components/expandable-movie-list';
 import { Header } from '@/components/header';
 import { ContestEventJsonLd, BreadcrumbJsonLd } from '@/components/json-ld';
@@ -78,6 +79,22 @@ export default async function ContestPage({ params }: PageProps) {
   // Format dates for schema
   const weekendStart = contest.weekend_start ? new Date(contest.weekend_start + 'T00:00:00') : new Date();
   const weekendEnd = contest.weekend_end ? new Date(contest.weekend_end + 'T00:00:00') : new Date();
+
+  // Check for preliminary leaderboard data (locked contests with estimates)
+  let hasEstimates = false;
+  let leaderScore: number | null = null;
+
+  if (contest.status === 'locked') {
+    try {
+      const prelimData = await getPreliminaryLeaderboard(contestId);
+      hasEstimates = prelimData.hasEstimates;
+      if (hasEstimates && prelimData.entries.length > 0) {
+        leaderScore = prelimData.entries[0].currentScore;
+      }
+    } catch {
+      // Ignore errors - estimates not available
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -228,6 +245,28 @@ export default async function ContestPage({ params }: PageProps) {
         {/* Movie List Preview */}
         <ExpandableMovieList movies={contest.movies} />
 
+        {/* Current Rankings (locked with estimates) */}
+        {contest.status === 'locked' && hasEstimates && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-blue-900">Weekend Estimates Available</h3>
+                {leaderScore !== null && (
+                  <p className="text-sm text-blue-700">
+                    Current leader: {leaderScore.toFixed(1)} pts
+                  </p>
+                )}
+              </div>
+              <Link
+                href={`/contests/${contestId}/leaderboard`}
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
+              >
+                View Rankings
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Navigation */}
         {contest.status === 'resolved' && (
           <div className="mt-6 text-sm text-right">
@@ -235,7 +274,7 @@ export default async function ContestPage({ params }: PageProps) {
               href={`/contests/${contestId}/leaderboard`}
               className="text-blue-600 hover:text-blue-700"
             >
-              View Leaderboard →
+              View Leaderboard &rarr;
             </Link>
           </div>
         )}

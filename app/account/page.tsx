@@ -6,6 +6,11 @@ import { getUser } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { getPastEntries } from '@/actions/account';
 import { getUserProfile } from '@/actions/user-profiles';
+import {
+  getCurrentEstimateDay,
+  calculateCurrentEstimate,
+  getEstimateDirection,
+} from '@/actions/scoring';
 import { SignOutButton } from '@/components/sign-out-button';
 import { Header } from '@/components/header';
 import Link from 'next/link';
@@ -122,6 +127,29 @@ export default async function AccountPage() {
 
                 const isLocked = contest.status !== 'upcoming' || lineup.status !== 'editable';
 
+                // Check if we have estimates for locked contests
+                let hasEstimates = false;
+                let currentEstimatedScore = projectedScore;
+
+                if (contest.status === 'locked') {
+                  const firstMovie = movies[0] ? (Array.isArray(movies[0].movie) ? movies[0].movie[0] : movies[0].movie) : null;
+                  if (firstMovie) {
+                    const estimateDay = getCurrentEstimateDay(firstMovie);
+                    hasEstimates = estimateDay !== 'none';
+                  }
+
+                  if (hasEstimates) {
+                    currentEstimatedScore = movies.reduce((sum: number, lm: LineupMovieData) => {
+                      const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
+                      const estimate = calculateCurrentEstimate(movie);
+                      return sum + (estimate ?? movie.projected_gross);
+                    }, 0);
+                  }
+                }
+
+                const displayScore = hasEstimates ? currentEstimatedScore : projectedScore;
+                const scoreLabel = hasEstimates ? 'Current est.' : 'Projected pts';
+
                 return (
                   <Link
                     key={entry.id}
@@ -148,27 +176,51 @@ export default async function AccountPage() {
 
                     {/* Contest Info - Two rows for alignment */}
                     <div className="mb-4 space-y-1">
-                      {/* Row 1: Title + Projected Points */}
+                      {/* Row 1: Title + Points */}
                       <div className="flex items-center justify-between gap-3">
                         <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-gray-900 min-w-0 truncate">{contest.name}</h3>
                         <span className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-blue-600 flex-shrink-0">
-                          {projectedScore.toFixed(1)} pts
+                          {displayScore.toFixed(1)} pts
                         </span>
                       </div>
-                      {/* Row 2: Date + Projected label */}
+                      {/* Row 2: Date + Score label */}
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-xs sm:text-sm md:text-sm text-gray-500">
                           {new Date(contest.weekend_start + 'T00:00:00').toLocaleDateString()} -{' '}
                           {new Date(contest.weekend_end + 'T00:00:00').toLocaleDateString()}
                         </p>
-                        <span className="text-xs sm:text-sm text-gray-500 flex-shrink-0">Projected pts</span>
+                        <span className="text-xs sm:text-sm text-gray-500 flex-shrink-0">{scoreLabel}</span>
                       </div>
                     </div>
 
                     {/* Lineup Movies */}
                     <div className="space-y-1">
-                      {movies.map((lm: LineupMovieData) => {
+                      {[...movies]
+                        .sort((a, b) => {
+                          const movieA = Array.isArray(a.movie) ? a.movie[0] : a.movie;
+                          const movieB = Array.isArray(b.movie) ? b.movie[0] : b.movie;
+
+                          if (hasEstimates) {
+                            const estA = calculateCurrentEstimate(movieA) ?? movieA.projected_gross;
+                            const estB = calculateCurrentEstimate(movieB) ?? movieB.projected_gross;
+                            return estB - estA;
+                          }
+                          return movieB.projected_gross - movieA.projected_gross;
+                        })
+                        .map((lm: LineupMovieData) => {
                         const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
+                        const direction = hasEstimates ? getEstimateDirection(movie) : null;
+                        const displayValue = hasEstimates
+                          ? calculateCurrentEstimate(movie) ?? movie.projected_gross
+                          : movie.projected_gross;
+
+                        const scoreColor =
+                          direction === 'uptick'
+                            ? 'text-green-600'
+                            : direction === 'downtick'
+                            ? 'text-red-600'
+                            : 'text-gray-600';
+
                         return (
                           <div
                             key={movie.id}
@@ -177,8 +229,18 @@ export default async function AccountPage() {
                             <div className="min-w-0 flex-1">
                               <span className="font-medium text-gray-900">{movie.title}</span>
                             </div>
-                            <div className="flex-shrink-0 text-gray-600 w-14 text-right">
-                              ${movie.salary}
+                            <div className={`flex-shrink-0 w-20 text-right flex items-center justify-end gap-1 ${scoreColor}`}>
+                              {direction === 'uptick' && (
+                                <img src="/uptick.png" alt="" className="w-2.5 h-2.5" />
+                              )}
+                              {direction === 'downtick' && (
+                                <img src="/downtick.png" alt="" className="w-2.5 h-2.5" />
+                              )}
+                              {hasEstimates ? (
+                                <span>{displayValue.toFixed(1)}</span>
+                              ) : (
+                                <span>${movie.salary}</span>
+                              )}
                             </div>
                           </div>
                         );
@@ -283,7 +345,7 @@ export default async function AccountPage() {
                     </div>
 
                     {/* View link */}
-                    <div className="mt-2 text-xs sm:text-sm text-blue-600">View details →</div>
+                    <div className="mt-2 text-xs sm:text-sm text-blue-600">View details &rarr;</div>
                   </Link>
                 );
               })}

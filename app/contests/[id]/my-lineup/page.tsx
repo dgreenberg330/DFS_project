@@ -6,7 +6,13 @@ import { getUser } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { getContest } from '@/actions/contests';
 import { getUserEntry } from '@/actions/lineups';
-import { getPerfectLineupInfo } from '@/actions/scoring';
+import {
+  getPerfectLineupInfo,
+  getCurrentEstimateDay,
+  calculateCurrentEstimate,
+  getEstimateDirection,
+  getPreliminaryLeaderboard,
+} from '@/actions/scoring';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { Header } from '@/components/header';
 import Link from 'next/link';
@@ -64,6 +70,42 @@ export default async function MyLineupPage({ params }: PageProps) {
   const isLocked = contest.status !== 'upcoming' || lineup.status !== 'editable';
   const isScored = lineup.status === 'scored';
 
+  // Check if any movies have estimates (for locked but not scored contests)
+  let hasEstimates = false;
+  let currentEstimatedScore = 0;
+  let currentRank: number | null = null;
+
+  if (isLocked && !isScored && contest.status === 'locked') {
+    // Check for estimates
+    const firstMovie = movies[0] ? (Array.isArray(movies[0].movie) ? movies[0].movie[0] : movies[0].movie) : null;
+    if (firstMovie) {
+      const estimateDay = getCurrentEstimateDay(firstMovie);
+      hasEstimates = estimateDay !== 'none';
+    }
+
+    if (hasEstimates) {
+      // Calculate current estimated score
+      currentEstimatedScore = movies.reduce((sum: number, lm: LineupMovieData) => {
+        const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
+        const estimate = calculateCurrentEstimate(movie);
+        return sum + (estimate ?? movie.projected_gross);
+      }, 0);
+
+      // Get current rank from preliminary leaderboard
+      try {
+        const prelimData = await getPreliminaryLeaderboard(contestId);
+        if (prelimData.hasEstimates) {
+          const userEntry = prelimData.entries.find(e => e.user_id === user.id);
+          if (userEntry) {
+            currentRank = userEntry.rank;
+          }
+        }
+      } catch {
+        // Ignore errors, rank will be null
+      }
+    }
+  }
+
   // Calculate rank and check for perfect lineup for scored contests
   let rank: number | null = null;
   let totalEntries: number | null = null;
@@ -93,6 +135,19 @@ export default async function MyLineupPage({ params }: PageProps) {
     const perfectLineupInfo = await getPerfectLineupInfo(contestId);
     isPerfectLineup = perfectLineupInfo.perfectLineupUserIds.includes(user.id);
   }
+
+  // Determine what score to display
+  const displayScore = isScored && lineup.total_score !== null
+    ? lineup.total_score
+    : hasEstimates
+    ? currentEstimatedScore
+    : projectedScore;
+
+  const scoreLabel = isScored
+    ? 'Final Points'
+    : hasEstimates
+    ? 'Current Est.'
+    : 'Proj. Points';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -132,6 +187,11 @@ export default async function MyLineupPage({ params }: PageProps) {
           {!isLocked && (
             <p className="text-sm text-green-800 mt-1">
               You can edit your lineup until the contest locks.
+            </p>
+          )}
+          {hasEstimates && !isScored && currentRank !== null && (
+            <p className="text-sm text-yellow-800 mt-1">
+              Current rank: #{currentRank} (based on weekend estimates)
             </p>
           )}
         </div>
@@ -203,12 +263,10 @@ export default async function MyLineupPage({ params }: PageProps) {
             </div>
             <div>
               <div className="text-xl sm:text-2xl font-bold text-blue-600">
-                {isScored && lineup.total_score !== null
-                  ? lineup.total_score.toFixed(1)
-                  : projectedScore.toFixed(1)}
+                {displayScore.toFixed(1)}
               </div>
               <div className="text-xs text-gray-600">
-                {isScored ? 'Final Points' : 'Proj. Points'}
+                {scoreLabel}
               </div>
             </div>
           </div>
@@ -225,13 +283,56 @@ export default async function MyLineupPage({ params }: PageProps) {
               .sort((a, b) => {
                 const movieA = Array.isArray(a.movie) ? a.movie[0] : a.movie;
                 const movieB = Array.isArray(b.movie) ? b.movie[0] : b.movie;
-                // Sort by actual_gross if scored, otherwise by projected_gross
-                const valueA = isScored && movieA.actual_gross !== null ? movieA.actual_gross : movieA.projected_gross;
-                const valueB = isScored && movieB.actual_gross !== null ? movieB.actual_gross : movieB.projected_gross;
-                return valueB - valueA; // Highest first
+
+                // Sort by current score: actual > estimate > projected
+                if (isScored) {
+                  return (movieB.actual_gross ?? 0) - (movieA.actual_gross ?? 0);
+                }
+
+                if (hasEstimates) {
+                  const estA = calculateCurrentEstimate(movieA) ?? movieA.projected_gross;
+                  const estB = calculateCurrentEstimate(movieB) ?? movieB.projected_gross;
+                  return estB - estA;
+                }
+
+                return movieB.projected_gross - movieA.projected_gross;
               })
               .map((lm: LineupMovieData) => {
               const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
+
+              // Determine what to display based on state
+              let displayValue: number;
+              let displayLabel: string;
+              let direction: 'uptick' | 'downtick' | 'neutral' | null = null;
+
+              if (isScored && movie.actual_gross !== null) {
+                // Final scored state
+                displayValue = movie.actual_gross;
+                displayLabel = 'pts';
+                direction = movie.actual_gross > movie.projected_gross
+                  ? 'uptick'
+                  : movie.actual_gross < movie.projected_gross
+                  ? 'downtick'
+                  : 'neutral';
+              } else if (hasEstimates) {
+                // Locked with estimates
+                const estimate = calculateCurrentEstimate(movie);
+                displayValue = estimate ?? movie.projected_gross;
+                displayLabel = 'est.';
+                direction = getEstimateDirection(movie);
+              } else {
+                // Just projected
+                displayValue = movie.projected_gross;
+                displayLabel = 'proj.';
+              }
+
+              const scoreColor =
+                direction === 'uptick'
+                  ? 'text-green-600'
+                  : direction === 'downtick'
+                  ? 'text-red-600'
+                  : 'text-gray-900';
+
               return (
                 <div key={movie.id} className="p-4">
                   <div className="flex items-start justify-between gap-4">
@@ -250,25 +351,19 @@ export default async function MyLineupPage({ params }: PageProps) {
                     {/* Stats */}
                     <div className="text-right flex-shrink-0">
                       <div className="text-lg font-bold text-gray-900">${movie.salary}</div>
-                      {(isLocked || isScored) && movie.actual_gross !== null ? (
+                      {(isScored || hasEstimates) ? (
                         <>
-                          <div className={`text-sm font-medium flex items-center justify-end gap-1 ${
-                            movie.actual_gross > movie.projected_gross
-                              ? 'text-green-600'
-                              : movie.actual_gross < movie.projected_gross
-                              ? 'text-red-600'
-                              : 'text-gray-900'
-                          }`}>
-                            {movie.actual_gross > movie.projected_gross && (
+                          <div className={`text-sm font-medium flex items-center justify-end gap-1 ${scoreColor}`}>
+                            {direction === 'uptick' && (
                               <img src="/uptick.png" alt="" className="w-3 h-3" />
                             )}
-                            {movie.actual_gross < movie.projected_gross && (
+                            {direction === 'downtick' && (
                               <img src="/downtick.png" alt="" className="w-3 h-3" />
                             )}
-                            {movie.actual_gross.toFixed(1)} pts
+                            {displayValue.toFixed(1)} {displayLabel}
                           </div>
                           <div className="text-xs text-gray-500">
-                            Proj: {movie.projected_gross.toFixed(1)}M
+                            proj: {movie.projected_gross.toFixed(1)}M
                           </div>
                         </>
                       ) : (
@@ -292,6 +387,8 @@ export default async function MyLineupPage({ params }: PageProps) {
                 <div className="text-sm text-blue-600 font-medium">
                   {isScored && lineup.total_score !== null
                     ? `${lineup.total_score.toFixed(1)} pts`
+                    : hasEstimates
+                    ? `${currentEstimatedScore.toFixed(1)} est.`
                     : `Proj: ${projectedScore.toFixed(1)} pts`}
                 </div>
               </div>
@@ -319,11 +416,20 @@ export default async function MyLineupPage({ params }: PageProps) {
             </Link>
           )}
 
+          {contest.status === 'locked' && hasEstimates && (
+            <Link
+              href={`/contests/${contestId}/leaderboard`}
+              className="block px-6 py-3 bg-white border border-gray-300 text-gray-700 text-center font-medium rounded-lg hover:bg-gray-50"
+            >
+              View Current Rankings
+            </Link>
+          )}
+
           <Link
             href="/account"
             className="block text-center text-sm text-blue-600 hover:text-blue-700"
           >
-            View All My Entries →
+            View All My Entries &rarr;
           </Link>
         </div>
       </div>

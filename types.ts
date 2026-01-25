@@ -64,6 +64,11 @@ export interface Movie {
   // Actuals (null until results entered Sunday night)
   actual_gross: number | null; // Decimal millions
 
+  // Daily estimates for preliminary leaderboards (null until entered)
+  friday_estimate: number | null; // Friday gross (entered Saturday)
+  saturday_estimate: number | null; // Saturday gross (entered Sunday)
+  sunday_estimate: number | null; // Cumulative weekend (entered Monday)
+
   created_at: string;
   updated_at: string;
 }
@@ -284,6 +289,24 @@ export interface UpdateMovieInput {
 export interface BatchActualsInput {
   movieId: string;
   actualGross: number;
+}
+
+/**
+ * Which estimate day we're currently on for a contest
+ * - none: No estimates yet
+ * - friday: Friday estimates entered
+ * - saturday: Friday + Saturday estimates entered
+ * - sunday: Sunday cumulative estimate entered
+ * - final: Actual gross entered (contest resolved)
+ */
+export type EstimateDay = 'none' | 'friday' | 'saturday' | 'sunday' | 'final';
+
+/**
+ * Batch daily estimates input (weekend workflow)
+ */
+export interface BatchDailyEstimatesInput {
+  movieId: string;
+  estimate: number;
 }
 
 // ============================================================================

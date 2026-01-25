@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Movie } from '@/types';
+import type { Movie, EstimateDay } from '@/types';
 
 interface LineupMovieData {
   movie: Movie | Movie[];
@@ -13,8 +13,67 @@ interface LeaderboardEntryProps {
   username: string;
   isUserEntry: boolean;
   isPerfectLineup: boolean;
+  isPreliminary?: boolean;
   totalScore: number;
   movies: LineupMovieData[];
+}
+
+// Client-side versions of the estimate functions
+function getCurrentEstimateDay(movie: Movie): EstimateDay {
+  if (movie.actual_gross !== null) return 'final';
+  if (movie.sunday_estimate !== null) return 'sunday';
+  if (movie.saturday_estimate !== null) return 'saturday';
+  if (movie.friday_estimate !== null) return 'friday';
+  return 'none';
+}
+
+function calculateCurrentEstimate(movie: Movie): number | null {
+  const day = getCurrentEstimateDay(movie);
+
+  switch (day) {
+    case 'final':
+      return movie.actual_gross;
+    case 'sunday':
+      return movie.sunday_estimate;
+    case 'saturday':
+      return (movie.friday_estimate ?? 0) + (movie.saturday_estimate ?? 0);
+    case 'friday':
+      return movie.friday_estimate;
+    case 'none':
+      return null;
+  }
+}
+
+function getEstimateDirection(movie: Movie): 'uptick' | 'downtick' | 'neutral' | null {
+  const day = getCurrentEstimateDay(movie);
+  const currentEstimate = calculateCurrentEstimate(movie);
+
+  if (currentEstimate === null || day === 'none') return null;
+
+  const projected = movie.projected_gross;
+  let threshold: number;
+
+  switch (day) {
+    case 'final':
+      threshold = projected;
+      break;
+    case 'sunday':
+      threshold = projected;
+      break;
+    case 'saturday':
+      threshold = projected * (2 / 3);
+      break;
+    case 'friday':
+      threshold = projected / 3;
+      break;
+    default:
+      return null;
+  }
+
+  const epsilon = 0.01;
+  if (currentEstimate > threshold + epsilon) return 'uptick';
+  if (currentEstimate < threshold - epsilon) return 'downtick';
+  return 'neutral';
 }
 
 export function LeaderboardEntry({
@@ -23,15 +82,23 @@ export function LeaderboardEntry({
   username,
   isUserEntry,
   isPerfectLineup,
+  isPreliminary = false,
   totalScore,
   movies,
 }: LeaderboardEntryProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Sort movies by actual gross, highest to lowest
+  // Sort movies by score (actual or estimate), highest to lowest
   const sortedMovies = [...movies].sort((a, b) => {
     const movieA = Array.isArray(a.movie) ? a.movie[0] : a.movie;
     const movieB = Array.isArray(b.movie) ? b.movie[0] : b.movie;
+
+    if (isPreliminary) {
+      const estimateA = calculateCurrentEstimate(movieA) ?? movieA.projected_gross;
+      const estimateB = calculateCurrentEstimate(movieB) ?? movieB.projected_gross;
+      return estimateB - estimateA;
+    }
+
     return (movieB.actual_gross ?? 0) - (movieA.actual_gross ?? 0);
   });
 
@@ -73,7 +140,8 @@ export function LeaderboardEntry({
               Your Entry
             </span>
           )}
-          {isPerfectLineup && (
+          {/* Only show perfect lineup badge for final leaderboard */}
+          {isPerfectLineup && !isPreliminary && (
             <img
               src="/perfect-lineup-badge.png"
               alt="Perfect Lineup"
@@ -89,7 +157,9 @@ export function LeaderboardEntry({
             <div className="text-lg sm:text-2xl font-bold text-blue-600">
               {totalScore?.toFixed(1) || '0.0'}
             </div>
-            <div className="text-xs text-gray-600">points</div>
+            <div className="text-xs text-gray-600">
+              {isPreliminary ? 'est. pts' : 'points'}
+            </div>
           </div>
           <div className="text-gray-400">
             <svg
@@ -110,6 +180,53 @@ export function LeaderboardEntry({
           <div className="space-y-3">
             {sortedMovies.map((lm) => {
               const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
+
+              // For preliminary mode, use estimate-based scoring
+              if (isPreliminary) {
+                const estimate = calculateCurrentEstimate(movie);
+                const direction = getEstimateDirection(movie);
+                const displayScore = estimate ?? movie.projected_gross;
+
+                const scoreColor =
+                  direction === 'uptick'
+                    ? 'text-green-600'
+                    : direction === 'downtick'
+                    ? 'text-red-600'
+                    : 'text-gray-900';
+
+                return (
+                  <div key={movie.id} className="flex items-start gap-4 text-sm">
+                    {/* Spacer to match rank column */}
+                    <div className="flex-shrink-0 w-8 sm:w-12" />
+                    {/* Movie title + salary */}
+                    <div className="flex-1 min-w-0">
+                      <span className="text-gray-700 block">{movie.title}</span>
+                      <span className="text-xs text-gray-500">${movie.salary}</span>
+                    </div>
+                    {/* Score aligned with total points */}
+                    <div className="flex items-start gap-3">
+                      <div className="text-right">
+                        <div className={`font-medium ${scoreColor} flex items-center justify-end gap-1`}>
+                          {direction === 'uptick' && (
+                            <img src="/uptick.png" alt="" className="w-3 h-3" />
+                          )}
+                          {direction === 'downtick' && (
+                            <img src="/downtick.png" alt="" className="w-3 h-3" />
+                          )}
+                          {displayScore.toFixed(1)}M
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          proj: {movie.projected_gross?.toFixed(1)}M
+                        </div>
+                      </div>
+                      {/* Spacer to match chevron */}
+                      <div className="w-5" />
+                    </div>
+                  </div>
+                );
+              }
+
+              // Final mode - use actual_gross
               const actual = movie.actual_gross ?? 0;
               const projected = movie.projected_gross ?? 0;
               const actualColor =

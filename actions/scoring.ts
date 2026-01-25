@@ -6,9 +6,17 @@
 
 import { createAdminClient } from '@/lib/supabase-admin';
 import { calculateMaxPossibleScore } from '@/lib/perfect-lineup';
-import { ContestStatus, LineupStatus, ScoredLineup, Movie } from '@/types';
+import {
+  getCurrentEstimateDay,
+  calculateCurrentEstimate,
+  getEstimateDirection,
+} from '@/lib/estimate-utils';
+import { ContestStatus, LineupStatus, ScoredLineup, Movie, EstimateDay, BatchDailyEstimatesInput } from '@/types';
 import { checkAdminAccess } from '@/lib/admin';
 import { revalidatePath } from 'next/cache';
+
+// Re-export utility functions for convenience
+export { getCurrentEstimateDay, calculateCurrentEstimate, getEstimateDirection };
 
 // ============================================================================
 // Perfect Lineup Detection (Server Action)
@@ -460,6 +468,181 @@ export async function batchUpdateActuals(
     const { error } = await supabase
       .from('movies')
       .update({ actual_gross: update.actualGross })
+      .eq('id', update.movieId);
+
+    if (error) {
+      throw new Error(`Unable to update movie ${update.movieId}: ${error.message}`);
+    }
+  }
+
+  revalidatePath('/contests');
+}
+
+// ============================================================================
+// Daily Estimate Functions (Preliminary Leaderboards)
+// ============================================================================
+
+/**
+ * Gets preliminary leaderboard for a locked contest with estimates
+ * Returns entries sorted by current estimated score
+ */
+export async function getPreliminaryLeaderboard(contestId: string) {
+  if (!contestId || contestId.trim() === '') {
+    throw new Error('Contest ID is required.');
+  }
+
+  const supabase = createAdminClient();
+
+  // Fetch contest to verify status
+  const { data: contest, error: contestError } = await supabase
+    .from('contests')
+    .select('status')
+    .eq('id', contestId)
+    .single();
+
+  if (contestError) {
+    if (contestError.code === 'PGRST116') {
+      throw new Error('Contest not found.');
+    }
+    throw new Error(`Unable to load contest: ${contestError.message}`);
+  }
+
+  if (!contest) {
+    throw new Error('Contest not found.');
+  }
+
+  // Only show preliminary leaderboard for locked contests
+  if (contest.status !== ContestStatus.LOCKED) {
+    throw new Error('Preliminary leaderboard only available for locked contests.');
+  }
+
+  // Fetch all entries with lineups and movies
+  const { data: entries, error: entriesError } = await supabase
+    .from('entries')
+    .select(`
+      *,
+      lineup:lineups (
+        *,
+        movies:lineup_movies (
+          movie:movies (*)
+        )
+      )
+    `)
+    .eq('contest_id', contestId);
+
+  if (entriesError) {
+    throw new Error(`Failed to fetch entries: ${entriesError.message}`);
+  }
+
+  // Check if any movies have estimates
+  const hasEstimates = (entries || []).some((entry) => {
+    const lineup = Array.isArray(entry.lineup) ? entry.lineup[0] : entry.lineup;
+    const movies = lineup?.movies || [];
+    return movies.some((lm: { movie: Movie | Movie[] }) => {
+      const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
+      return getCurrentEstimateDay(movie) !== 'none';
+    });
+  });
+
+  if (!hasEstimates) {
+    return { entries: [], hasEstimates: false };
+  }
+
+  // Calculate current estimate for each entry
+  const entriesWithScores = await Promise.all(
+    (entries || []).map(async (entry) => {
+      const lineup = Array.isArray(entry.lineup) ? entry.lineup[0] : entry.lineup;
+      const movies = lineup?.movies || [];
+
+      // Calculate current estimated score
+      const currentScore = movies.reduce((sum: number, lm: { movie: Movie | Movie[] }) => {
+        const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
+        const estimate = calculateCurrentEstimate(movie);
+        return sum + (estimate ?? movie.projected_gross);
+      }, 0);
+
+      // Fetch username
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('username')
+        .eq('user_id', entry.user_id)
+        .maybeSingle();
+
+      return {
+        ...entry,
+        currentScore,
+        user: {
+          id: entry.user_id,
+          username: profile?.username || 'Anonymous',
+        },
+      };
+    })
+  );
+
+  // Sort by current score descending
+  entriesWithScores.sort((a, b) => b.currentScore - a.currentScore);
+
+  // Assign ranks (handle ties)
+  let currentRank = 1;
+  for (let i = 0; i < entriesWithScores.length; i++) {
+    if (i > 0 && entriesWithScores[i].currentScore < entriesWithScores[i - 1].currentScore) {
+      currentRank = i + 1;
+    }
+    entriesWithScores[i].rank = currentRank;
+  }
+
+  return { entries: entriesWithScores, hasEstimates: true };
+}
+
+/**
+ * Batch update daily estimates for multiple movies
+ * @param updates Array of movie IDs and estimates
+ * @param day Which day's estimates to update ('friday' | 'saturday' | 'sunday')
+ */
+export async function batchUpdateDailyEstimates(
+  updates: BatchDailyEstimatesInput[],
+  day: 'friday' | 'saturday' | 'sunday'
+) {
+  // Admin access required
+  await checkAdminAccess();
+
+  // Validate input
+  if (!updates || !Array.isArray(updates) || updates.length === 0) {
+    throw new Error('Invalid updates list. At least one update is required.');
+  }
+
+  // Validate day
+  if (!['friday', 'saturday', 'sunday'].includes(day)) {
+    throw new Error('Invalid day. Must be friday, saturday, or sunday.');
+  }
+
+  // Validate all updates have required fields
+  const invalidUpdates = updates.filter(u => !u.movieId || u.estimate === undefined || u.estimate === null);
+  if (invalidUpdates.length > 0) {
+    throw new Error('All updates must have movie ID and estimate value.');
+  }
+
+  // Validate no negative estimates
+  const negativeEstimates = updates.filter(u => u.estimate < 0);
+  if (negativeEstimates.length > 0) {
+    throw new Error('Estimate values cannot be negative.');
+  }
+
+  const supabase = createAdminClient();
+
+  // Map day to column name
+  const columnMap = {
+    friday: 'friday_estimate',
+    saturday: 'saturday_estimate',
+    sunday: 'sunday_estimate',
+  };
+  const column = columnMap[day];
+
+  // Update each movie
+  for (const update of updates) {
+    const { error } = await supabase
+      .from('movies')
+      .update({ [column]: update.estimate })
       .eq('id', update.movieId);
 
     if (error) {

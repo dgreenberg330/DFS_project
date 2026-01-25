@@ -59,6 +59,11 @@ CREATE TABLE movies (
   -- Actuals (filled in Sunday night)
   actual_gross NUMERIC(10, 2), -- Millions, nullable until results in
 
+  -- Daily estimates (filled in during weekend for preliminary leaderboards)
+  friday_estimate NUMERIC(10, 2), -- Friday estimate (entered Saturday)
+  saturday_estimate NUMERIC(10, 2), -- Saturday estimate (entered Sunday)
+  sunday_estimate NUMERIC(10, 2), -- Cumulative weekend estimate (entered Monday)
+
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
