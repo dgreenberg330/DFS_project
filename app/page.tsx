@@ -40,12 +40,11 @@ export default async function LandingPage() {
         <section aria-label="Introduction" className="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-100 pt-12 sm:pt-16 pb-16 sm:pb-24">
           <div className="max-w-4xl mx-auto px-4">
             <div className="text-center">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
-                Fantasy Sports for the
-                <span className="text-teal-400"> Box Office</span>
+              <h1 className="text-[1.45rem] sm:text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+                Fantasy Sports for the<span className="text-teal-400"> Box Office</span>
               </h1>
-            <p className="text-lg sm:text-xl text-gray-300 mb-8 sm:mb-10 max-w-2xl mx-auto">
-              Predict what America watches this weekend. Draft the top movies.
+            <p className="text-[0.8rem] sm:text-lg md:text-xl text-gray-300 mb-8 sm:mb-10 tracking-tight">
+              Spot the sleepers. Fade the flops. Build the winning lineup.
             </p>
             {/* CTA */}
             {currentContest ? (
@@ -85,63 +84,39 @@ export default async function LandingPage() {
 
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8">
           {/* How It Works */}
-          <section aria-label="How it works" className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6 sm:mb-8 border border-gray-200">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">How It Works</h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">1</div>
-                <h3 className="font-semibold text-gray-900 mb-2">Pick Your Lineup</h3>
-                <p className="text-sm text-gray-600">
-                  Select 2-4 movies from the weekly slate within a $100 salary cap.
-                </p>
+          <section aria-label="How it works" className="bg-white rounded-2xl shadow-xl p-4 sm:p-8 mb-6 sm:mb-8 border border-gray-200">
+            <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-8 text-center">How It Works</h2>
+            <div className="grid md:grid-cols-3 gap-4 sm:gap-8">
+              <div className="flex items-start gap-3 md:flex-col md:items-center md:text-center">
+                <div className="w-8 h-8 sm:w-12 sm:h-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-base sm:text-xl font-bold shrink-0 md:mb-4">1</div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-1 sm:mb-2">Pick Your Lineup</h3>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    Select 2-4 movies within a $100 salary cap.
+                  </p>
+                </div>
               </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">2</div>
-                <h3 className="font-semibold text-gray-900 mb-2">Watch the Box Office</h3>
-                <p className="text-sm text-gray-600">
-                  Your score is the total domestic weekend gross of your movies.
-                </p>
+              <div className="flex items-start gap-3 md:flex-col md:items-center md:text-center">
+                <div className="w-8 h-8 sm:w-12 sm:h-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-base sm:text-xl font-bold shrink-0 md:mb-4">2</div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-1 sm:mb-2">Watch the Box Office</h3>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    Score = total weekend gross of your movies.
+                  </p>
+                </div>
               </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">3</div>
-                <h3 className="font-semibold text-gray-900 mb-2">Compete & Win</h3>
-                <p className="text-sm text-gray-600">
-                  $1M box office = 1 point. Highest total score wins!
-                </p>
+              <div className="flex items-start gap-3 md:flex-col md:items-center md:text-center">
+                <div className="w-8 h-8 sm:w-12 sm:h-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-base sm:text-xl font-bold shrink-0 md:mb-4">3</div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-1 sm:mb-2">Compete & Win</h3>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    $1M box office = 1 point. Highest score wins!
+                  </p>
+                </div>
               </div>
             </div>
           </section>
 
-          {/* Rules */}
-          <section aria-label="Contest rules" className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6 sm:mb-8 border border-gray-200">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Contest Rules</h2>
-            <div className="grid md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-700">
-              <div className="flex items-center gap-3">
-                <span className="w-1.5 h-1.5 bg-teal-500 rounded-full"></span>
-                <span>Select 2-4 movies from the weekly slate</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="w-1.5 h-1.5 bg-teal-500 rounded-full"></span>
-                <span>Stay within the $100 salary cap</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="w-1.5 h-1.5 bg-teal-500 rounded-full"></span>
-                <span>One entry per user per contest</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="w-1.5 h-1.5 bg-teal-500 rounded-full"></span>
-                <span>Lineups lock Thursday 8PM ET</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="w-1.5 h-1.5 bg-teal-500 rounded-full"></span>
-                <span>Scoring: Friday-Sunday domestic gross</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="w-1.5 h-1.5 bg-teal-500 rounded-full"></span>
-                <span>$1 million box office = 1 point</span>
-              </div>
-            </div>
-          </section>
         </div>
       </main>
     </div>

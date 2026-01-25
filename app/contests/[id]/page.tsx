@@ -5,7 +5,7 @@
 import { getContest } from '@/actions/contests';
 import { getUser, createClient } from '@/lib/supabase-server';
 import { getUserEntry } from '@/actions/lineups';
-import { getPreliminaryLeaderboard } from '@/actions/scoring';
+import { getPreliminaryLeaderboard, getCurrentEstimateDay } from '@/actions/scoring';
 import { ExpandableMovieList } from '@/components/expandable-movie-list';
 import { Header } from '@/components/header';
 import { ContestEventJsonLd, BreadcrumbJsonLd } from '@/components/json-ld';
@@ -82,14 +82,26 @@ export default async function ContestPage({ params }: PageProps) {
 
   // Check for preliminary leaderboard data (locked contests with estimates)
   let hasEstimates = false;
-  let leaderScore: number | null = null;
+  let estimateDay: 'friday' | 'saturday' | 'weekend' | null = null;
 
   if (contest.status === 'locked') {
     try {
       const prelimData = await getPreliminaryLeaderboard(contestId);
       hasEstimates = prelimData.hasEstimates;
-      if (hasEstimates && prelimData.entries.length > 0) {
-        leaderScore = prelimData.entries[0].currentScore;
+
+      // Determine which day's estimates are in based on movies
+      if (hasEstimates && contest.movies) {
+        for (const movie of contest.movies) {
+          const day = getCurrentEstimateDay(movie);
+          if (day === 'sunday' || day === 'final') {
+            estimateDay = 'weekend';
+            break;
+          } else if (day === 'saturday') {
+            estimateDay = 'saturday';
+          } else if (day === 'friday' && estimateDay !== 'saturday') {
+            estimateDay = 'friday';
+          }
+        }
       }
     } catch {
       // Ignore errors - estimates not available
@@ -123,15 +135,15 @@ export default async function ContestPage({ params }: PageProps) {
         </div>
 
         {/* Status Banner */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6">
+          <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-sm sm:text-lg font-semibold text-gray-900 tracking-tight">
                 {isLocked ? 'Contest Locked' : 'Contest Open'}
               </h2>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-xs sm:text-sm text-gray-600 tracking-tight">
                 {isLocked ? (
-                  <>Lineups are locked. Results will be posted after the weekend.</>
+                  <>Results will be posted after the weekend</>
                 ) : (
                   <>
                     Locks:{' '}
@@ -148,9 +160,9 @@ export default async function ContestPage({ params }: PageProps) {
                 )}
               </p>
             </div>
-            <div className="sm:text-right">
-              <div className="text-xl sm:text-2xl font-bold text-gray-900">{entryCount || 0}</div>
-              <div className="text-sm text-gray-600">
+            <div className="text-right shrink-0">
+              <div className="text-sm sm:text-lg font-semibold text-gray-900">{entryCount || 0}</div>
+              <div className="text-xs sm:text-sm text-gray-600">
                 {entryCount === 1 ? 'Entry' : 'Entries'}
               </div>
             </div>
@@ -169,23 +181,44 @@ export default async function ContestPage({ params }: PageProps) {
             </Link>
           </div>
         ) : userEntry ? (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-            <p className="text-green-900 mb-4">You're entered in this contest!</p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link
-                href={`/contests/${contestId}/my-lineup`}
-                className="inline-block px-6 py-3 sm:py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 text-center"
-              >
-                View My Lineup
-              </Link>
-              {!isLocked && (
-                <Link
-                  href={`/contests/${contestId}/lineup`}
-                  className="inline-block px-6 py-3 sm:py-2 bg-white border border-green-600 text-green-700 font-medium rounded-lg hover:bg-green-50 text-center"
-                >
-                  Edit Lineup
-                </Link>
-              )}
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="font-medium text-green-900 text-sm sm:text-base tracking-tight">
+                {hasEstimates && estimateDay ? (
+                  <>
+                    {estimateDay === 'friday' && 'Friday estimates released!'}
+                    {estimateDay === 'saturday' && 'Saturday estimates released!'}
+                    {estimateDay === 'weekend' && 'Weekend estimates released!'}
+                  </>
+                ) : (
+                  "You've entered this contest!"
+                )}
+              </h3>
+              <div className="flex gap-2 shrink-0">
+                {hasEstimates && estimateDay ? (
+                  <Link
+                    href={`/contests/${contestId}/leaderboard`}
+                    className="px-3 sm:px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 min-w-[110px] sm:min-w-[120px] text-center"
+                  >
+                    View Rankings
+                  </Link>
+                ) : (
+                  <Link
+                    href={`/contests/${contestId}/my-lineup`}
+                    className="px-3 sm:px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 min-w-[110px] sm:min-w-[120px] text-center"
+                  >
+                    View Lineup
+                  </Link>
+                )}
+                {!isLocked && (
+                  <Link
+                    href={`/contests/${contestId}/lineup`}
+                    className="px-3 sm:px-4 py-2 bg-white border border-green-600 text-green-700 text-sm font-medium rounded-lg hover:bg-green-50"
+                  >
+                    Edit
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         ) : isLocked ? (
@@ -210,34 +243,28 @@ export default async function ContestPage({ params }: PageProps) {
         )}
 
         {/* Rules */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Contest Rules</h3>
-          <div className="space-y-3 text-sm text-gray-700">
-            <div className="flex gap-3">
-              <span className="text-blue-600 font-semibold">Lineup:</span>
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Contest Rules</h3>
+          <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-700 tracking-tight">
+            <div className="flex gap-2 sm:gap-3">
+              <span className="text-blue-600 font-semibold shrink-0">Lineup:</span>
               <span>Select 2-4 movies</span>
             </div>
-            <div className="flex gap-3">
-              <span className="text-blue-600 font-semibold">Salary Cap:</span>
-              <span>$100 maximum total salary</span>
+            <div className="flex gap-2 sm:gap-3">
+              <span className="text-blue-600 font-semibold shrink-0">Salary Cap:</span>
+              <span>$100 max total salary</span>
             </div>
-            <div className="flex gap-3">
-              <span className="text-blue-600 font-semibold">Entry Limit:</span>
+            <div className="flex gap-2 sm:gap-3">
+              <span className="text-blue-600 font-semibold shrink-0">Entry Limit:</span>
               <span>One lineup per user</span>
             </div>
-            <div className="flex gap-3">
-              <span className="text-blue-600 font-semibold">Lock Time:</span>
+            <div className="flex gap-2 sm:gap-3">
+              <span className="text-blue-600 font-semibold shrink-0">Lock Time:</span>
               <span>Thursday 8PM ET</span>
             </div>
-            <div className="flex gap-3">
-              <span className="text-blue-600 font-semibold">Scoring:</span>
-              <span>
-                Total domestic weekend gross (Fri-Sun). $1M box office = 1 point
-              </span>
-            </div>
-            <div className="flex gap-3">
-              <span className="text-blue-600 font-semibold">Final Score:</span>
-              <span>Sum of all selected movies' opening weekend gross</span>
+            <div className="flex gap-2 sm:gap-3">
+              <span className="text-blue-600 font-semibold shrink-0">Scoring:</span>
+              <span>$1M weekend gross = 1 point</span>
             </div>
           </div>
         </div>
@@ -245,27 +272,6 @@ export default async function ContestPage({ params }: PageProps) {
         {/* Movie List Preview */}
         <ExpandableMovieList movies={contest.movies} />
 
-        {/* Current Rankings (locked with estimates) */}
-        {contest.status === 'locked' && hasEstimates && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium text-blue-900">Weekend Estimates Available</h3>
-                {leaderScore !== null && (
-                  <p className="text-sm text-blue-700">
-                    Current leader: {leaderScore.toFixed(1)} pts
-                  </p>
-                )}
-              </div>
-              <Link
-                href={`/contests/${contestId}/leaderboard`}
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
-              >
-                View Rankings
-              </Link>
-            </div>
-          </div>
-        )}
 
         {/* Navigation */}
         {contest.status === 'resolved' && (
