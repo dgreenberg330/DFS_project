@@ -89,7 +89,7 @@ export async function setUsername(username: string): Promise<{ error?: string }>
     .maybeSingle();
 
   if (existing && existing.user_id !== user.id) {
-    return { error: 'Username is taken' };
+    return { error: 'Username is already taken. Please choose another.' };
   }
 
   // Check if profile exists
@@ -121,7 +121,7 @@ export async function setUsername(username: string): Promise<{ error?: string }>
     if (error) {
       // Handle unique constraint violation
       if (error.code === '23505') {
-        return { error: 'Username is taken' };
+        return { error: 'Username is already taken. Please choose another.' };
       }
       return { error: `Failed to create profile: ${error.message}` };
     }
