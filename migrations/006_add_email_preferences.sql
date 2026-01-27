@@ -5,6 +5,9 @@
 -- email_logs table for tracking sent emails
 -- ============================================================================
 
+-- Enable pgcrypto extension for gen_random_bytes (used for unsubscribe tokens)
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- Add email preference columns to user_profiles
 ALTER TABLE user_profiles
   ADD COLUMN IF NOT EXISTS email_lock_reminders BOOLEAN NOT NULL DEFAULT TRUE,
