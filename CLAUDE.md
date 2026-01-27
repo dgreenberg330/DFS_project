@@ -19,8 +19,7 @@ This is a box office fantasy sports game where users create lineups of movies to
 ## Development Commands
 
 - `npm run dev` - Start development server
-- `npm run build` - Production build
-- `npm run lint` - Run ESLint
+- `npm run build` - Production build (use this to verify changes compile)
 - `supabase start` - Local database
 
 ## Project Structure
