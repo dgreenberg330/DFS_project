@@ -70,7 +70,7 @@ CREATE POLICY "Users can view their own email logs"
 -- ============================================================================
 -- Generate tokens for users who don't have one yet
 UPDATE user_profiles
-SET unsubscribe_token = encode(gen_random_bytes(32), 'hex')
+SET unsubscribe_token = encode(public.gen_random_bytes(32), 'hex')
 WHERE unsubscribe_token IS NULL;
 
 -- ============================================================================
@@ -83,7 +83,7 @@ SET search_path = ''
 AS $$
 BEGIN
   IF NEW.unsubscribe_token IS NULL THEN
-    NEW.unsubscribe_token = encode(gen_random_bytes(32), 'hex');
+    NEW.unsubscribe_token = encode(public.gen_random_bytes(32), 'hex');
   END IF;
   RETURN NEW;
 END;

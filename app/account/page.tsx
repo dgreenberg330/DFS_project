@@ -45,11 +45,8 @@ export default async function AccountPage() {
     redirect('/login');
   }
 
-  // Fetch user profile - if it fails or returns null, redirect to setup
+  // Fetch user profile - may be null if profile creation failed
   const profile = await getUserProfile();
-  if (!profile) {
-    redirect('/setup-username');
-  }
 
   // Fetch past contest entries with error handling
   let allEntries: EntryData[] = [];

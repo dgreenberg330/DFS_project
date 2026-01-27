@@ -62,6 +62,7 @@ export async function GET(request: Request) {
     // Code exchange succeeded - check if user has set username
     const { data: { user } } = await supabase.auth.getUser();
 
+    // Try to ensure user profile exists (created during signup, this is a fallback)
     if (user) {
       const { data: profile } = await supabase
         .from('user_profiles')
@@ -70,12 +71,10 @@ export async function GET(request: Request) {
         .maybeSingle();
 
       if (!profile) {
-        // Check if username was provided during signup (stored in user metadata)
-        // Profile should already exist from signup, but this serves as a fallback
+        // Profile doesn't exist - try to create it from signup metadata
         const usernameFromMetadata = user.user_metadata?.username;
 
         if (usernameFromMetadata) {
-          // Try to create profile with username from signup metadata
           const { error: profileError } = await supabase
             .from('user_profiles')
             .insert({
@@ -84,19 +83,12 @@ export async function GET(request: Request) {
             });
 
           if (profileError) {
-            console.error('Failed to create profile:', profileError.message);
-            // If username is taken (race condition or duplicate), redirect to setup
-            if (profileError.code === '23505') {
-              return NextResponse.redirect(`${origin}/setup-username?error=username_taken`);
-            }
-            // For any other error, also redirect to setup to let user choose username
-            return NextResponse.redirect(`${origin}/setup-username?error=profile_error`);
+            // Log error but continue - user is authenticated and can use account
+            console.error('Failed to create profile in callback:', profileError.message);
           }
-          // Profile created successfully, continue to account
-        } else {
-          // No username in metadata - redirect to username setup (legacy flow)
-          return NextResponse.redirect(`${origin}/setup-username`);
         }
+        // If no username in metadata or profile creation failed, continue anyway
+        // The account page will handle missing profile gracefully
       }
     }
 

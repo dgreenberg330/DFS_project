@@ -6,7 +6,7 @@ import { getUser } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { getUserProfile } from '@/actions/user-profiles';
 import { EmailPreferencesForm } from '@/components/email-preferences-form';
-import { SetUsernameForm } from '@/components/set-username-form';
+import { UsernameForm } from '@/components/username-form';
 import { Header } from '@/components/header';
 import type { Metadata } from 'next';
 
@@ -26,9 +26,6 @@ export default async function SettingsPage() {
   }
 
   const profile = await getUserProfile();
-  if (!profile) {
-    redirect('/setup-username');
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -39,10 +36,12 @@ export default async function SettingsPage() {
         {/* Username Section */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Username</h2>
-          <p className="text-sm text-gray-600 mb-4">
-            Current username: <span className="font-medium">@{profile.username}</span>
-          </p>
-          <SetUsernameForm />
+          {profile?.username && (
+            <p className="text-sm text-gray-600 mb-4">
+              Current username: <span className="font-medium">@{profile.username}</span>
+            </p>
+          )}
+          <UsernameForm currentUsername={profile?.username} />
           <div className="mt-4 text-xs text-gray-500">
             3-20 characters, letters, numbers, and underscores only
           </div>
@@ -53,9 +52,9 @@ export default async function SettingsPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Email Notifications</h2>
           <EmailPreferencesForm
             initialPreferences={{
-              email_lock_reminders: profile.email_lock_reminders ?? true,
-              email_contest_results: profile.email_contest_results ?? true,
-              email_new_contests: profile.email_new_contests ?? true,
+              email_lock_reminders: profile?.email_lock_reminders ?? true,
+              email_contest_results: profile?.email_contest_results ?? true,
+              email_new_contests: profile?.email_new_contests ?? true,
             }}
           />
         </div>
@@ -68,15 +67,17 @@ export default async function SettingsPage() {
               <span className="text-gray-600">Email</span>
               <span className="text-gray-900">{user.email}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Member since</span>
-              <span className="text-gray-900">
-                {new Date(profile.created_at).toLocaleDateString('en-US', {
-                  month: 'long',
-                  year: 'numeric',
-                })}
-              </span>
-            </div>
+            {profile?.created_at && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">Member since</span>
+                <span className="text-gray-900">
+                  {new Date(profile.created_at).toLocaleDateString('en-US', {
+                    month: 'long',
+                    year: 'numeric',
+                  })}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

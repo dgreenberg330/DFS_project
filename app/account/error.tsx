@@ -28,12 +28,6 @@ export default function Error({
               Try Again
             </button>
             <Link
-              href="/setup-username"
-              className="w-full px-6 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors text-center"
-            >
-              Setup Username
-            </Link>
-            <Link
               href="/"
               className="w-full px-6 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors text-center"
             >
