@@ -214,6 +214,11 @@ export async function signUp(email: string, password: string, username: string) 
     return { error: error.message };
   }
 
+  // Check if user already exists - Supabase returns empty identities array for existing users
+  if (data.user && (!data.user.identities || data.user.identities.length === 0)) {
+    return { error: 'An account with this email already exists.', code: 'EMAIL_EXISTS' };
+  }
+
   // Create user profile immediately using admin client (bypasses RLS)
   // This ensures profile exists when user confirms email, avoiding second username prompt
   if (data.user) {
