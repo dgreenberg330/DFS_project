@@ -185,7 +185,7 @@ export async function signUp(email: string, password: string, username: string) 
     .maybeSingle();
 
   if (existingUsername) {
-    return { error: 'Username is already taken. Please choose another.' };
+    return { error: 'Username is taken' };
   }
 
   const { data, error } = await supabase.auth.signUp({
@@ -201,7 +201,7 @@ export async function signUp(email: string, password: string, username: string) 
 
   if (error) {
     if (error.message.includes('already registered') || error.message.includes('already been registered')) {
-      return { error: 'An account with this email already exists.', code: 'EMAIL_EXISTS' };
+      return { error: 'A user with this email already exists', code: 'EMAIL_EXISTS' };
     }
     return { error: error.message };
   }
