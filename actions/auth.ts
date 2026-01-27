@@ -11,6 +11,14 @@ import { headers, cookies } from 'next/headers';
 import { USERNAME_CONSTRAINTS } from '@/types';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
+import { randomBytes } from 'crypto';
+
+/**
+ * Generates a random unsubscribe token
+ */
+function generateUnsubscribeToken(): string {
+  return randomBytes(32).toString('hex');
+}
 
 // ============================================================================
 // Rate Limiting for Auth Actions
@@ -215,6 +223,7 @@ export async function signUp(email: string, password: string, username: string) 
       .insert({
         user_id: data.user.id,
         username: trimmedUsername,
+        unsubscribe_token: generateUnsubscribeToken(),
       });
 
     if (profileError) {

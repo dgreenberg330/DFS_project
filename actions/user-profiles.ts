@@ -8,6 +8,14 @@ import { getUser, createClient } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { USERNAME_CONSTRAINTS } from '@/types';
+import { randomBytes } from 'crypto';
+
+/**
+ * Generates a random unsubscribe token
+ */
+function generateUnsubscribeToken(): string {
+  return randomBytes(32).toString('hex');
+}
 
 /**
  * Validates username format
@@ -110,12 +118,13 @@ export async function setUsername(username: string): Promise<{ error?: string }>
       return { error: `Failed to update username: ${error.message}` };
     }
   } else {
-    // Create new profile
+    // Create new profile with unsubscribe token
     const { error } = await supabase
       .from('user_profiles')
       .insert({
         user_id: user.id,
         username: trimmed,
+        unsubscribe_token: generateUnsubscribeToken(),
       });
 
     if (error) {

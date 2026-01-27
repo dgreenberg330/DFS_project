@@ -5,8 +5,7 @@
 -- email_logs table for tracking sent emails
 -- ============================================================================
 
--- Enable pgcrypto extension for gen_random_bytes (used for unsubscribe tokens)
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+-- Note: Unsubscribe tokens are generated in application code using Node.js crypto
 
 -- Add email preference columns to user_profiles
 ALTER TABLE user_profiles
@@ -68,36 +67,8 @@ CREATE POLICY "Users can view their own email logs"
 -- ============================================================================
 -- Generate unsubscribe tokens for existing users
 -- ============================================================================
--- Generate tokens for users who don't have one yet
-UPDATE user_profiles
-SET unsubscribe_token = encode(public.gen_random_bytes(32), 'hex')
-WHERE unsubscribe_token IS NULL;
+-- Note: For existing users without tokens, run this manually or tokens will
+-- be generated when they next update their profile settings
 
--- ============================================================================
--- Function to generate unsubscribe token on profile creation
--- ============================================================================
-CREATE OR REPLACE FUNCTION generate_unsubscribe_token()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SET search_path = ''
-AS $$
-BEGIN
-  IF NEW.unsubscribe_token IS NULL THEN
-    NEW.unsubscribe_token = encode(public.gen_random_bytes(32), 'hex');
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
--- Only create trigger if it doesn't exist
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_trigger WHERE tgname = 'set_unsubscribe_token'
-  ) THEN
-    CREATE TRIGGER set_unsubscribe_token
-      BEFORE INSERT ON user_profiles
-      FOR EACH ROW EXECUTE FUNCTION generate_unsubscribe_token();
-  END IF;
-END;
-$$;
+-- Note: Unsubscribe tokens are now generated in application code
+-- This avoids dependency on pgcrypto extension

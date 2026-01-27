@@ -5,6 +5,7 @@
 
 import { createClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
+import { randomBytes } from 'crypto';
 
 export async function GET(request: Request) {
   try {
@@ -80,6 +81,7 @@ export async function GET(request: Request) {
             .insert({
               user_id: user.id,
               username: usernameFromMetadata,
+              unsubscribe_token: randomBytes(32).toString('hex'),
             });
 
           if (profileError) {
