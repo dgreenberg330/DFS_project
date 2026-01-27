@@ -19,7 +19,7 @@ function getResendClient(): Resend | null {
 }
 
 // Email sender configuration
-const FROM_EMAIL = process.env.EMAIL_FROM || 'Shugsy <noreply@shugsy.com>';
+const FROM_EMAIL = process.env.EMAIL_FROM || 'Shugsy <team@shugsy.com>';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://shugsy.com';
 
 // ============================================================================
@@ -67,7 +67,7 @@ function lockReminderTemplate(data: LockReminderData): string {
   <title>Lineups Lock Soon</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+  <div style="background: #2563eb; padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
     <h1 style="color: white; margin: 0; font-size: 24px;">Lineups Lock in ${hoursText}!</h1>
   </div>
 
@@ -116,7 +116,7 @@ function contestResultsTemplate(data: ContestResultsData): string {
   <title>Contest Results</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, ${headerColor} 0%, ${isWinner ? '#10b981' : '#3b82f6'} 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+  <div style="background: ${headerColor}; padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
     <h1 style="color: white; margin: 0; font-size: 24px;">${headerText}</h1>
   </div>
 
@@ -170,7 +170,7 @@ function newContestTemplate(data: NewContestData): string {
   <title>New Contest Available</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+  <div style="background: #7c3aed; padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
     <h1 style="color: white; margin: 0; font-size: 24px;">New Contest Available!</h1>
   </div>
 

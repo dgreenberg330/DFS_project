@@ -11,9 +11,7 @@ import {
   calculateCurrentEstimate,
   getEstimateDirection,
 } from '@/actions/scoring';
-import { SignOutButton } from '@/components/sign-out-button';
 import { Header } from '@/components/header';
-import { EmailPreferencesForm } from '@/components/email-preferences-form';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import type { Movie, Contest, Lineup, Entry } from '@/types';
@@ -89,33 +87,18 @@ export default async function AccountPage() {
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Account</h1>
-              <SignOutButton />
+              <Link
+                href="/settings"
+                className="text-sm text-blue-600 hover:text-blue-700"
+              >
+                Settings
+              </Link>
             </div>
             {profile && (
-              <div className="flex items-center justify-between">
-                <p className="text-base sm:text-lg text-gray-700">@{profile.username}</p>
-                <Link
-                  href="/account/edit-username"
-                  className="text-sm text-blue-600 hover:text-blue-700"
-                >
-                  Edit Username
-                </Link>
-              </div>
+              <p className="text-base sm:text-lg text-gray-700">@{profile.username}</p>
             )}
             <p className="text-sm text-gray-600">{user.email}</p>
           </div>
-        </div>
-
-        {/* Email Preferences */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Email Notifications</h2>
-          <EmailPreferencesForm
-            initialPreferences={{
-              email_lock_reminders: profile.email_lock_reminders ?? true,
-              email_contest_results: profile.email_contest_results ?? true,
-              email_new_contests: profile.email_new_contests ?? true,
-            }}
-          />
         </div>
 
         {/* Active Contests */}

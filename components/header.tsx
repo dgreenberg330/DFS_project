@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { getUser } from '@/lib/supabase-server';
 import { getUserEntryCount, getUserCohort } from '@/actions/account';
 import { UserPropertiesTracker } from '@/components/user-properties-tracker';
+import { AccountDropdown } from '@/components/account-dropdown';
 
 export async function Header() {
   const user = await getUser();
@@ -48,12 +49,7 @@ export async function Header() {
           </Link>
           <div className="flex items-center gap-4">
             {user ? (
-              <Link
-                href="/account"
-                className="text-sm text-gray-300 hover:text-teal-400 transition-colors"
-              >
-                Account
-              </Link>
+              <AccountDropdown />
             ) : (
               <Link
                 href="/login"
