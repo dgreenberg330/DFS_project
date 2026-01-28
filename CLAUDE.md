@@ -185,6 +185,19 @@ Primary: "box office fantasy", "movie fantasy sports", "predict box office", "op
 
 ## Git Workflow
 
+### Branching Strategy
+
+- **Always work off a feature branch**, never directly on main/master
+- At the start of each session, check if main has new commits and merge into the working branch if needed:
+  ```bash
+  git fetch origin
+  git merge origin/master
+  ```
+- Only merge the feature branch back to main when the feature is complete and tested
+- Use descriptive branch names (e.g., `feature/email-notifications`, `fix/scoring-bug`)
+
+### Commits and Pushing
+
 - Commit all new code changes with descriptive commit messages
 - Do NOT push to remote until user has tested changes locally
 - Start dev server (`npm run dev`) and wait for user approval before pushing
