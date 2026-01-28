@@ -194,6 +194,7 @@ Primary: "box office fantasy", "movie fantasy sports", "predict box office", "op
   git merge origin/master
   ```
 - Only merge the feature branch back to main when the feature is complete and tested
+- Delete the feature branch after it has been merged into main
 - Use descriptive branch names (e.g., `feature/email-notifications`, `fix/scoring-bug`)
 
 ### Commits and Pushing
