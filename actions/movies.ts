@@ -59,6 +59,8 @@ export async function createMovie(input: CreateMovieInput): Promise<Movie> {
       salary: input.salary,
       projected_gross: input.projected_gross,
       actual_gross: null, // Will be filled Sunday night
+      tmdb_id: input.tmdb_id || null,
+      poster_path: input.poster_path || null,
     })
     .select()
     .single();
@@ -124,6 +126,8 @@ export async function batchCreateMovies(movies: CreateMovieInput[]): Promise<Mov
         salary: input.salary,
         projected_gross: input.projected_gross,
         actual_gross: null,
+        tmdb_id: input.tmdb_id || null,
+        poster_path: input.poster_path || null,
       }))
     )
     .select();

@@ -109,7 +109,7 @@ export default async function ContestPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-dark-bg">
       <ContestViewTracker
         contestId={contestId}
         contestStatus={contest.status as ContestStatus}
@@ -131,17 +131,17 @@ export default async function ContestPage({ params }: PageProps) {
       <main className="max-w-3xl mx-auto px-4 py-8">
         {/* Contest Title */}
         <div className="mb-6">
-          <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900">{contest.name}</h1>
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-100">{contest.name}</h1>
         </div>
 
         {/* Status Banner */}
-        <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6">
+        <div className="bg-dark-surface rounded-lg shadow-lg p-4 sm:p-6 mb-6 border border-dark-border">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="text-sm sm:text-lg font-semibold text-gray-900 tracking-tight">
+              <h2 className="text-sm sm:text-lg font-semibold text-gray-100 tracking-tight">
                 {isLocked ? 'Contest Locked' : 'Contest Open'}
               </h2>
-              <p className="text-xs sm:text-sm text-gray-600 tracking-tight">
+              <p className="text-xs sm:text-sm text-gray-400 tracking-tight">
                 {isLocked ? (
                   <>Results will be posted after the weekend</>
                 ) : (
@@ -161,8 +161,8 @@ export default async function ContestPage({ params }: PageProps) {
               </p>
             </div>
             <div className="text-right shrink-0">
-              <div className="text-sm sm:text-lg font-semibold text-gray-900">{entryCount || 0}</div>
-              <div className="text-xs sm:text-sm text-gray-600">
+              <div className="text-sm sm:text-lg font-semibold text-gray-100">{entryCount || 0}</div>
+              <div className="text-xs sm:text-sm text-gray-400">
                 {entryCount === 1 ? 'Entry' : 'Entries'}
               </div>
             </div>
@@ -171,19 +171,19 @@ export default async function ContestPage({ params }: PageProps) {
 
         {/* User Actions */}
         {!user ? (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-            <p className="text-blue-900 mb-4">Sign in to enter this contest.</p>
+          <div className="bg-dark-surface border border-accent/30 rounded-lg p-6 mb-6">
+            <p className="text-gray-200 mb-4">Sign in to enter this contest.</p>
             <Link
               href="/login"
-              className="inline-block px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700"
+              className="inline-block px-6 py-2 bg-accent text-dark-bg font-medium rounded-lg hover:bg-accent-light"
             >
               Sign In
             </Link>
           </div>
         ) : userEntry ? (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+          <div className="bg-dark-surface border border-green-600/50 rounded-lg p-4 mb-6">
             <div className="flex items-center justify-between gap-3">
-              <h3 className="font-medium text-green-900 text-sm sm:text-base tracking-tight">
+              <h3 className="font-medium text-green-400 text-sm sm:text-base tracking-tight">
                 {hasEstimates && estimateDay ? (
                   <>
                     {estimateDay === 'friday' && 'Friday estimates released!'}
@@ -198,14 +198,14 @@ export default async function ContestPage({ params }: PageProps) {
                 {hasEstimates && estimateDay ? (
                   <Link
                     href={`/contests/${contestId}/leaderboard`}
-                    className="px-3 sm:px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 min-w-[110px] sm:min-w-[120px] text-center"
+                    className="px-3 sm:px-4 py-2 bg-accent text-dark-bg text-sm font-medium rounded-lg hover:bg-accent-light min-w-[110px] sm:min-w-[120px] text-center"
                   >
                     View Rankings
                   </Link>
                 ) : (
                   <Link
                     href={`/contests/${contestId}/my-lineup`}
-                    className="px-3 sm:px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 min-w-[110px] sm:min-w-[120px] text-center"
+                    className="px-3 sm:px-4 py-2 bg-accent text-dark-bg text-sm font-medium rounded-lg hover:bg-accent-light min-w-[110px] sm:min-w-[120px] text-center"
                   >
                     View Lineup
                   </Link>
@@ -213,7 +213,7 @@ export default async function ContestPage({ params }: PageProps) {
                 {!isLocked && (
                   <Link
                     href={`/contests/${contestId}/lineup`}
-                    className="px-3 sm:px-4 py-2 bg-white border border-green-600 text-green-700 text-sm font-medium rounded-lg hover:bg-green-50"
+                    className="px-3 sm:px-4 py-2 bg-dark-elevated border border-accent text-accent text-sm font-medium rounded-lg hover:bg-dark-surface"
                   >
                     Edit
                   </Link>
@@ -222,20 +222,20 @@ export default async function ContestPage({ params }: PageProps) {
             </div>
           </div>
         ) : isLocked ? (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
-            <p className="text-yellow-900">
+          <div className="bg-dark-surface border border-amber-600/50 rounded-lg p-6 mb-6">
+            <p className="text-amber-400">
               This contest is locked. You cannot enter at this time.
             </p>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h3 className="font-semibold text-gray-900 mb-2">Ready to play?</h3>
-            <p className="text-sm text-gray-600 mb-4">
+          <div className="bg-dark-surface rounded-lg shadow-lg p-6 mb-6 border border-dark-border">
+            <h3 className="font-semibold text-gray-100 mb-2">Ready to play?</h3>
+            <p className="text-sm text-gray-400 mb-4">
               Build your lineup and compete in this contest.
             </p>
             <Link
               href={`/contests/${contestId}/lineup`}
-              className="inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700"
+              className="inline-block px-6 py-3 bg-accent text-dark-bg font-medium rounded-lg hover:bg-accent-light"
             >
               Build Lineup
             </Link>
@@ -243,27 +243,27 @@ export default async function ContestPage({ params }: PageProps) {
         )}
 
         {/* Rules */}
-        <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Contest Rules</h3>
-          <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-700 tracking-tight">
+        <div className="bg-dark-surface rounded-lg shadow-lg p-4 sm:p-6 mb-6 border border-dark-border">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-100 mb-3 sm:mb-4">Contest Rules</h3>
+          <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-300 tracking-tight">
             <div className="flex gap-2 sm:gap-3">
-              <span className="text-blue-600 font-semibold shrink-0">Lineup:</span>
+              <span className="text-accent font-semibold shrink-0">Lineup:</span>
               <span>Select 2-4 movies</span>
             </div>
             <div className="flex gap-2 sm:gap-3">
-              <span className="text-blue-600 font-semibold shrink-0">Salary Cap:</span>
+              <span className="text-accent font-semibold shrink-0">Salary Cap:</span>
               <span>$100 max total salary</span>
             </div>
             <div className="flex gap-2 sm:gap-3">
-              <span className="text-blue-600 font-semibold shrink-0">Entry Limit:</span>
+              <span className="text-accent font-semibold shrink-0">Entry Limit:</span>
               <span>One lineup per user</span>
             </div>
             <div className="flex gap-2 sm:gap-3">
-              <span className="text-blue-600 font-semibold shrink-0">Lock Time:</span>
+              <span className="text-accent font-semibold shrink-0">Lock Time:</span>
               <span>Thursday 8PM ET</span>
             </div>
             <div className="flex gap-2 sm:gap-3">
-              <span className="text-blue-600 font-semibold shrink-0">Scoring:</span>
+              <span className="text-accent font-semibold shrink-0">Scoring:</span>
               <span>$1M weekend gross = 1 point</span>
             </div>
           </div>
@@ -278,7 +278,7 @@ export default async function ContestPage({ params }: PageProps) {
           <div className="mt-6 text-sm text-right">
             <Link
               href={`/contests/${contestId}/leaderboard`}
-              className="text-blue-600 hover:text-blue-700"
+              className="text-accent hover:text-accent-light"
             >
               View Leaderboard &rarr;
             </Link>

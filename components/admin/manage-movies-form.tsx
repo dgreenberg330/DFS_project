@@ -28,6 +28,8 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
   const [theaterCount, setTheaterCount] = useState('');
   const [salary, setSalary] = useState('');
   const [projectedGross, setProjectedGross] = useState('');
+  const [tmdbId, setTmdbId] = useState('');
+  const [posterPath, setPosterPath] = useState('');
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const [addSuccess, setAddSuccess] = useState(false);
@@ -79,6 +81,8 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
         theater_count: theaterCount ? parseInt(theaterCount) : undefined,
         salary: salaryNum,
         projected_gross: projectedNum,
+        tmdb_id: tmdbId ? parseInt(tmdbId) : undefined,
+        poster_path: posterPath || undefined,
       });
 
       setMovies([movie, ...movies].sort((a, b) => b.salary - a.salary));
@@ -90,6 +94,8 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
       setTheaterCount('');
       setSalary('');
       setProjectedGross('');
+      setTmdbId('');
+      setPosterPath('');
 
       setTimeout(() => {
         setAddSuccess(false);
@@ -391,6 +397,32 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              TMDB ID
+            </label>
+            <input
+              type="number"
+              value={tmdbId}
+              onChange={(e) => setTmdbId(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., 693134"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Poster Path
+            </label>
+            <input
+              type="text"
+              value={posterPath}
+              onChange={(e) => setPosterPath(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., /abc123.jpg"
+            />
+          </div>
+
           <div className="col-span-2">
             <button
               type="submit"
@@ -573,6 +605,8 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Theaters</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Salary</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Projected</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">TMDB ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Poster</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
               </thead>
@@ -647,6 +681,37 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
                             className="px-2 py-1 border rounded w-24"
                           />
                         ) : `$${movie.projected_gross}M`}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            value={editData.tmdb_id ?? movie.tmdb_id ?? ''}
+                            onChange={(e) => setEditData({...editData, tmdb_id: e.target.value ? parseInt(e.target.value) : null})}
+                            className="px-2 py-1 border rounded w-24"
+                            placeholder="TMDB ID"
+                          />
+                        ) : (movie.tmdb_id || '-')}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={editData.poster_path ?? movie.poster_path ?? ''}
+                            onChange={(e) => setEditData({...editData, poster_path: e.target.value || null})}
+                            className="px-2 py-1 border rounded w-32"
+                            placeholder="/path.jpg"
+                          />
+                        ) : (movie.poster_path ? (
+                          <a
+                            href={`https://image.tmdb.org/t/p/w185${movie.poster_path}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            View
+                          </a>
+                        ) : '-')}
                       </td>
                       <td className="px-6 py-4 text-sm text-right space-x-2">
                         {isEditing ? (

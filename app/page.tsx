@@ -30,14 +30,14 @@ export default async function LandingPage() {
   const currentContest = await getCurrentContest();
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-dark-bg">
       <WebApplicationJsonLd />
       <FAQJsonLd />
       <Header />
 
       <main id="main-content">
         {/* Hero */}
-        <section aria-label="Introduction" className="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-100 pt-12 sm:pt-16 pb-16 sm:pb-24">
+        <section aria-label="Introduction" className="bg-gradient-to-b from-dark-elevated via-dark-surface to-dark-bg pt-12 sm:pt-16 pb-16 sm:pb-24">
           <div className="max-w-4xl mx-auto px-4">
             <div className="text-center">
               <h1 className="text-[1.45rem] sm:text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
@@ -84,32 +84,32 @@ export default async function LandingPage() {
 
         <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8">
           {/* How It Works */}
-          <section aria-label="How it works" className="bg-white rounded-2xl shadow-xl p-4 sm:p-8 mb-6 sm:mb-8 border border-gray-200">
-            <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-8 text-center">How It Works</h2>
+          <section aria-label="How it works" className="bg-dark-surface rounded-2xl shadow-xl p-4 sm:p-8 mb-6 sm:mb-8 border border-dark-border">
+            <h2 className="text-lg sm:text-2xl font-bold text-gray-100 mb-4 sm:mb-8 text-center">How It Works</h2>
             <div className="grid md:grid-cols-3 gap-4 sm:gap-8">
               <div className="flex items-start gap-3 md:flex-col md:items-center md:text-center">
-                <div className="w-8 h-8 sm:w-12 sm:h-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-base sm:text-xl font-bold shrink-0 md:mb-4">1</div>
+                <div className="w-8 h-8 sm:w-12 sm:h-12 bg-accent/20 text-accent rounded-full flex items-center justify-center text-base sm:text-xl font-bold shrink-0 md:mb-4">1</div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-1 sm:mb-2">Pick Your Lineup</h3>
-                  <p className="text-xs sm:text-sm text-gray-600">
+                  <h3 className="font-semibold text-gray-100 text-sm sm:text-base mb-1 sm:mb-2">Pick Your Lineup</h3>
+                  <p className="text-xs sm:text-sm text-gray-400">
                     Select 2-4 movies within a $100 salary cap.
                   </p>
                 </div>
               </div>
               <div className="flex items-start gap-3 md:flex-col md:items-center md:text-center">
-                <div className="w-8 h-8 sm:w-12 sm:h-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-base sm:text-xl font-bold shrink-0 md:mb-4">2</div>
+                <div className="w-8 h-8 sm:w-12 sm:h-12 bg-accent/20 text-accent rounded-full flex items-center justify-center text-base sm:text-xl font-bold shrink-0 md:mb-4">2</div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-1 sm:mb-2">Watch the Box Office</h3>
-                  <p className="text-xs sm:text-sm text-gray-600">
+                  <h3 className="font-semibold text-gray-100 text-sm sm:text-base mb-1 sm:mb-2">Watch the Box Office</h3>
+                  <p className="text-xs sm:text-sm text-gray-400">
                     Score = total weekend gross of your movies.
                   </p>
                 </div>
               </div>
               <div className="flex items-start gap-3 md:flex-col md:items-center md:text-center">
-                <div className="w-8 h-8 sm:w-12 sm:h-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-base sm:text-xl font-bold shrink-0 md:mb-4">3</div>
+                <div className="w-8 h-8 sm:w-12 sm:h-12 bg-accent/20 text-accent rounded-full flex items-center justify-center text-base sm:text-xl font-bold shrink-0 md:mb-4">3</div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-1 sm:mb-2">Compete & Win</h3>
-                  <p className="text-xs sm:text-sm text-gray-600">
+                  <h3 className="font-semibold text-gray-100 text-sm sm:text-base mb-1 sm:mb-2">Compete & Win</h3>
+                  <p className="text-xs sm:text-sm text-gray-400">
                     $1M box office = 1 point. Highest score wins!
                   </p>
                 </div>

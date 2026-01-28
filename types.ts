@@ -69,6 +69,10 @@ export interface Movie {
   saturday_estimate: number | null; // Saturday gross (entered Sunday)
   sunday_estimate: number | null; // Cumulative weekend (entered Monday)
 
+  // TMDB integration for movie posters
+  tmdb_id: number | null; // The Movie Database movie ID
+  poster_path: string | null; // TMDB poster path (e.g., /abc123.jpg)
+
   created_at: string;
   updated_at: string;
 }
@@ -195,6 +199,8 @@ export interface CreateMovieInput {
   theater_count?: number;
   salary: number;
   projected_gross: number;
+  tmdb_id?: number;
+  poster_path?: string;
 }
 
 /**
@@ -317,6 +323,8 @@ export interface UpdateMovieInput {
   theater_count?: number | null;
   salary?: number;
   projected_gross?: number;
+  tmdb_id?: number | null;
+  poster_path?: string | null;
 }
 
 /**

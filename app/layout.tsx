@@ -80,7 +80,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen flex flex-col">
+      <body className="min-h-screen flex flex-col bg-dark-bg text-gray-100">
         <OrganizationJsonLd />
         <Toaster position="top-center" richColors />
         <div className="flex-1">{children}</div>
