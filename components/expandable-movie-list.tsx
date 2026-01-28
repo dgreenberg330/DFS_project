@@ -22,7 +22,7 @@ export function ExpandableMovieList({ movies }: ExpandableMovieListProps) {
       </h3>
 
       {/* Mobile: Horizontal scroll */}
-      <div className="md:hidden overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+      <div className="md:hidden overflow-x-auto pb-2 scrollbar-hide">
         <div className="flex gap-3">
           {movies.map((movie) => (
             <div key={movie.id} className="flex-shrink-0">

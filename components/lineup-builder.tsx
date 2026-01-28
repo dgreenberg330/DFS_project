@@ -282,7 +282,7 @@ export function LineupBuilder({
         ) : (
           <div className="p-4">
             {/* Mobile: Horizontal scroll */}
-            <div className="md:hidden overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+            <div className="md:hidden overflow-x-auto pb-2 scrollbar-hide">
               <div className="flex gap-3">
                 {safeMovies.map((movie) => {
                   const isSelected = selectedMovieIds.includes(movie.id);
