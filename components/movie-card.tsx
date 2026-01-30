@@ -4,7 +4,7 @@
 
 'use client';
 
-import { getTMDBPosterUrl, POSTER_SIZES } from '@/lib/tmdb';
+import { getTMDBPosterUrl } from '@/lib/tmdb';
 import type { Movie } from '@/types';
 
 interface MovieCardProps {
@@ -13,7 +13,7 @@ interface MovieCardProps {
   isDisabled?: boolean;
   onToggle?: (movieId: string) => void;
   showCheckbox?: boolean;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'sm-md' | 'md' | 'lg';
 }
 
 export function MovieCard({
@@ -24,13 +24,15 @@ export function MovieCard({
   showCheckbox = true,
   size = 'md',
 }: MovieCardProps) {
-  const posterUrl = getTMDBPosterUrl(movie.poster_path, POSTER_SIZES.GRID);
+  // Use w342 for better quality at larger display sizes
+  const posterUrl = getTMDBPosterUrl(movie.poster_path, 'w342');
 
-  // Size configurations
+  // Size configurations with fixed dimensions
   const sizeConfig = {
-    sm: { width: 92, height: 138, textSize: 'text-xs' },
-    md: { width: 120, height: 180, textSize: 'text-sm' },
-    lg: { width: 154, height: 231, textSize: 'text-base' },
+    sm: { width: 100, height: 150, text: 'text-xs' },
+    'sm-md': { width: 115, height: 172, text: 'text-xs' },
+    md: { width: 130, height: 195, text: 'text-xs' },
+    lg: { width: 150, height: 225, text: 'text-sm' },
   };
 
   const config = sizeConfig[size];
@@ -56,12 +58,13 @@ export function MovieCard({
       tabIndex={onToggle && !isDisabled ? 0 : undefined}
       aria-pressed={onToggle ? isSelected : undefined}
       aria-disabled={isDisabled}
+      style={{ width: config.width }}
       className={`
         relative rounded-lg overflow-hidden transition-all duration-200
         ${onToggle ? 'cursor-pointer' : ''}
         ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}
-        ${isSelected ? 'ring-2 ring-accent ring-offset-2 ring-offset-dark-bg scale-105' : ''}
-        ${!isSelected && onToggle && !isDisabled ? 'hover:scale-102 hover:ring-1 hover:ring-dark-border' : ''}
+        ${isSelected ? 'ring-2 ring-accent ring-offset-2 ring-offset-dark-bg scale-[1.03]' : ''}
+        ${!isSelected && onToggle && !isDisabled ? 'hover:ring-1 hover:ring-dark-border' : ''}
       `}
     >
       {/* Poster Image */}
@@ -77,7 +80,6 @@ export function MovieCard({
             loading="lazy"
           />
         ) : (
-          // Fallback when no poster available
           <div className="absolute inset-0 flex items-center justify-center p-2 bg-dark-surface">
             <span className="text-center text-gray-400 text-xs leading-tight line-clamp-3">
               {movie.title}
@@ -121,14 +123,25 @@ export function MovieCard({
       </div>
 
       {/* Movie info footer */}
-      <div className="bg-dark-surface p-2" style={{ width: config.width }}>
-        <div className={`flex justify-between items-center gap-1 ${config.textSize}`}>
-          <span className="text-gray-400 truncate">
-            {movie.projected_gross.toFixed(1)}M
-          </span>
-          <span className="text-accent font-semibold whitespace-nowrap">
-            ${movie.salary}
-          </span>
+      <div className="bg-dark-surface p-1.5">
+        {/* Movie title */}
+        <div
+          className={`${config.text} font-medium text-gray-100 truncate mb-1`}
+          title={movie.title}
+        >
+          {movie.title}
+        </div>
+
+        {/* Proj + Cost */}
+        <div className="flex justify-between items-start gap-1 text-xs">
+          <div>
+            <div className="text-gray-500 leading-none">Proj</div>
+            <div className="text-gray-300">{movie.projected_gross.toFixed(1)}M</div>
+          </div>
+          <div className="text-right">
+            <div className="text-gray-500 leading-none">Cost</div>
+            <div className="text-accent font-semibold">${movie.salary.toLocaleString()}</div>
+          </div>
         </div>
       </div>
     </div>

@@ -72,7 +72,7 @@ export default async function LineupPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-dark-bg">
       <Header />
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Contest Info */}
         <div className="mb-6">
           <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-100">{contest.name}</h1>

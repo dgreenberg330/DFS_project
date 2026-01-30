@@ -242,7 +242,7 @@ export function LineupBuilder({
                 remainingSalary < 0 ? 'text-red-400' : 'text-gray-100'
               }`}
             >
-              ${remainingSalary}
+              ${remainingSalary.toLocaleString()}
             </div>
             <div className="text-xs text-gray-400">Remaining</div>
           </div>
@@ -261,7 +261,7 @@ export function LineupBuilder({
             <p className="text-green-400">✓ Valid lineup</p>
           )}
           {remainingSalary < 0 && (
-            <p className="text-red-400">Salary cap exceeded by ${Math.abs(remainingSalary)}</p>
+            <p className="text-red-400">Salary cap exceeded by ${Math.abs(remainingSalary).toLocaleString()}</p>
           )}
         </div>
       </div>
@@ -271,7 +271,7 @@ export function LineupBuilder({
         <div className="p-3 sm:p-4 border-b border-dark-border">
           <h2 className="text-sm sm:text-base font-semibold text-gray-100">Available Movies</h2>
           <p className="text-xs text-gray-400 mt-1">
-            Select 2-4 movies within $100 cap
+            Select 2-4 movies within $50K cap
           </p>
         </div>
 
@@ -280,51 +280,43 @@ export function LineupBuilder({
             No movies available for this contest.
           </div>
         ) : (
-          <div className="p-4">
-            {/* Mobile: Horizontal scroll */}
-            <div className="md:hidden overflow-x-auto pb-2 scrollbar-hide">
-              <div className="flex gap-3">
-                {safeMovies.map((movie) => {
-                  const isSelected = selectedMovieIds.includes(movie.id);
-                  const wouldExceedCount = !isSelected && movieCount >= 4;
-
-                  return (
-                    <div key={movie.id} className="flex-shrink-0">
-                      <MovieCard
-                        movie={movie}
-                        isSelected={isSelected}
-                        isDisabled={wouldExceedCount}
-                        onToggle={toggleMovie}
-                        showCheckbox={true}
-                        size="md"
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Desktop: 5-column grid */}
-            <div className="hidden md:grid md:grid-cols-5 gap-3 justify-items-center">
-              {safeMovies.map((movie, index) => {
+          <div className="p-3 sm:p-6">
+            {/* Mobile: 2 columns with medium cards */}
+            <div className="grid grid-cols-2 gap-2 justify-items-center sm:hidden">
+              {safeMovies.map((movie) => {
                 const isSelected = selectedMovieIds.includes(movie.id);
                 const wouldExceedCount = !isSelected && movieCount >= 4;
-                const isLastDesktop = index === safeMovies.length - 1 && safeMovies.length % 5 === 1;
 
                 return (
-                  <div
+                  <MovieCard
                     key={movie.id}
-                    className={isLastDesktop ? 'md:col-span-5 md:flex md:justify-center' : ''}
-                  >
-                    <MovieCard
-                      movie={movie}
-                      isSelected={isSelected}
-                      isDisabled={wouldExceedCount}
-                      onToggle={toggleMovie}
-                      showCheckbox={true}
-                      size="md"
-                    />
-                  </div>
+                    movie={movie}
+                    isSelected={isSelected}
+                    isDisabled={wouldExceedCount}
+                    onToggle={toggleMovie}
+                    showCheckbox={true}
+                    size="md"
+                  />
+                );
+              })}
+            </div>
+
+            {/* Desktop: 4-5 columns with medium cards */}
+            <div className="hidden sm:grid sm:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-5 justify-items-center">
+              {safeMovies.map((movie) => {
+                const isSelected = selectedMovieIds.includes(movie.id);
+                const wouldExceedCount = !isSelected && movieCount >= 4;
+
+                return (
+                  <MovieCard
+                    key={movie.id}
+                    movie={movie}
+                    isSelected={isSelected}
+                    isDisabled={wouldExceedCount}
+                    onToggle={toggleMovie}
+                    showCheckbox={true}
+                    size="md"
+                  />
                 );
               })}
             </div>
@@ -346,7 +338,7 @@ export function LineupBuilder({
       </button>
 
       {/* Help Text */}
-      <div className="text-xs text-gray-400 text-center space-y-1">
+      <div className="text-xs text-gray-400 text-center space-y-1 pb-16 sm:pb-0">
         <p>You can edit your lineup until the contest locks.</p>
         <p>
           <a href="/account" className="text-accent hover:text-accent-light">
@@ -357,6 +349,26 @@ export function LineupBuilder({
             Home
           </a>
         </p>
+      </div>
+
+      {/* Mobile sticky bottom status bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-dark-surface border-t border-dark-border px-4 py-2 sm:hidden z-50">
+        <div className="flex justify-between items-center text-sm">
+          <div className="flex items-center gap-1">
+            <span className="text-gray-400">Movies:</span>
+            <span className="font-semibold text-gray-100">{movieCount}/4</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-gray-400">Left:</span>
+            <span className={`font-semibold ${remainingSalary < 0 ? 'text-red-400' : 'text-gray-100'}`}>
+              ${remainingSalary.toLocaleString()}
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-gray-400">Proj:</span>
+            <span className="font-semibold text-accent">{projectedScore.toFixed(1)}</span>
+          </div>
+        </div>
       </div>
     </div>
   );

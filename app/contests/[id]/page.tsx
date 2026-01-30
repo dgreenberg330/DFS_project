@@ -128,7 +128,7 @@ export default async function ContestPage({ params }: PageProps) {
         ]}
       />
       <Header />
-      <main className="max-w-3xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Contest Title */}
         <div className="mb-6">
           <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-100">{contest.name}</h1>
@@ -252,7 +252,7 @@ export default async function ContestPage({ params }: PageProps) {
             </div>
             <div className="flex gap-2 sm:gap-3">
               <span className="text-accent font-semibold shrink-0">Salary Cap:</span>
-              <span>$100 max total salary</span>
+              <span>$50,000 max total salary</span>
             </div>
             <div className="flex gap-2 sm:gap-3">
               <span className="text-accent font-semibold shrink-0">Entry Limit:</span>

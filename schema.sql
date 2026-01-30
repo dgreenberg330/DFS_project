@@ -4,7 +4,7 @@
 -- Design notes:
 -- - All timestamps stored in UTC, displayed as ET in frontend
 -- - User data lives in Supabase auth.users (email, id)
--- - Money fields: salary (integer dollars), gross (numeric millions)
+-- - Money fields: salary (integer dollars 1-50000), gross (numeric millions)
 -- - Scoring: $1M box office = 1 point
 -- ============================================================================
 
@@ -53,7 +53,7 @@ CREATE TABLE movies (
   theater_count INTEGER, -- Optional
 
   -- Pricing and projections
-  salary INTEGER NOT NULL CHECK (salary >= 0 AND salary <= 100), -- $0-100 range
+  salary INTEGER NOT NULL CHECK (salary >= 1 AND salary <= 50000), -- $1-50000 range
   projected_gross NUMERIC(10, 2) NOT NULL, -- Millions, e.g., 25.50 = $25.5M
 
   -- Actuals (filled in Sunday night)
@@ -465,11 +465,11 @@ CREATE TRIGGER delete_lineup_on_entry_delete
 --    No separate user_profiles table needed for MVP.
 --
 -- 2. Money representation:
---    - salary: INTEGER (0-100 range, represents dollars like $45)
+--    - salary: INTEGER (1-50000 range, represents dollars like $25000)
 --    - projected_gross, actual_gross, total_score: NUMERIC(10,2)
 --      (represents millions, e.g., 25.50 = $25.5M)
 --
--- 3. Lineup constraints (2-4 movies, $100 salary cap):
+-- 3. Lineup constraints (2-4 movies, $50,000 salary cap):
 --    Enforced at application level, not database constraints, per spec's
 --    guidance to "prevent illegal lineups" in the UI.
 --
