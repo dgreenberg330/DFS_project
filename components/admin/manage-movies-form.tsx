@@ -316,8 +316,8 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
           </div>
         )}
 
-        <form onSubmit={handleAddMovie} className="grid grid-cols-2 gap-4">
-          <div className="col-span-2">
+        <form onSubmit={handleAddMovie} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Title *
             </label>
@@ -423,7 +423,7 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
             />
           </div>
 
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <button
               type="submit"
               disabled={addLoading}
@@ -595,166 +595,254 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
             No movies yet. Add your first movie above.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Distributor</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Theaters</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Salary</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Projected</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">TMDB ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Poster</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {movies.map((movie) => {
-                  const isEditing = editingId === movie.id;
+          <>
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-gray-200">
+              {movies.map((movie) => {
+                const isEditing = editingId === movie.id;
 
-                  return (
-                    <tr key={movie.id} className={isEditing ? 'bg-blue-50' : ''}>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            value={editData.title ?? movie.title}
-                            onChange={(e) => setEditData({...editData, title: e.target.value})}
-                            className="px-2 py-1 border rounded w-full"
-                          />
-                        ) : movie.title}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {isEditing ? (
-                          <input
-                            type="date"
-                            value={editData.release_date ?? movie.release_date}
-                            onChange={(e) => setEditData({...editData, release_date: e.target.value})}
-                            className="px-2 py-1 border rounded"
-                          />
-                        ) : movie.release_date}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            value={editData.distributor ?? movie.distributor ?? ''}
-                            onChange={(e) => setEditData({...editData, distributor: e.target.value || null})}
-                            className="px-2 py-1 border rounded w-full"
-                            placeholder="Distributor"
-                          />
-                        ) : (movie.distributor || '-')}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {isEditing ? (
-                          <input
-                            type="number"
-                            value={editData.theater_count ?? movie.theater_count ?? ''}
-                            onChange={(e) => setEditData({...editData, theater_count: e.target.value ? parseInt(e.target.value) : null})}
-                            className="px-2 py-1 border rounded w-24"
-                            placeholder="Theaters"
-                            min="0"
-                          />
-                        ) : (movie.theater_count?.toLocaleString() || '-')}
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                        {isEditing ? (
+                return (
+                  <div key={movie.id} className={`p-4 ${isEditing ? 'bg-blue-50' : ''}`}>
+                    {isEditing ? (
+                      <div className="space-y-3">
+                        <input
+                          type="text"
+                          value={editData.title ?? movie.title}
+                          onChange={(e) => setEditData({...editData, title: e.target.value})}
+                          className="w-full px-2 py-1 border rounded text-sm"
+                          placeholder="Title"
+                        />
+                        <div className="grid grid-cols-2 gap-2">
                           <input
                             type="number"
                             value={editData.salary ?? movie.salary}
                             onChange={(e) => setEditData({...editData, salary: parseInt(e.target.value)})}
-                            className="px-2 py-1 border rounded w-20"
+                            className="px-2 py-1 border rounded text-sm"
+                            placeholder="Salary"
                             min="5"
                             max="100"
                           />
-                        ) : `$${movie.salary}`}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {isEditing ? (
                           <input
                             type="number"
                             step="0.1"
                             value={editData.projected_gross ?? movie.projected_gross}
                             onChange={(e) => setEditData({...editData, projected_gross: parseFloat(e.target.value)})}
-                            className="px-2 py-1 border rounded w-24"
+                            className="px-2 py-1 border rounded text-sm"
+                            placeholder="Projected"
                           />
-                        ) : `$${movie.projected_gross}M`}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {isEditing ? (
-                          <input
-                            type="number"
-                            value={editData.tmdb_id ?? movie.tmdb_id ?? ''}
-                            onChange={(e) => setEditData({...editData, tmdb_id: e.target.value ? parseInt(e.target.value) : null})}
-                            className="px-2 py-1 border rounded w-24"
-                            placeholder="TMDB ID"
-                          />
-                        ) : (movie.tmdb_id || '-')}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            value={editData.poster_path ?? movie.poster_path ?? ''}
-                            onChange={(e) => setEditData({...editData, poster_path: e.target.value || null})}
-                            className="px-2 py-1 border rounded w-32"
-                            placeholder="/path.jpg"
-                          />
-                        ) : (movie.poster_path ? (
-                          <a
-                            href={`https://image.tmdb.org/t/p/w185${movie.poster_path}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800"
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => saveEdit(movie.id)}
+                            disabled={editLoading}
+                            className="flex-1 py-1 bg-green-600 text-white text-sm rounded disabled:opacity-50"
                           >
-                            View
-                          </a>
-                        ) : '-')}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-right space-x-2">
-                        {isEditing ? (
-                          <>
-                            <button
-                              onClick={() => saveEdit(movie.id)}
-                              disabled={editLoading}
-                              className="text-green-600 hover:text-green-800 font-medium disabled:opacity-50"
-                            >
-                              Save
-                            </button>
-                            <button
-                              onClick={cancelEdit}
-                              disabled={editLoading}
-                              className="text-gray-600 hover:text-gray-800 font-medium disabled:opacity-50"
-                            >
-                              Cancel
-                            </button>
-                          </>
-                        ) : (
-                          <>
+                            Save
+                          </button>
+                          <button
+                            onClick={cancelEdit}
+                            disabled={editLoading}
+                            className="flex-1 py-1 bg-gray-300 text-gray-700 text-sm rounded disabled:opacity-50"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="font-medium text-gray-900 text-sm">{movie.title}</div>
+                          <div className="flex gap-2">
                             <button
                               onClick={() => startEdit(movie)}
-                              className="text-blue-600 hover:text-blue-800 font-medium"
+                              className="text-blue-600 text-xs font-medium"
                             >
                               Edit
                             </button>
                             <button
                               onClick={() => handleDelete(movie)}
                               disabled={deleteLoading === movie.id}
-                              className="text-red-600 hover:text-red-800 font-medium disabled:opacity-50"
+                              className="text-red-600 text-xs font-medium disabled:opacity-50"
                             >
-                              {deleteLoading === movie.id ? 'Deleting...' : 'Delete'}
+                              {deleteLoading === movie.id ? '...' : 'Delete'}
                             </button>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+                          <span className="font-medium text-gray-900">${movie.salary}</span>
+                          <span>Proj: ${movie.projected_gross}M</span>
+                          <span>{movie.release_date}</span>
+                          {movie.distributor && <span>{movie.distributor}</span>}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Distributor</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Theaters</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Salary</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Projected</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">TMDB</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Poster</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {movies.map((movie) => {
+                    const isEditing = editingId === movie.id;
+
+                    return (
+                      <tr key={movie.id} className={isEditing ? 'bg-blue-50' : ''}>
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editData.title ?? movie.title}
+                              onChange={(e) => setEditData({...editData, title: e.target.value})}
+                              className="px-2 py-1 border rounded w-full"
+                            />
+                          ) : movie.title}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-500">
+                          {isEditing ? (
+                            <input
+                              type="date"
+                              value={editData.release_date ?? movie.release_date}
+                              onChange={(e) => setEditData({...editData, release_date: e.target.value})}
+                              className="px-2 py-1 border rounded"
+                            />
+                          ) : movie.release_date}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-500">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editData.distributor ?? movie.distributor ?? ''}
+                              onChange={(e) => setEditData({...editData, distributor: e.target.value || null})}
+                              className="px-2 py-1 border rounded w-full"
+                              placeholder="Distributor"
+                            />
+                          ) : (movie.distributor || '-')}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-500">
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              value={editData.theater_count ?? movie.theater_count ?? ''}
+                              onChange={(e) => setEditData({...editData, theater_count: e.target.value ? parseInt(e.target.value) : null})}
+                              className="px-2 py-1 border rounded w-20"
+                              placeholder="Theaters"
+                              min="0"
+                            />
+                          ) : (movie.theater_count?.toLocaleString() || '-')}
+                        </td>
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              value={editData.salary ?? movie.salary}
+                              onChange={(e) => setEditData({...editData, salary: parseInt(e.target.value)})}
+                              className="px-2 py-1 border rounded w-16"
+                              min="5"
+                              max="100"
+                            />
+                          ) : `$${movie.salary}`}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-500">
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              step="0.1"
+                              value={editData.projected_gross ?? movie.projected_gross}
+                              onChange={(e) => setEditData({...editData, projected_gross: parseFloat(e.target.value)})}
+                              className="px-2 py-1 border rounded w-20"
+                            />
+                          ) : `$${movie.projected_gross}M`}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-500">
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              value={editData.tmdb_id ?? movie.tmdb_id ?? ''}
+                              onChange={(e) => setEditData({...editData, tmdb_id: e.target.value ? parseInt(e.target.value) : null})}
+                              className="px-2 py-1 border rounded w-20"
+                              placeholder="TMDB"
+                            />
+                          ) : (movie.tmdb_id || '-')}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-500">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editData.poster_path ?? movie.poster_path ?? ''}
+                              onChange={(e) => setEditData({...editData, poster_path: e.target.value || null})}
+                              className="px-2 py-1 border rounded w-24"
+                              placeholder="/path.jpg"
+                            />
+                          ) : (movie.poster_path ? (
+                            <a
+                              href={`https://image.tmdb.org/t/p/w185${movie.poster_path}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              View
+                            </a>
+                          ) : '-')}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-right space-x-2">
+                          {isEditing ? (
+                            <>
+                              <button
+                                onClick={() => saveEdit(movie.id)}
+                                disabled={editLoading}
+                                className="text-green-600 hover:text-green-800 font-medium disabled:opacity-50"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={cancelEdit}
+                                disabled={editLoading}
+                                className="text-gray-600 hover:text-gray-800 font-medium disabled:opacity-50"
+                              >
+                                Cancel
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => startEdit(movie)}
+                                className="text-blue-600 hover:text-blue-800 font-medium"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDelete(movie)}
+                                disabled={deleteLoading === movie.id}
+                                className="text-red-600 hover:text-red-800 font-medium disabled:opacity-50"
+                              >
+                                {deleteLoading === movie.id ? 'Deleting...' : 'Delete'}
+                              </button>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 

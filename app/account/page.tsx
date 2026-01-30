@@ -82,15 +82,7 @@ export default async function AccountPage() {
         {/* Account Header */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Account</h1>
-              <Link
-                href="/settings"
-                className="text-sm text-blue-600 hover:text-blue-700"
-              >
-                Settings
-              </Link>
-            </div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Account</h1>
             {profile && (
               <p className="text-base sm:text-lg text-gray-700">@{profile.username}</p>
             )}

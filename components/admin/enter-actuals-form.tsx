@@ -92,20 +92,46 @@ export function EnterActualsForm({ contest, movies }: EnterActualsFormProps) {
       )}
 
       <form onSubmit={handleSubmit}>
-        <div className="overflow-x-auto">
+        {/* Mobile Card View */}
+        <div className="md:hidden divide-y divide-gray-200">
+          {movies.map((movie) => (
+            <div key={movie.id} className="p-4">
+              <div className="font-medium text-gray-900 text-sm mb-2">{movie.title}</div>
+              <div className="flex justify-between items-center text-xs text-gray-500 mb-3">
+                <span>Salary: ${movie.salary}</span>
+                <span>Proj: ${movie.projected_gross}M</span>
+              </div>
+              <div className="flex items-center">
+                <span className="text-gray-500 mr-1 text-sm">Actual: $</span>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={actuals[movie.id] || ''}
+                  onChange={(e) => handleActualChange(movie.id, e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  placeholder="0.0"
+                />
+                <span className="text-gray-500 ml-1 text-sm">M</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Movie Title
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Salary
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Projected Gross
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Actual Gross (millions)
                 </th>
               </tr>
@@ -113,16 +139,16 @@ export function EnterActualsForm({ contest, movies }: EnterActualsFormProps) {
             <tbody className="divide-y divide-gray-200">
               {movies.map((movie) => (
                 <tr key={movie.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900">
                     {movie.title}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-4 py-3 text-sm text-gray-500">
                     ${movie.salary}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-4 py-3 text-sm text-gray-500">
                     ${movie.projected_gross}M
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-3">
                     <div className="flex items-center">
                       <span className="text-gray-500 mr-1">$</span>
                       <input
@@ -130,7 +156,7 @@ export function EnterActualsForm({ contest, movies }: EnterActualsFormProps) {
                         step="0.1"
                         value={actuals[movie.id] || ''}
                         onChange={(e) => handleActualChange(movie.id, e.target.value)}
-                        className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-28 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="0.0"
                       />
                       <span className="text-gray-500 ml-1">M</span>
@@ -142,15 +168,15 @@ export function EnterActualsForm({ contest, movies }: EnterActualsFormProps) {
           </table>
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-          <div className="flex justify-between items-center">
-            <p className="text-sm text-gray-600">
-              Enter opening weekend gross (Friday-Sunday) in millions
+        <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+            <p className="text-xs sm:text-sm text-gray-600">
+              Enter opening weekend gross (Fri-Sun) in millions
             </p>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
               {loading ? 'Saving...' : 'Save All Actuals'}
             </button>

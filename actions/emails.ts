@@ -50,6 +50,80 @@ export async function updateEmailPreferences(
 }
 
 /**
+ * Get email preferences by unsubscribe token (no auth required)
+ */
+export async function getPreferencesByToken(
+  token: string
+): Promise<{
+  preferences?: {
+    email_lock_reminders: boolean;
+    email_contest_results: boolean;
+    email_new_contests: boolean;
+  };
+  error?: string;
+}> {
+  if (!token || token.trim() === '') {
+    return { error: 'Invalid unsubscribe token' };
+  }
+
+  const supabase = createAdminClient();
+
+  const { data: profile, error: findError } = await supabase
+    .from('user_profiles')
+    .select('email_lock_reminders, email_contest_results, email_new_contests')
+    .eq('unsubscribe_token', token)
+    .single();
+
+  if (findError || !profile) {
+    return { error: 'Invalid or expired unsubscribe link' };
+  }
+
+  return {
+    preferences: {
+      email_lock_reminders: profile.email_lock_reminders,
+      email_contest_results: profile.email_contest_results,
+      email_new_contests: profile.email_new_contests,
+    },
+  };
+}
+
+/**
+ * Update email preferences by unsubscribe token (no auth required)
+ */
+export async function updatePreferencesByToken(
+  token: string,
+  preferences: EmailPreferencesInput
+): Promise<{ success: boolean; error?: string }> {
+  if (!token || token.trim() === '') {
+    return { success: false, error: 'Invalid unsubscribe token' };
+  }
+
+  const supabase = createAdminClient();
+
+  // Find user by token
+  const { data: profile, error: findError } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('unsubscribe_token', token)
+    .single();
+
+  if (findError || !profile) {
+    return { success: false, error: 'Invalid or expired unsubscribe link' };
+  }
+
+  const { error: updateError } = await supabase
+    .from('user_profiles')
+    .update(preferences)
+    .eq('id', profile.id);
+
+  if (updateError) {
+    return { success: false, error: 'Failed to update preferences' };
+  }
+
+  return { success: true };
+}
+
+/**
  * Unsubscribe from emails using token (no auth required)
  */
 export async function unsubscribeByToken(

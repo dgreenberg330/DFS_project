@@ -164,13 +164,13 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
 
   return (
     <div className="bg-white shadow rounded-lg">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">All Contests</h2>
+      <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h2 className="text-lg sm:text-xl font-semibold">All Contests</h2>
           <button
             onClick={handleLockExpired}
             disabled={lockLoading}
-            className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            className="px-3 sm:px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
           >
             {lockLoading ? 'Locking...' : 'Lock Expired Contests'}
           </button>
@@ -196,11 +196,11 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
       ) : (
         <div className="divide-y divide-gray-200">
           {contests.map((contest) => (
-            <div key={contest.id} className="px-6 py-4 hover:bg-gray-50">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-medium text-gray-900">{contest.name}</h3>
-                  <p className="text-sm text-gray-500 mt-1">
+            <div key={contest.id} className="px-4 sm:px-6 py-4 hover:bg-gray-50">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-medium text-gray-900 text-sm sm:text-base truncate">{contest.name}</h3>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-1">
                     Status:{' '}
                     <span
                       className={`capitalize font-medium ${
@@ -232,12 +232,12 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
                     })}
                   </p>
                 </div>
-                <div className="flex gap-3 items-center">
+                <div className="flex flex-wrap gap-2 sm:gap-3 items-center">
                   {!contest.published && contest.status === 'upcoming' && (
                     <button
                       onClick={() => handlePublish(contest)}
                       disabled={publishLoading === contest.id}
-                      className="text-sm text-green-600 hover:underline font-medium disabled:opacity-50"
+                      className="text-xs sm:text-sm text-green-600 hover:underline font-medium disabled:opacity-50"
                     >
                       {publishLoading === contest.id ? 'Publishing...' : 'Publish'}
                     </button>
@@ -247,29 +247,29 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
                       <button
                         onClick={() => handleUnpublish(contest)}
                         disabled={publishLoading === contest.id}
-                        className="text-sm text-orange-600 hover:underline font-medium disabled:opacity-50"
+                        className="text-xs sm:text-sm text-orange-600 hover:underline font-medium disabled:opacity-50"
                       >
-                        {publishLoading === contest.id ? 'Unpublishing...' : 'Unpublish'}
+                        {publishLoading === contest.id ? '...' : 'Unpublish'}
                       </button>
                       <button
                         onClick={() => handleSendNewContestEmails(contest)}
                         disabled={emailLoading === `announce-${contest.id}`}
-                        className="text-sm text-purple-600 hover:underline font-medium disabled:opacity-50"
+                        className="text-xs sm:text-sm text-purple-600 hover:underline font-medium disabled:opacity-50"
                       >
-                        {emailLoading === `announce-${contest.id}` ? 'Sending...' : 'Announce'}
+                        {emailLoading === `announce-${contest.id}` ? '...' : 'Announce'}
                       </button>
                       <button
                         onClick={() => handleSendLockReminders(contest)}
                         disabled={emailLoading === `reminder-${contest.id}`}
-                        className="text-sm text-indigo-600 hover:underline font-medium disabled:opacity-50"
+                        className="text-xs sm:text-sm text-indigo-600 hover:underline font-medium disabled:opacity-50"
                       >
-                        {emailLoading === `reminder-${contest.id}` ? 'Sending...' : 'Remind'}
+                        {emailLoading === `reminder-${contest.id}` ? '...' : 'Remind'}
                       </button>
                     </>
                   )}
                   <Link
                     href={`/admin/contests/${contest.id}/movies`}
-                    className="text-sm text-blue-600 hover:underline font-medium"
+                    className="text-xs sm:text-sm text-blue-600 hover:underline font-medium"
                   >
                     Movies
                   </Link>
@@ -277,19 +277,19 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
                     <>
                       <Link
                         href={`/admin/contests/${contest.id}/estimates`}
-                        className="text-sm text-purple-600 hover:underline font-medium"
+                        className="text-xs sm:text-sm text-purple-600 hover:underline font-medium"
                       >
                         Estimates
                       </Link>
                       <Link
                         href={`/admin/contests/${contest.id}/actuals`}
-                        className="text-sm text-blue-600 hover:underline font-medium"
+                        className="text-xs sm:text-sm text-blue-600 hover:underline font-medium"
                       >
                         Actuals
                       </Link>
                       <Link
                         href={`/admin/contests/${contest.id}/score`}
-                        className="text-sm text-blue-600 hover:underline font-medium"
+                        className="text-xs sm:text-sm text-blue-600 hover:underline font-medium"
                       >
                         Score
                       </Link>
@@ -299,25 +299,25 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
                     <>
                       <Link
                         href={`/contests/${contest.id}/leaderboard`}
-                        className="text-sm text-green-600 hover:underline font-medium"
+                        className="text-xs sm:text-sm text-green-600 hover:underline font-medium"
                       >
                         Leaderboard
                       </Link>
                       <button
                         onClick={() => handleSendResultsEmails(contest)}
                         disabled={emailLoading === `results-${contest.id}`}
-                        className="text-sm text-purple-600 hover:underline font-medium disabled:opacity-50"
+                        className="text-xs sm:text-sm text-purple-600 hover:underline font-medium disabled:opacity-50"
                       >
-                        {emailLoading === `results-${contest.id}` ? 'Sending...' : 'Email Results'}
+                        {emailLoading === `results-${contest.id}` ? '...' : 'Email Results'}
                       </button>
                     </>
                   )}
                   <button
                     onClick={() => handleDelete(contest)}
                     disabled={deleteLoading === contest.id}
-                    className="text-sm text-red-600 hover:underline font-medium disabled:opacity-50"
+                    className="text-xs sm:text-sm text-red-600 hover:underline font-medium disabled:opacity-50"
                   >
-                    {deleteLoading === contest.id ? 'Deleting...' : 'Delete'}
+                    {deleteLoading === contest.id ? '...' : 'Delete'}
                   </button>
                 </div>
               </div>

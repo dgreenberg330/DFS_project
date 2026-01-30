@@ -139,7 +139,7 @@ export function EnterEstimatesForm({ contest, movies }: EnterEstimatesFormProps)
             <button
               key={day}
               onClick={() => setActiveTab(day)}
-              className={`px-6 py-3 text-sm font-medium border-b-2 ${
+              className={`px-3 sm:px-6 py-3 text-xs sm:text-sm font-medium border-b-2 ${
                 activeTab === day
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -147,7 +147,7 @@ export function EnterEstimatesForm({ contest, movies }: EnterEstimatesFormProps)
             >
               {day.charAt(0).toUpperCase() + day.slice(1)}
               {day === 'sunday' && (
-                <span className="ml-1 text-xs text-gray-400">(cumulative)</span>
+                <span className="ml-1 text-xs text-gray-400 hidden sm:inline">(cumulative)</span>
               )}
             </button>
           ))}
@@ -167,41 +167,103 @@ export function EnterEstimatesForm({ contest, movies }: EnterEstimatesFormProps)
       )}
 
       {/* Instructions */}
-      <div className="mx-6 mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="text-sm font-medium text-blue-900 mb-2">
+      <div className="mx-4 sm:mx-6 mt-4 sm:mt-6 bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+        <h3 className="text-xs sm:text-sm font-medium text-blue-900 mb-1 sm:mb-2">
           {activeTab === 'friday' && 'Friday Estimates (Enter Saturday morning)'}
           {activeTab === 'saturday' && 'Saturday Estimates (Enter Sunday morning)'}
           {activeTab === 'sunday' && 'Sunday Estimates (Enter Monday morning)'}
         </h3>
-        <p className="text-sm text-blue-800">
+        <p className="text-xs sm:text-sm text-blue-800">
           {activeTab === 'friday' && "Enter each movie's individual Friday gross estimate."}
           {activeTab === 'saturday' && "Enter each movie's individual Saturday gross estimate."}
           {activeTab === 'sunday' && 'Enter the cumulative weekend total (Fri-Sun) for each movie.'}
         </p>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Mobile Card View */}
+      <div className="md:hidden divide-y divide-gray-200">
+        {movies.map((movie) => {
+          const cumulative = getCumulativeScore(movie, currentEstimates);
+
+          return (
+            <div key={movie.id} className="p-4">
+              <div className="font-medium text-gray-900 text-sm mb-2">{movie.title}</div>
+              <div className="flex justify-between items-center text-xs text-gray-500 mb-3">
+                <span>Salary: ${movie.salary}</span>
+                <span>Proj: ${movie.projected_gross}M</span>
+                {cumulative !== null && (
+                  <span
+                    className={`font-medium ${
+                      cumulative > movie.projected_gross
+                        ? 'text-green-600'
+                        : cumulative < movie.projected_gross
+                        ? 'text-red-600'
+                        : 'text-gray-900'
+                    }`}
+                  >
+                    Total: ${cumulative.toFixed(2)}M
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center">
+                <span className="text-gray-500 mr-1 text-sm">
+                  {activeTab === 'friday' && 'Fri:'}
+                  {activeTab === 'saturday' && 'Sat:'}
+                  {activeTab === 'sunday' && 'Total:'} $
+                </span>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={
+                    activeTab === 'friday'
+                      ? fridayEstimates[movie.id] || ''
+                      : activeTab === 'saturday'
+                      ? saturdayEstimates[movie.id] || ''
+                      : sundayEstimates[movie.id] || ''
+                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (activeTab === 'friday') {
+                      setFridayEstimates({ ...fridayEstimates, [movie.id]: value });
+                    } else if (activeTab === 'saturday') {
+                      setSaturdayEstimates({ ...saturdayEstimates, [movie.id]: value });
+                    } else {
+                      setSundayEstimates({ ...sundayEstimates, [movie.id]: value });
+                    }
+                  }}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  placeholder="0.0"
+                />
+                <span className="text-gray-500 ml-1 text-sm">M</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Movie Title
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Salary
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Projected
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 {activeTab === 'friday' && 'Fri Est ($M)'}
                 {activeTab === 'saturday' && 'Sat Est ($M)'}
                 {activeTab === 'sunday' && 'Weekend Total ($M)'}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Current Total
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Status
               </th>
             </tr>
@@ -212,16 +274,16 @@ export function EnterEstimatesForm({ contest, movies }: EnterEstimatesFormProps)
 
               return (
                 <tr key={movie.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900">
                     {movie.title}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-4 py-3 text-sm text-gray-500">
                     ${movie.salary}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-4 py-3 text-sm text-gray-500">
                     ${movie.projected_gross}M
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-3">
                     <div className="flex items-center">
                       <span className="text-gray-500 mr-1">$</span>
                       <input
@@ -244,13 +306,13 @@ export function EnterEstimatesForm({ contest, movies }: EnterEstimatesFormProps)
                             setSundayEstimates({ ...sundayEstimates, [movie.id]: value });
                           }
                         }}
-                        className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-20 px-2 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                         placeholder="0.0"
                       />
                       <span className="text-gray-500 ml-1">M</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm">
+                  <td className="px-4 py-3 text-sm">
                     {cumulative !== null ? (
                       <span
                         className={`font-medium ${
@@ -267,7 +329,7 @@ export function EnterEstimatesForm({ contest, movies }: EnterEstimatesFormProps)
                       <span className="text-gray-400">-</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-xs text-gray-500">
+                  <td className="px-4 py-3 text-xs text-gray-500">
                     {getMovieStatus(movie)}
                   </td>
                 </tr>
@@ -277,19 +339,19 @@ export function EnterEstimatesForm({ contest, movies }: EnterEstimatesFormProps)
         </table>
       </div>
 
-      <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-        <div className="flex justify-between items-center">
-          <div className="text-sm text-gray-600">
+      <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+          <div className="text-xs sm:text-sm text-gray-600">
             {activeTab === 'sunday' ? (
               <span>Enter total weekend gross (Fri-Sun combined)</span>
             ) : (
               <span>Enter individual {activeTab} gross for each movie</span>
             )}
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <Link
               href={`/admin/contests/${contest.id}/actuals`}
-              className="px-6 py-2 text-gray-700 font-medium hover:text-gray-900"
+              className="px-4 py-2 text-gray-700 font-medium hover:text-gray-900 text-center text-sm"
             >
               Enter Final Actuals &rarr;
             </Link>
@@ -297,9 +359,9 @@ export function EnterEstimatesForm({ contest, movies }: EnterEstimatesFormProps)
               type="button"
               onClick={() => handleSave(activeTab)}
               disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 sm:px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
-              {loading ? 'Saving...' : `Save ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Estimates`}
+              {loading ? 'Saving...' : `Save ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`}
             </button>
           </div>
         </div>

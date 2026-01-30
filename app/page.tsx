@@ -37,7 +37,7 @@ export default async function LandingPage() {
 
       <main id="main-content">
         {/* Hero */}
-        <section aria-label="Introduction" className="bg-gradient-to-b from-dark-elevated via-dark-surface to-dark-bg pt-12 sm:pt-16 pb-16 sm:pb-24">
+        <section aria-label="Introduction" className="bg-gradient-to-b from-gray-900 via-gray-800 to-dark-bg pt-12 sm:pt-16 pb-16 sm:pb-24">
           <div className="max-w-4xl mx-auto px-4">
             <div className="text-center">
               <h1 className="text-[1.45rem] sm:text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">

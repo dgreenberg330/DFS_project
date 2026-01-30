@@ -125,6 +125,7 @@ export async function deleteMovie(movieId: string): Promise<void> {
 /**
  * Gets all historical movies from other contests (admin only)
  * Useful for selecting previously entered movies
+ * Returns only the most recent instance of each movie (by title)
  *
  * Usage:
  * await getHistoricalMovies(currentContestId);
@@ -148,7 +149,19 @@ export async function getHistoricalMovies(currentContestId: string): Promise<Mov
     throw new Error(`Failed to load historical movies: ${error.message}`);
   }
 
-  return movies || [];
+  // Deduplicate by title, keeping only the most recent instance
+  // (already sorted by created_at desc, so first occurrence is most recent)
+  const seen = new Set<string>();
+  const uniqueMovies = (movies || []).filter((movie) => {
+    const titleLower = movie.title.toLowerCase();
+    if (seen.has(titleLower)) {
+      return false;
+    }
+    seen.add(titleLower);
+    return true;
+  });
+
+  return uniqueMovies;
 }
 
 /**
