@@ -111,7 +111,7 @@ export default function TermsPage() {
               <ul className="list-disc pl-6 space-y-2">
                 <li>One entry per user per Contest</li>
                 <li>Lineups must include 2-4 movies from the weekly slate</li>
-                <li>Lineups must stay within the $100 salary cap</li>
+                <li>Lineups must stay within the $50,000 salary cap</li>
                 <li>Lineups must be submitted before the Contest lock time (typically Thursday 8PM ET)</li>
                 <li>Lineups cannot be modified after the lock time</li>
                 <li>Scoring is based on official domestic opening weekend box office figures (Friday-Sunday) from Box Office Mojo</li>

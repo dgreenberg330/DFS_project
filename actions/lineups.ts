@@ -19,7 +19,7 @@ import { redirect } from 'next/navigation';
  * - Contest must be in 'upcoming' status (not locked)
  * - Must select 2-4 movies
  * - All movies must belong to the contest
- * - Total salary must not exceed $100
+ * - Total salary must not exceed $50,000
  * - One entry per user per contest (enforced by unique constraint)
  *
  * Behavior:

@@ -34,7 +34,7 @@ function combinations<T>(array: T[], size: number): T[][] {
  *
  * Constraints:
  * - 2-4 movies per lineup
- * - $100 salary cap
+ * - $50,000 salary cap
  * - Score = sum of actual_gross
  *
  * @param movies All movies in the contest with actual_gross populated

@@ -69,8 +69,8 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
       const salaryNum = parseInt(salary);
       const projectedNum = parseFloat(projectedGross);
 
-      if (salaryNum < 5 || salaryNum > 100) {
-        throw new Error('Salary must be between $5 and $100');
+      if (salaryNum < 1 || salaryNum > 50000) {
+        throw new Error('Salary must be between $1 and $50,000');
       }
 
       const movie = await createMovie({
@@ -125,8 +125,8 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
     setError(null);
 
     try {
-      if (editData.salary && (editData.salary < 5 || editData.salary > 100)) {
-        throw new Error('Salary must be between $5 and $100');
+      if (editData.salary && (editData.salary < 1 || editData.salary > 50000)) {
+        throw new Error('Salary must be between $1 and $50,000');
       }
 
       const updated = await updateMovie(movieId, editData);
@@ -204,8 +204,8 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
         const projectedNum = parseFloat(projected_gross);
         const theaterNum = theater_count ? parseInt(theater_count) : undefined;
 
-        if (salaryNum < 5 || salaryNum > 100) {
-          throw new Error(`Line ${index + 1}: Salary must be between $5 and $100`);
+        if (salaryNum < 1 || salaryNum > 50000) {
+          throw new Error(`Line ${index + 1}: Salary must be between $1 and $50,000`);
         }
 
         return {
@@ -370,15 +370,15 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Salary ($5-$100) *
+              Salary ($1-$50,000) *
             </label>
             <input
               type="number"
               value={salary}
               onChange={(e) => setSalary(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              min="5"
-              max="100"
+              min="1"
+              max="50000"
               required
             />
           </div>

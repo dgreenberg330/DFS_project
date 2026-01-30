@@ -92,7 +92,7 @@ export default async function LandingPage() {
                 <div>
                   <h3 className="font-semibold text-gray-100 text-sm sm:text-base mb-1 sm:mb-2">Pick Your Lineup</h3>
                   <p className="text-xs sm:text-sm text-gray-400">
-                    Select 2-4 movies within a $100 salary cap.
+                    Select 2-4 movies within a $50,000 salary cap.
                   </p>
                 </div>
               </div>

@@ -43,9 +43,9 @@ export async function createMovie(input: CreateMovieInput): Promise<Movie> {
 
   const supabase = await createClient();
 
-  // Validate salary is within acceptable range (per schema: 5-100)
-  if (input.salary < 5 || input.salary > 100) {
-    throw new Error('Movie salary must be between $5 and $100.');
+  // Validate salary is within acceptable range (per schema: 1-50000)
+  if (input.salary < 1 || input.salary > 50000) {
+    throw new Error('Movie salary must be between $1 and $50,000.');
   }
 
   const { data: movie, error } = await supabase
@@ -108,9 +108,9 @@ export async function batchCreateMovies(movies: CreateMovieInput[]): Promise<Mov
   }
 
   // Validate all salaries
-  const invalidSalaries = movies.filter(m => m.salary < 5 || m.salary > 100);
+  const invalidSalaries = movies.filter(m => m.salary < 1 || m.salary > 50000);
   if (invalidSalaries.length > 0) {
-    throw new Error('All movie salaries must be between $5 and $100.');
+    throw new Error('All movie salaries must be between $1 and $50,000.');
   }
 
   // Insert all movies at once

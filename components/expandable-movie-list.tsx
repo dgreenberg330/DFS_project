@@ -4,6 +4,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import { MovieCard } from '@/components/movie-card';
 import { Movie } from '@/types';
 
@@ -12,8 +13,14 @@ interface ExpandableMovieListProps {
 }
 
 export function ExpandableMovieList({ movies }: ExpandableMovieListProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const DESKTOP_ROW_SIZE = 5;
+  const hasMoreThanOneRow = movies.length > DESKTOP_ROW_SIZE;
+  const desktopMovies = isExpanded ? movies : movies.slice(0, DESKTOP_ROW_SIZE);
+
   // Check if last row has orphan on desktop (5 columns)
-  const hasOrphanDesktop = movies.length % 5 === 1;
+  const hasOrphanDesktop = isExpanded && movies.length % 5 === 1;
 
   return (
     <div className="bg-dark-surface rounded-lg shadow-lg p-4 sm:p-6 border border-dark-border">
@@ -36,24 +43,38 @@ export function ExpandableMovieList({ movies }: ExpandableMovieListProps) {
         </div>
       </div>
 
-      {/* Desktop: 5-column grid */}
-      <div className="hidden md:grid md:grid-cols-5 gap-3 justify-items-center">
-        {movies.map((movie, index) => {
-          const isLastDesktop = index === movies.length - 1 && hasOrphanDesktop;
+      {/* Desktop: 5-column grid with expand */}
+      <div className="hidden md:block">
+        <div className="grid md:grid-cols-5 gap-3 justify-items-center">
+          {desktopMovies.map((movie, index) => {
+            const isLastDesktop = index === desktopMovies.length - 1 && hasOrphanDesktop;
 
-          return (
-            <div
-              key={movie.id}
-              className={isLastDesktop ? 'md:col-span-5 md:flex md:justify-center' : ''}
-            >
-              <MovieCard
-                movie={movie}
-                showCheckbox={false}
-                size="sm"
-              />
-            </div>
-          );
-        })}
+            return (
+              <div
+                key={movie.id}
+                className={isLastDesktop ? 'md:col-span-5 md:flex md:justify-center' : ''}
+              >
+                <MovieCard
+                  movie={movie}
+                  showCheckbox={false}
+                  size="lg"
+                />
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Expand/Collapse */}
+        {hasMoreThanOneRow && (
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="w-full text-sm text-accent hover:text-accent-light font-medium pt-4 text-center transition-colors"
+          >
+            {isExpanded
+              ? 'Show less'
+              : `Show all ${movies.length} movies`}
+          </button>
+        )}
       </div>
     </div>
   );

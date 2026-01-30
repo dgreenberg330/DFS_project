@@ -59,7 +59,7 @@ export function FAQJsonLd() {
         name: 'What is Shugsy?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Shugsy is a free fantasy sports game for movie box office. Players pick a lineup of movies releasing each weekend, stay under a $100 salary cap, and score points based on domestic opening weekend gross.',
+          text: 'Shugsy is a free fantasy sports game for movie box office. Players pick a lineup of movies releasing each weekend, stay under a $50,000 salary cap, and score points based on domestic opening weekend gross.',
         },
       },
       {
@@ -67,7 +67,7 @@ export function FAQJsonLd() {
         name: 'How does box office fantasy work?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Each week, select 2-4 movies from the available slate while staying under the $100 salary cap. After the weekend, your score equals the total domestic opening weekend gross of your movies. $1 million box office = 1 point.',
+          text: 'Each week, select 2-4 movies from the available slate while staying under the $50,000 salary cap. After the weekend, your score equals the total domestic opening weekend gross of your movies. $1 million box office = 1 point.',
         },
       },
       {

@@ -21,7 +21,7 @@ export function validateLineup(movies: Movie[]) {
     errors.push(`Cannot select more than ${LINEUP_CONSTRAINTS.MAX_MOVIES} movies`);
   }
 
-  // Check salary cap ($100 maximum)
+  // Check salary cap ($50,000 maximum)
   if (totalSalary > LINEUP_CONSTRAINTS.SALARY_CAP) {
     errors.push(`Total salary $${totalSalary} exceeds cap of $${LINEUP_CONSTRAINTS.SALARY_CAP}`);
   }

@@ -32,8 +32,8 @@ export async function updateMovie(
   const supabase = await createClient();
 
   // Validate salary if provided
-  if (input.salary !== undefined && (input.salary < 5 || input.salary > 100)) {
-    throw new Error('Movie salary must be between $5 and $100.');
+  if (input.salary !== undefined && (input.salary < 1 || input.salary > 50000)) {
+    throw new Error('Movie salary must be between $1 and $50,000.');
   }
 
   // Build update object with only provided fields

@@ -58,7 +58,7 @@ export interface Movie {
   theater_count: number | null;
 
   // Pricing and projections
-  salary: number; // Integer dollars (0-100), e.g., 45 = $45
+  salary: number; // Integer dollars (1-50000), e.g., 25000 = $25,000
   projected_gross: number; // Decimal millions, e.g., 25.5 = $25.5M
 
   // Actuals (null until results entered Sunday night)
@@ -159,7 +159,9 @@ export interface ContestWithMovies extends Contest {
 export const LINEUP_CONSTRAINTS = {
   MIN_MOVIES: 2,
   MAX_MOVIES: 4,
-  SALARY_CAP: 100,
+  SALARY_CAP: 50000,
+  MIN_MOVIE_SALARY: 1,
+  MAX_MOVIE_SALARY: 50000,
   IDEAL_MOVIES: 3 // Optimal lineup size
 } as const;
 
@@ -363,7 +365,7 @@ export interface BatchDailyEstimatesInput {
  *    Database stores timestamptz in UTC, frontend converts to ET.
  *
  * 2. Money representation:
- *    - salary: number (integer, 5-100)
+ *    - salary: number (integer, 1-50000)
  *    - projected_gross, actual_gross, total_score: number (decimal)
  *    All monetary values in these types use numbers, not strings.
  *
