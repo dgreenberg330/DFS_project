@@ -68,8 +68,8 @@ export function EmailPreferencesForm({ initialPreferences }: EmailPreferencesFor
           className="flex items-start justify-between gap-4 py-2"
         >
           <div className="flex-1 min-w-0">
-            <div className="font-medium text-gray-900">{item.label}</div>
-            <div className="text-sm text-gray-500">{item.description}</div>
+            <div className="font-medium text-gray-100">{item.label}</div>
+            <div className="text-sm text-gray-400">{item.description}</div>
           </div>
           <button
             type="button"
@@ -79,8 +79,8 @@ export function EmailPreferencesForm({ initialPreferences }: EmailPreferencesFor
             onClick={() => handleToggle(item.key)}
             className={`
               relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent
-              transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-              ${preferences[item.key] ? 'bg-blue-600' : 'bg-gray-200'}
+              transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-dark-surface
+              ${preferences[item.key] ? 'bg-accent' : 'bg-dark-elevated'}
               ${isPending ? 'opacity-50 cursor-not-allowed' : ''}
             `}
           >
@@ -100,8 +100,8 @@ export function EmailPreferencesForm({ initialPreferences }: EmailPreferencesFor
         <div
           className={`text-sm py-2 px-3 rounded ${
             message.type === 'success'
-              ? 'bg-green-50 text-green-700'
-              : 'bg-red-50 text-red-700'
+              ? 'bg-green-900/30 text-green-400'
+              : 'bg-red-900/30 text-red-400'
           }`}
         >
           {message.text}

@@ -282,7 +282,7 @@ export function LineupBuilder({
         ) : (
           <div className="p-3 sm:p-6">
             {/* Mobile: 2 columns with medium cards */}
-            <div className="grid grid-cols-2 gap-2 justify-items-center sm:hidden">
+            <div className="grid grid-cols-2 gap-x-2 gap-y-5 justify-items-center sm:hidden">
               {safeMovies.map((movie) => {
                 const isSelected = selectedMovieIds.includes(movie.id);
                 const wouldExceedCount = !isSelected && movieCount >= 4;

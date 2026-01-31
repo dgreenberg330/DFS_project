@@ -47,7 +47,7 @@ export function UsernameForm({ currentUsername }: UsernameFormProps) {
         required
         value={username}
         onChange={(e) => setUsernameInput(e.target.value)}
-        className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base"
+        className="flex-1 px-3 py-2 bg-dark-elevated border border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-accent focus:border-accent text-gray-100 placeholder-gray-500 text-base"
         placeholder="your_username"
         pattern="[a-zA-Z0-9_]{3,20}"
         title="3-20 characters, letters, numbers, and underscores only"
@@ -55,7 +55,7 @@ export function UsernameForm({ currentUsername }: UsernameFormProps) {
       <button
         type="submit"
         disabled={loading || username === currentUsername}
-        className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-dark-bg bg-accent hover:bg-accent-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-surface focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? 'Saving...' : currentUsername ? 'Update' : 'Set'}
       </button>

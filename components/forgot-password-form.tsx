@@ -33,14 +33,14 @@ export function ForgotPasswordForm() {
   if (success) {
     return (
       <div className="mt-8 space-y-6">
-        <div className="p-4 rounded bg-green-50 text-green-800 text-center">
+        <div className="p-4 rounded bg-green-900/30 border border-green-700/50 text-green-300 text-center">
           <p className="font-medium">Check your email!</p>
-          <p className="mt-2 text-sm">
+          <p className="mt-2 text-sm text-green-400">
             We've sent a password reset link to <strong>{email}</strong>.
           </p>
         </div>
-        <p className="text-center text-sm text-gray-600">
-          <Link href="/login" className="text-teal-600 hover:text-teal-700 hover:underline font-medium">
+        <p className="text-center text-sm text-gray-400">
+          <Link href="/login" className="text-accent hover:text-accent-light hover:underline font-medium">
             Back to sign in
           </Link>
         </p>
@@ -51,7 +51,7 @@ export function ForgotPasswordForm() {
   return (
     <form onSubmit={handleSubmit} className="mt-8 space-y-6">
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="email" className="block text-sm font-medium text-gray-300">
           Email address
         </label>
         <input
@@ -62,7 +62,7 @@ export function ForgotPasswordForm() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base"
+          className="mt-1 block w-full px-3 py-2 bg-dark-elevated border border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-accent focus:border-accent text-gray-100 placeholder-gray-500 text-base"
           placeholder="you@example.com"
         />
       </div>
@@ -70,14 +70,14 @@ export function ForgotPasswordForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-dark-bg bg-accent hover:bg-accent-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-surface focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? 'Sending...' : 'Send Reset Link'}
       </button>
 
-      <p className="text-center text-sm text-gray-600">
+      <p className="text-center text-sm text-gray-400">
         Remember your password?{' '}
-        <Link href="/login" className="text-teal-600 hover:text-teal-700 hover:underline font-medium">
+        <Link href="/login" className="text-accent hover:text-accent-light hover:underline font-medium">
           Sign in
         </Link>
       </p>

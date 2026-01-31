@@ -33,15 +33,15 @@ export default async function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-dark-bg">
       <Header />
       <div className="flex items-center justify-center py-12">
-        <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
+        <div className="max-w-md w-full space-y-8 p-8 bg-dark-surface rounded-lg border border-dark-border">
           <div>
-            <h2 className="text-center text-3xl font-bold text-gray-900">
+            <h2 className="text-center text-3xl font-bold text-gray-100">
               Create Account
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
+            <p className="mt-2 text-center text-sm text-gray-400">
               Sign up to start playing
             </p>
           </div>

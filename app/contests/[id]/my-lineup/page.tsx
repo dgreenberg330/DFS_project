@@ -162,62 +162,58 @@ export default async function MyLineupPage({ params }: PageProps) {
     : 'Proj. Points';
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-dark-bg">
       <Header />
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Page Title */}
         <div className="mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">My Lineup</h1>
-          <p className="text-xs sm:text-sm text-gray-600 mt-1">{contest.name}</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-100">My Lineup</h1>
+          <p className="text-xs sm:text-sm text-gray-400 mt-1">{contest.name}</p>
         </div>
 
-        {/* Status */}
-        <div
-          className={`rounded-lg border p-4 mb-6 ${
-            isScored
-              ? 'bg-blue-50 border-blue-200'
-              : isLocked
-              ? 'bg-yellow-50 border-yellow-200'
-              : 'bg-green-50 border-green-200'
-          }`}
-        >
-          <p
-            className={`font-medium ${
-              isScored
-                ? 'text-blue-900'
-                : isLocked
-                ? 'text-yellow-900'
-                : 'text-green-900'
+        {/* Status - only show for non-scored contests */}
+        {!isScored && (
+          <div
+            className={`rounded-lg border p-4 mb-6 ${
+              isLocked
+                ? 'bg-yellow-900/20 border-yellow-700/50'
+                : 'bg-green-900/20 border-green-700/50'
             }`}
           >
-            {isScored
-              ? 'Final Results'
-              : isLocked
-              ? 'Lineup Locked. Good luck!'
-              : 'Lineup Submitted'}
-          </p>
-          {!isLocked && (
-            <p className="text-sm text-green-800 mt-1">
-              You can edit your lineup until the contest locks.
+            <p
+              className={`font-medium ${
+                isLocked
+                  ? 'text-yellow-400'
+                  : 'text-green-400'
+              }`}
+            >
+              {isLocked
+                ? 'Lineup Locked. Good luck!'
+                : 'Lineup Submitted'}
             </p>
-          )}
-          {hasEstimates && !isScored && currentRank !== null && (
-            <p className="text-sm text-yellow-800 mt-1">
-              Current rank: #{currentRank} (based on {estimateDayLabel} estimates)
-            </p>
-          )}
-        </div>
+            {!isLocked && (
+              <p className="text-sm text-green-300 mt-1">
+                You can edit your lineup until the contest locks.
+              </p>
+            )}
+            {hasEstimates && currentRank !== null && (
+              <p className="text-sm text-yellow-300 mt-1">
+                Current rank: #{currentRank} (based on {estimateDayLabel} estimates)
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Rank Section - only shown for scored contests */}
         {rank !== null && totalEntries !== null && (
-          <div className={`rounded-lg shadow-md border p-6 mb-6 ${
+          <div className={`rounded-lg border p-6 mb-6 ${
             rank === 1
-              ? 'bg-yellow-100 border-yellow-400'
+              ? 'bg-gradient-to-r from-[#AE7C2B]/60 via-[#F2DE7A]/40 to-[#AE7C2B]/60 border-[#F2DE7A]/70'
               : rank === 2
-              ? 'bg-gray-100 border-gray-400'
+              ? 'bg-gradient-to-r from-[#545353]/60 via-[#FFFFFF]/30 to-[#545353]/60 border-[#FFFFFF]/50'
               : rank === 3
-              ? 'bg-[#CE894640] border-[#CE8946]'
-              : 'bg-slate-100 border-slate-300'
+              ? 'bg-gradient-to-r from-[#AE492B]/60 via-[#F2BA7A]/40 to-[#AE492B]/60 border-[#F2BA7A]/70'
+              : 'bg-dark-surface border-dark-border'
           }`}>
             <div className="grid grid-cols-3 gap-2 sm:gap-4 items-center">
               {/* Empty left column for alignment */}
@@ -226,23 +222,23 @@ export default async function MyLineupPage({ params }: PageProps) {
               <div className="text-center">
                 <div className={`text-base sm:text-2xl font-bold ${
                   rank === 1
-                    ? 'text-yellow-700'
+                    ? 'text-yellow-400'
                     : rank === 2
-                    ? 'text-gray-600'
+                    ? 'text-gray-300'
                     : rank === 3
-                    ? 'text-[#8B5A2B]'
-                    : 'text-slate-700'
+                    ? 'text-orange-400'
+                    : 'text-gray-100'
                 }`}>
                   #{getOrdinalSuffix(rank)} place
                 </div>
                 <div className={`text-xs ${
                   rank === 1
-                    ? 'text-yellow-600'
+                    ? 'text-yellow-500'
                     : rank === 2
-                    ? 'text-gray-500'
+                    ? 'text-gray-400'
                     : rank === 3
-                    ? 'text-[#CE8946]'
-                    : 'text-slate-500'
+                    ? 'text-orange-500'
+                    : 'text-gray-400'
                 }`}>
                   out of {totalEntries} {totalEntries === 1 ? 'entry' : 'entries'}
                 </div>
@@ -263,21 +259,21 @@ export default async function MyLineupPage({ params }: PageProps) {
         )}
 
         {/* Score Summary */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="bg-dark-surface rounded-lg border border-dark-border p-6 mb-6">
           <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
             <div>
-              <div className="text-xl sm:text-2xl font-bold text-gray-900">{movies.length}</div>
-              <div className="text-xs text-gray-600">Movies</div>
+              <div className="text-xl sm:text-2xl font-bold text-gray-100">{movies.length}</div>
+              <div className="text-xs text-gray-400">Movies</div>
             </div>
             <div>
-              <div className="text-xl sm:text-2xl font-bold text-gray-900">${totalSalary}</div>
-              <div className="text-xs text-gray-600">Total Salary</div>
+              <div className="text-xl sm:text-2xl font-bold text-gray-100">${totalSalary}</div>
+              <div className="text-xs text-gray-400">Total Salary</div>
             </div>
             <div>
-              <div className="text-xl sm:text-2xl font-bold text-blue-600">
+              <div className="text-xl sm:text-2xl font-bold text-accent">
                 {displayScore.toFixed(2)}
               </div>
-              <div className="text-xs text-gray-600">
+              <div className="text-xs text-gray-400">
                 {scoreLabel}
               </div>
             </div>
@@ -285,12 +281,12 @@ export default async function MyLineupPage({ params }: PageProps) {
         </div>
 
         {/* Movies */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="font-semibold text-gray-900">Selected Movies</h2>
+        <div className="bg-dark-surface rounded-lg border border-dark-border">
+          <div className="p-4 border-b border-dark-border">
+            <h2 className="font-semibold text-gray-100">Selected Movies</h2>
           </div>
 
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-dark-border">
             {[...movies]
               .sort((a, b) => {
                 const movieA = Array.isArray(a.movie) ? a.movie[0] : a.movie;
@@ -340,18 +336,18 @@ export default async function MyLineupPage({ params }: PageProps) {
 
               const scoreColor =
                 direction === 'uptick'
-                  ? 'text-green-600'
+                  ? 'text-green-400'
                   : direction === 'downtick'
-                  ? 'text-red-600'
-                  : 'text-gray-900';
+                  ? 'text-red-400'
+                  : 'text-gray-100';
 
               return (
                 <div key={movie.id} className="p-4">
                   <div className="flex items-start justify-between gap-4">
                     {/* Movie Info */}
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{movie.title}</h3>
-                      <div className="mt-1 text-xs text-gray-600 space-y-0.5">
+                      <h3 className="font-medium text-gray-100">{movie.title}</h3>
+                      <div className="mt-1 text-xs text-gray-400 space-y-0.5">
                         <div>{new Date(movie.release_date).toLocaleDateString()}</div>
                         {movie.distributor && <div>{movie.distributor}</div>}
                         {movie.theater_count && (
@@ -362,27 +358,30 @@ export default async function MyLineupPage({ params }: PageProps) {
 
                     {/* Stats */}
                     <div className="text-right flex-shrink-0">
-                      <div className="text-lg font-bold text-gray-900">${movie.salary}</div>
+                      {/* Points/Estimate - Top, largest */}
                       {(isScored || hasEstimates) ? (
-                        <>
-                          <div className={`text-sm font-medium flex items-center justify-end gap-1 ${scoreColor}`}>
-                            {direction === 'uptick' && (
-                              <img src="/uptick.png" alt="" className="w-3 h-3" />
-                            )}
-                            {direction === 'downtick' && (
-                              <img src="/downtick.png" alt="" className="w-3 h-3" />
-                            )}
-                            {displayValue.toFixed(2)} {displayLabel}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            proj: {movie.projected_gross.toFixed(2)}M
-                          </div>
-                        </>
+                        <div className={`text-lg font-bold flex items-center justify-end gap-1 ${scoreColor}`}>
+                          {direction === 'uptick' && (
+                            <img src="/uptick.png" alt="" className="w-3 h-3" />
+                          )}
+                          {direction === 'downtick' && (
+                            <img src="/downtick.png" alt="" className="w-3 h-3" />
+                          )}
+                          {displayValue.toFixed(2)} {displayLabel}
+                        </div>
                       ) : (
-                        <div className="text-sm text-gray-600">
-                          Proj: {movie.projected_gross.toFixed(2)}M
+                        <div className="text-lg font-bold text-gray-100">
+                          {movie.projected_gross.toFixed(2)} proj.
                         </div>
                       )}
+                      {/* Projection - Middle */}
+                      {(isScored || hasEstimates) && (
+                        <div className="text-xs text-gray-500">
+                          proj: {movie.projected_gross.toFixed(2)}
+                        </div>
+                      )}
+                      {/* Salary - Bottom, smallest */}
+                      <div className="text-xs text-gray-500">${movie.salary}</div>
                     </div>
                   </div>
                 </div>
@@ -391,18 +390,15 @@ export default async function MyLineupPage({ params }: PageProps) {
           </div>
 
           {/* Total */}
-          <div className="p-4 bg-gray-50 border-t border-gray-200">
+          <div className="p-4 bg-dark-elevated border-t border-dark-border">
             <div className="flex justify-between items-center">
-              <span className="font-medium text-gray-900">Total:</span>
-              <div className="text-right">
-                <div className="text-lg font-bold text-gray-900">${totalSalary}</div>
-                <div className="text-sm text-blue-600 font-medium">
-                  {isScored && lineup.total_score !== null
-                    ? `${lineup.total_score.toFixed(2)} pts`
-                    : hasEstimates
-                    ? `${currentEstimatedScore.toFixed(2)} est.`
-                    : `Proj: ${projectedScore.toFixed(2)} pts`}
-                </div>
+              <span className="font-medium text-gray-100">Total:</span>
+              <div className="text-lg font-bold text-accent">
+                {isScored && lineup.total_score !== null
+                  ? `${lineup.total_score.toFixed(2)} pts`
+                  : hasEstimates
+                  ? `${currentEstimatedScore.toFixed(2)} est.`
+                  : `${projectedScore.toFixed(2)} proj.`}
               </div>
             </div>
           </div>
@@ -413,7 +409,7 @@ export default async function MyLineupPage({ params }: PageProps) {
           {!isLocked && (
             <Link
               href={`/contests/${contestId}/lineup`}
-              className="block px-6 py-3 bg-blue-600 text-white text-center font-medium rounded-lg hover:bg-blue-700"
+              className="block px-6 py-3 bg-accent text-dark-bg text-center font-medium rounded-lg hover:bg-accent-light"
             >
               Edit Lineup
             </Link>
@@ -422,7 +418,7 @@ export default async function MyLineupPage({ params }: PageProps) {
           {contest.status === 'resolved' && (
             <Link
               href={`/contests/${contestId}/leaderboard`}
-              className="block px-6 py-3 bg-white border border-gray-300 text-gray-700 text-center font-medium rounded-lg hover:bg-gray-50"
+              className="block px-6 py-3 bg-dark-surface border border-dark-border text-gray-100 text-center font-medium rounded-lg hover:bg-dark-elevated"
             >
               View Leaderboard
             </Link>
@@ -431,7 +427,7 @@ export default async function MyLineupPage({ params }: PageProps) {
           {contest.status === 'locked' && hasEstimates && (
             <Link
               href={`/contests/${contestId}/leaderboard`}
-              className="block px-6 py-3 bg-white border border-gray-300 text-gray-700 text-center font-medium rounded-lg hover:bg-gray-50"
+              className="block px-6 py-3 bg-dark-surface border border-dark-border text-gray-100 text-center font-medium rounded-lg hover:bg-dark-elevated"
             >
               View Current Rankings
             </Link>
@@ -439,7 +435,7 @@ export default async function MyLineupPage({ params }: PageProps) {
 
           <Link
             href="/account"
-            className="block text-center text-sm text-blue-600 hover:text-blue-700"
+            className="block text-center text-sm text-accent hover:text-accent-light"
           >
             View All My Entries &rarr;
           </Link>

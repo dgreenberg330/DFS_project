@@ -54,21 +54,21 @@ export default async function LeaderboardPage({ params }: PageProps) {
   // For upcoming contests, show waiting message
   if (contest.status === 'upcoming') {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-dark-bg">
         <Header />
         <div className="max-w-3xl mx-auto px-4 py-8">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Leaderboard</h1>
+            <h1 className="text-2xl font-bold text-gray-100">Leaderboard</h1>
           </div>
 
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-            <p className="text-yellow-900 font-medium mb-2">
+          <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-6 text-center">
+            <p className="text-yellow-400 font-medium mb-2">
               Leaderboard Not Available Yet
             </p>
-            <p className="text-sm text-yellow-800">
+            <p className="text-sm text-yellow-300/80">
               Results will be posted after the contest locks.
             </p>
-            <p className="text-sm text-yellow-800 mt-2">
+            <p className="text-sm text-yellow-300/80 mt-2">
               Contest status: <span className="font-medium">Open for entries</span>
             </p>
           </div>
@@ -85,21 +85,21 @@ export default async function LeaderboardPage({ params }: PageProps) {
       // If no estimates yet, show waiting message
       if (!preliminaryData.hasEstimates) {
         return (
-          <div className="min-h-screen bg-gray-50">
+          <div className="min-h-screen bg-dark-bg">
             <Header />
             <div className="max-w-3xl mx-auto px-4 py-8">
               <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Leaderboard</h1>
+                <h1 className="text-2xl font-bold text-gray-100">Leaderboard</h1>
               </div>
 
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-                <p className="text-yellow-900 font-medium mb-2">
+              <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-6 text-center">
+                <p className="text-yellow-400 font-medium mb-2">
                   Waiting for Weekend Estimates
                 </p>
-                <p className="text-sm text-yellow-800">
+                <p className="text-sm text-yellow-300/80">
                   Check back later for preliminary rankings as box office estimates come in.
                 </p>
-                <p className="text-sm text-yellow-800 mt-2">
+                <p className="text-sm text-yellow-300/80 mt-2">
                   Contest status: <span className="font-medium">Locked, awaiting results</span>
                 </p>
               </div>
@@ -132,7 +132,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
         : -1;
 
       return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-dark-bg">
           <LeaderboardViewTracker
             contestId={contestId}
             totalEntries={leaderboard.length}
@@ -148,48 +148,48 @@ export default async function LeaderboardPage({ params }: PageProps) {
           <main className="max-w-4xl mx-auto px-4 py-8">
             {/* Page Title - Preliminary */}
             <div className="mb-6">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Current Rankings</h1>
-              <p className="text-xs sm:text-sm text-gray-600 mt-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-100">Current Rankings</h1>
+              <p className="text-xs sm:text-sm text-gray-400 mt-1">
                 Based on {estimateDay === 'friday' ? 'Friday' : estimateDay === 'saturday' ? 'Saturday' : 'weekend'} estimates - final results coming soon
               </p>
             </div>
 
             {/* Contest Info */}
-            <div className="bg-white rounded-lg shadow p-4 mb-6">
+            <div className="bg-dark-surface rounded-lg border border-dark-border p-4 mb-6">
               <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
                 <div>
-                  <div className="text-xl sm:text-2xl font-bold text-gray-900">{leaderboard.length}</div>
-                  <div className="text-xs text-gray-600">Total Entries</div>
+                  <div className="text-xl sm:text-2xl font-bold text-gray-100">{leaderboard.length}</div>
+                  <div className="text-xs text-gray-400">Total Entries</div>
                 </div>
                 <div>
-                  <div className="text-xl sm:text-2xl font-bold text-blue-600">
+                  <div className="text-xl sm:text-2xl font-bold text-accent">
                     {leaderboard[0]?.currentScore?.toFixed(2) || '0.0'}
                   </div>
-                  <div className="text-xs text-gray-600">Leading Score</div>
+                  <div className="text-xs text-gray-400">Leading Score</div>
                 </div>
                 <div>
-                  <div className="text-xl sm:text-2xl font-bold text-gray-900">
+                  <div className="text-xl sm:text-2xl font-bold text-gray-100">
                     {userEntryIndex >= 0 ? leaderboard[userEntryIndex].rank : '-'}
                   </div>
-                  <div className="text-xs text-gray-600">Your Rank</div>
+                  <div className="text-xs text-gray-400">Your Rank</div>
                 </div>
               </div>
             </div>
 
             {/* Preliminary Notice */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-6">
-              <p className="text-xs sm:text-sm text-blue-800 tracking-tight">
+            <div className="bg-accent/10 border border-accent/30 rounded-lg p-3 sm:p-4 mb-6">
+              <p className="text-xs sm:text-sm text-accent/90 tracking-tight">
                 Rankings are based on estimates and may change. Final results will be posted after the weekend.
               </p>
             </div>
 
             {/* Leaderboard */}
-            <div className="bg-white rounded-lg shadow">
-              <div className="p-4 border-b border-gray-200">
-                <h2 className="font-semibold text-gray-900">Rankings</h2>
+            <div className="bg-dark-surface rounded-lg border border-dark-border">
+              <div className="p-4 border-b border-dark-border">
+                <h2 className="font-semibold text-gray-100">Rankings</h2>
               </div>
 
-              <div className="divide-y divide-gray-200">
+              <div className="divide-y divide-dark-border">
                 {leaderboard.map((entry, index) => {
                   const lineup = Array.isArray(entry.lineup) ? entry.lineup[0] : entry.lineup;
                   const movies = lineup?.movies || [];
@@ -215,7 +215,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
             {/* Navigation */}
             {user && (
               <div className="mt-6 text-right">
-                <Link href="/account" className="text-sm text-blue-600 hover:text-blue-700">
+                <Link href="/account" className="text-sm text-accent hover:text-accent-light">
                   View All My Entries &rarr;
                 </Link>
               </div>
@@ -226,21 +226,21 @@ export default async function LeaderboardPage({ params }: PageProps) {
     } catch {
       // If preliminary leaderboard fails, show waiting message
       return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-dark-bg">
           <Header />
           <div className="max-w-3xl mx-auto px-4 py-8">
             <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">Leaderboard</h1>
+              <h1 className="text-2xl font-bold text-gray-100">Leaderboard</h1>
             </div>
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-              <p className="text-yellow-900 font-medium mb-2">
+            <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-6 text-center">
+              <p className="text-yellow-400 font-medium mb-2">
                 Leaderboard Not Available Yet
               </p>
-              <p className="text-sm text-yellow-800">
+              <p className="text-sm text-yellow-300/80">
                 Results will be posted after the contest is scored (Sunday night).
               </p>
-              <p className="text-sm text-yellow-800 mt-2">
+              <p className="text-sm text-yellow-300/80 mt-2">
                 Contest status: <span className="font-medium">Locked, awaiting results</span>
               </p>
             </div>
@@ -262,7 +262,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
     : -1;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-dark-bg">
       <LeaderboardViewTracker
         contestId={contestId}
         totalEntries={leaderboard.length}
@@ -278,19 +278,19 @@ export default async function LeaderboardPage({ params }: PageProps) {
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Page Title */}
         <div className="mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Final Leaderboard</h1>
-          <p className="text-xs sm:text-sm text-gray-600 mt-1">{contest.name}</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-100">Final Leaderboard</h1>
+          <p className="text-xs sm:text-sm text-gray-400 mt-1">{contest.name}</p>
         </div>
 
         {/* Contest Info */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
+        <div className="bg-dark-surface rounded-lg border border-dark-border p-4 mb-6">
           <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
             <div>
-              <div className="text-xl sm:text-2xl font-bold text-gray-900">{leaderboard.length}</div>
-              <div className="text-xs text-gray-600">Total Entries</div>
+              <div className="text-xl sm:text-2xl font-bold text-gray-100">{leaderboard.length}</div>
+              <div className="text-xs text-gray-400">Total Entries</div>
             </div>
             <div>
-              <div className="text-xl sm:text-2xl font-bold text-blue-600">
+              <div className="text-xl sm:text-2xl font-bold text-accent">
                 {leaderboard[0]
                   ? (() => {
                       const lineup = Array.isArray(leaderboard[0].lineup)
@@ -300,24 +300,24 @@ export default async function LeaderboardPage({ params }: PageProps) {
                     })()
                   : '0.0'}
               </div>
-              <div className="text-xs text-gray-600">Winning Score</div>
+              <div className="text-xs text-gray-400">Winning Score</div>
             </div>
             <div>
-              <div className="text-xl sm:text-2xl font-bold text-gray-900">
+              <div className="text-xl sm:text-2xl font-bold text-gray-100">
                 {userEntryIndex >= 0 ? userEntryIndex + 1 : '-'}
               </div>
-              <div className="text-xs text-gray-600">Your Rank</div>
+              <div className="text-xs text-gray-400">Your Rank</div>
             </div>
           </div>
         </div>
 
         {/* Leaderboard */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="font-semibold text-gray-900">Rankings</h2>
+        <div className="bg-dark-surface rounded-lg border border-dark-border">
+          <div className="p-4 border-b border-dark-border">
+            <h2 className="font-semibold text-gray-100">Rankings</h2>
           </div>
 
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-dark-border">
             {leaderboard.map((entry, index) => {
               const lineup = Array.isArray(entry.lineup) ? entry.lineup[0] : entry.lineup;
               const movies = lineup.movies || [];
@@ -345,7 +345,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
         {/* Navigation */}
         {user && (
           <div className="mt-6 text-right">
-            <Link href="/account" className="text-sm text-blue-600 hover:text-blue-700">
+            <Link href="/account" className="text-sm text-accent hover:text-accent-light">
               View All My Entries &rarr;
             </Link>
           </div>

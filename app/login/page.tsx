@@ -61,27 +61,27 @@ export default async function LoginPage({ searchParams }: PageProps) {
   const errorInfo = error ? ERROR_MESSAGES[error] : null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-dark-bg">
       <Header />
       <div className="flex items-center justify-center py-12">
-        <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
+        <div className="max-w-md w-full space-y-8 p-8 bg-dark-surface rounded-lg border border-dark-border">
           <div>
-            <h2 className="text-center text-3xl font-bold text-gray-900">
+            <h2 className="text-center text-3xl font-bold text-gray-100">
               Sign In
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
+            <p className="mt-2 text-center text-sm text-gray-400">
               Enter your email and password
             </p>
           </div>
 
           {errorInfo && (
-            <div className="p-4 rounded bg-amber-50 border border-amber-200 text-amber-800 text-center">
+            <div className="p-4 rounded bg-amber-900/30 border border-amber-700/50 text-amber-300 text-center">
               <p className="font-medium">{errorInfo.title}</p>
-              <p className="mt-1 text-sm">{errorInfo.message}</p>
+              <p className="mt-1 text-sm text-amber-400">{errorInfo.message}</p>
               {errorInfo.showResetLink && (
                 <Link
                   href="/forgot-password"
-                  className="mt-2 inline-block text-sm text-teal-600 hover:text-teal-700 hover:underline font-medium"
+                  className="mt-2 inline-block text-sm text-accent hover:text-accent-light hover:underline font-medium"
                 >
                   Request a new reset link
                 </Link>

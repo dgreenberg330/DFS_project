@@ -28,17 +28,17 @@ export default async function SettingsPage() {
   const profile = await getUserProfile();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-dark-bg">
       <Header />
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Settings</h1>
+        <h1 className="text-2xl font-bold text-gray-100 mb-6">Settings</h1>
 
         {/* Username Section */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Username</h2>
+        <div className="bg-dark-surface rounded-lg border border-dark-border p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-100 mb-4">Username</h2>
           {profile?.username && (
-            <p className="text-sm text-gray-600 mb-4">
-              Current username: <span className="font-medium">@{profile.username}</span>
+            <p className="text-sm text-gray-400 mb-4">
+              Current username: <span className="font-medium text-gray-200">@{profile.username}</span>
             </p>
           )}
           <UsernameForm currentUsername={profile?.username} />
@@ -48,8 +48,8 @@ export default async function SettingsPage() {
         </div>
 
         {/* Email Notifications Section */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Email Notifications</h2>
+        <div className="bg-dark-surface rounded-lg border border-dark-border p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-100 mb-4">Email Notifications</h2>
           <EmailPreferencesForm
             initialPreferences={{
               email_lock_reminders: profile?.email_lock_reminders ?? true,
@@ -60,17 +60,17 @@ export default async function SettingsPage() {
         </div>
 
         {/* Account Info Section */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Account</h2>
+        <div className="bg-dark-surface rounded-lg border border-dark-border p-6">
+          <h2 className="text-lg font-semibold text-gray-100 mb-4">Account</h2>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600">Email</span>
-              <span className="text-gray-900">{user.email}</span>
+              <span className="text-gray-400">Email</span>
+              <span className="text-gray-100">{user.email}</span>
             </div>
             {profile?.created_at && (
               <div className="flex justify-between">
-                <span className="text-gray-600">Member since</span>
-                <span className="text-gray-900">
+                <span className="text-gray-400">Member since</span>
+                <span className="text-gray-100">
                   {new Date(profile.created_at).toLocaleDateString('en-US', {
                     month: 'long',
                     year: 'numeric',
