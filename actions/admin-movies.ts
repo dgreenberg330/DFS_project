@@ -44,6 +44,7 @@ export async function updateMovie(
   if (input.theater_count !== undefined) updateData.theater_count = input.theater_count;
   if (input.salary !== undefined) updateData.salary = input.salary;
   if (input.projected_gross !== undefined) updateData.projected_gross = input.projected_gross;
+  if (input.prior_week_gross !== undefined) updateData.prior_week_gross = input.prior_week_gross;
   if (input.tmdb_id !== undefined) updateData.tmdb_id = input.tmdb_id;
   if (input.poster_path !== undefined) updateData.poster_path = input.poster_path;
 
@@ -205,6 +206,7 @@ export async function copyMovieToContest(
       theater_count: sourceMovie.theater_count,
       salary: overrides?.salary || sourceMovie.salary,
       projected_gross: overrides?.projected_gross || sourceMovie.projected_gross,
+      prior_week_gross: sourceMovie.prior_week_gross,
       tmdb_id: sourceMovie.tmdb_id,
       poster_path: sourceMovie.poster_path,
     })

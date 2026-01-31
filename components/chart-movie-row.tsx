@@ -55,7 +55,7 @@ function isNewRelease(releaseDate: string): boolean {
 /**
  * Formats release date with week number for non-new releases
  */
-function formatReleaseDate(releaseDate: string): string {
+function formatReleaseDate(releaseDate: string): { date: string; week: number } {
   // Parse as local date to avoid timezone issues
   const [year, month, day] = releaseDate.split('-').map(Number);
   const date = new Date(year, month - 1, day);
@@ -65,10 +65,22 @@ function formatReleaseDate(releaseDate: string): string {
     year: 'numeric',
   });
   const weeks = getWeeksInTheater(releaseDate);
-  if (weeks > 1) {
-    return `${formatted} (Week ${weeks})`;
-  }
-  return formatted;
+  return { date: formatted, week: weeks };
+}
+
+function ReleaseDateDisplay({ releaseDate }: { releaseDate: string }) {
+  const { date, week } = formatReleaseDate(releaseDate);
+  return (
+    <>
+      {date}
+      {week > 1 && (
+        <>
+          <br />
+          (Week {week})
+        </>
+      )}
+    </>
+  );
 }
 
 export function ChartMovieRow({ movie, contestStatus }: ChartMovieRowProps) {
@@ -116,12 +128,39 @@ export function ChartMovieRow({ movie, contestStatus }: ChartMovieRowProps) {
 
   return (
     <div className="bg-dark-surface rounded-lg border border-dark-border p-4 md:p-5">
-      {/* Mobile: Stacked layout */}
+      {/* Mobile: Multi-row layout */}
       <div className="md:hidden">
-        {/* Top row: Poster + Title */}
-        <div className="flex gap-4 mb-4">
-          {/* Poster */}
-          <div className="relative flex-shrink-0 w-24 h-36 rounded-lg overflow-hidden bg-dark-elevated">
+        {/* Title row with primary stat */}
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-base font-semibold text-gray-100 leading-tight">{movie.title}</h3>
+          <div className="flex-shrink-0 ml-2">
+            {(isResolved || (isLocked && hasEstimates)) ? (
+              <div className={`text-sm font-bold flex items-center gap-1 ${scoreColor}`}>
+                <span className="text-[10px] text-gray-500 uppercase">{isResolved ? 'Score:' : 'Est:'}</span>
+                {showDirection && direction === 'uptick' && (
+                  <img src="/uptick.png" alt="" className="w-3 h-3" />
+                )}
+                {showDirection && direction === 'downtick' && (
+                  <img src="/downtick.png" alt="" className="w-3 h-3" />
+                )}
+                {scoreValue.toFixed(1)} {scoreLabel}
+              </div>
+            ) : (
+              <div className="text-sm font-semibold text-accent flex items-center gap-1">
+                <span className="text-[10px] text-gray-500 uppercase">Cost:</span>
+                ${movie.salary.toLocaleString()}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Content with floated elements */}
+        <div>
+          {/* Floated Poster (left) */}
+          <div
+            className="relative float-left rounded-lg overflow-hidden bg-dark-elevated mr-2"
+            style={{ width: 90, height: 135 }}
+          >
             {posterUrl ? (
               <img
                 src={posterUrl}
@@ -130,7 +169,7 @@ export function ChartMovieRow({ movie, contestStatus }: ChartMovieRowProps) {
                 loading="lazy"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center p-2">
+              <div className="w-full h-full flex items-center justify-center p-2 bg-dark-surface">
                 <span className="text-center text-gray-400 text-xs leading-tight">
                   {movie.title}
                 </span>
@@ -143,85 +182,86 @@ export function ChartMovieRow({ movie, contestStatus }: ChartMovieRowProps) {
             )}
           </div>
 
-          {/* Title and quick info */}
-          <div className="flex-1 min-w-0">
-            <h3 className="text-base font-semibold text-gray-100 mb-1">{movie.title}</h3>
-            {tmdb?.director && (
-              <p className="text-xs text-gray-400 mb-1">Dir. {tmdb.director}</p>
-            )}
-            {tmdb?.cast && tmdb.cast.length > 0 && (
-              <p className="text-xs text-gray-400 mb-2">{tmdb.cast.join(', ')}</p>
-            )}
-            {/* Mobile game info */}
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-400">Cost</span>
-                <span className="text-accent font-semibold">${movie.salary.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Projection</span>
-                <div className="text-right">
-                  <span className="text-gray-100">{movie.projected_gross.toFixed(1)} pts</span>
-                  {!isNewRelease(movie.release_date) && movie.prior_week_gross !== null && (
-                    <div className="text-xs text-gray-500">Prior: {movie.prior_week_gross.toFixed(1)}</div>
-                  )}
-                </div>
-              </div>
+          {/* Floated Game Info (right) */}
+          <div className="float-right text-right ml-2 w-16 -mt-0.5">
+            <div className="space-y-1">
               {(isResolved || (isLocked && hasEstimates)) && (
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Score</span>
-                  <span className={`font-semibold flex items-center gap-1 ${scoreColor}`}>
-                    {showDirection && direction === 'uptick' && (
-                      <img src="/uptick.png" alt="" className="w-3 h-3" />
-                    )}
-                    {showDirection && direction === 'downtick' && (
-                      <img src="/downtick.png" alt="" className="w-3 h-3" />
-                    )}
-                    {scoreValue.toFixed(1)} {scoreLabel}
-                  </span>
+                <div>
+                  <div className="text-[10px] text-gray-500 uppercase">Cost</div>
+                  <div className="text-sm font-semibold text-accent">${movie.salary.toLocaleString()}</div>
+                </div>
+              )}
+              <div>
+                <div className="text-[10px] text-gray-500 uppercase">Proj</div>
+                <div className="text-xs text-gray-100">${movie.projected_gross.toFixed(1)}M</div>
+              </div>
+              {!isNewRelease(movie.release_date) && movie.prior_week_gross !== null && (
+                <div>
+                  <div className="text-[10px] text-gray-500 uppercase">Last wk</div>
+                  <div className="text-xs text-gray-100">${movie.prior_week_gross.toFixed(1)}M</div>
                 </div>
               )}
             </div>
           </div>
+
+          {/* Flowing content */}
+          <div className="text-xs leading-tight">
+            {formatBudget(tmdb?.budget ?? null) && (
+              <p className="text-gray-300">
+                <span className="text-gray-500">Budget:</span> {formatBudget(tmdb?.budget ?? null)}
+              </p>
+            )}
+            {tmdb?.runtime && (
+              <p className="text-gray-300">
+                <span className="text-gray-500">Runtime:</span> {tmdb.runtime} min
+              </p>
+            )}
+            <p className="text-gray-300">
+              <span className="text-gray-500">Release:</span> <ReleaseDateDisplay releaseDate={movie.release_date} />
+            </p>
+            {movie.distributor && (
+              <p className="text-gray-300">
+                <span className="text-gray-500">Distributor:</span> {movie.distributor}
+              </p>
+            )}
+            {tmdb?.director && (
+              <p className="text-gray-300">
+                <span className="text-gray-500">Director:</span> {tmdb.director}
+              </p>
+            )}
+            {tmdb?.cast && tmdb.cast.length > 0 && (
+              <p className="text-gray-300">
+                <span className="text-gray-500">Cast:</span> {tmdb.cast.join(', ')}
+              </p>
+            )}
+          </div>
         </div>
 
-        {/* Overview */}
+        {/* Spacer to clear floats */}
+        <div className="clear-both h-3" />
+
+        {/* Description */}
         {tmdb?.overview && (
-          <p className="text-xs text-gray-400 line-clamp-3 mb-2">{tmdb.overview}</p>
+          <p className="text-xs text-gray-400">{tmdb.overview}</p>
         )}
-
-        {/* Metadata rows */}
-        <div className="space-y-1 text-xs text-gray-400">
-          <p><span className="text-gray-500">Release Date:</span> {formatReleaseDate(movie.release_date)}</p>
-          {formatBudget(tmdb?.budget ?? null) && (
-            <p><span className="text-gray-500">Budget:</span> {formatBudget(tmdb?.budget ?? null)}</p>
-          )}
-          {movie.distributor && (
-            <p><span className="text-gray-500">Distributor:</span> {movie.distributor}</p>
-          )}
-          {tmdb?.runtime && (
-            <p><span className="text-gray-500">Runtime:</span> {tmdb.runtime} min</p>
-          )}
-        </div>
       </div>
 
       {/* Desktop: Three-column layout */}
-      <div className="hidden md:flex gap-5">
+      <div className="hidden md:flex gap-3 items-start" style={{ minHeight: 216 }}>
         {/* Left: Poster */}
-        <div className="relative flex-shrink-0 w-36 h-54 rounded-lg overflow-hidden bg-dark-elevated">
+        <div
+          className="relative flex-shrink-0 rounded-lg overflow-hidden bg-dark-elevated"
+          style={{ width: 144, height: 216 }}
+        >
           {posterUrl ? (
             <img
               src={posterUrl}
               alt={`${movie.title} poster`}
               className="w-full h-full object-cover"
-              style={{ width: 144, height: 216 }}
               loading="lazy"
             />
           ) : (
-            <div
-              className="flex items-center justify-center p-3 bg-dark-surface"
-              style={{ width: 144, height: 216 }}
-            >
+            <div className="w-full h-full flex items-center justify-center p-3 bg-dark-surface">
               <span className="text-center text-gray-400 text-sm leading-tight">
                 {movie.title}
               </span>
@@ -235,51 +275,56 @@ export function ChartMovieRow({ movie, contestStatus }: ChartMovieRowProps) {
         </div>
 
         {/* Middle: TMDB Info */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 flex flex-col ml-1">
           <h3 className="text-lg font-semibold text-gray-100 mb-2">{movie.title}</h3>
 
-          {tmdb?.overview && (
-            <p className="text-sm text-gray-400 line-clamp-3 mb-3">{tmdb.overview}</p>
-          )}
+          {/* Metadata in two columns */}
+          <div className="flex gap-12 text-sm mb-3">
+            {/* Left column: Director, Cast, Release Date */}
+            <div className="space-y-1 flex-1">
+              {tmdb?.director && (
+                <p className="text-gray-300">
+                  <span className="text-gray-500">Director:</span> {tmdb.director}
+                </p>
+              )}
+              {tmdb?.cast && tmdb.cast.length > 0 && (
+                <p className="text-gray-300">
+                  <span className="text-gray-500">Cast:</span> {tmdb.cast.join(', ')}
+                </p>
+              )}
+              <p className="text-gray-300">
+                <span className="text-gray-500">Release Date:</span> <ReleaseDateDisplay releaseDate={movie.release_date} />
+              </p>
+            </div>
 
-          {tmdb?.director && (
-            <p className="text-sm text-gray-300 mb-1">
-              <span className="text-gray-500">Director:</span> {tmdb.director}
-            </p>
-          )}
-
-          {tmdb?.cast && tmdb.cast.length > 0 && (
-            <p className="text-sm text-gray-300 mb-2">
-              <span className="text-gray-500">Cast:</span> {tmdb.cast.join(', ')}
-            </p>
-          )}
-
-          {/* Metadata rows */}
-          <div className="space-y-1 text-sm">
-            <p className="text-gray-300">
-              <span className="text-gray-500">Release Date:</span> {formatReleaseDate(movie.release_date)}
-            </p>
-            {formatBudget(tmdb?.budget ?? null) && (
-              <p className="text-gray-300">
-                <span className="text-gray-500">Budget:</span> {formatBudget(tmdb?.budget ?? null)}
-              </p>
-            )}
-            {movie.distributor && (
-              <p className="text-gray-300">
-                <span className="text-gray-500">Distributor:</span> {movie.distributor}
-              </p>
-            )}
-            {tmdb?.runtime && (
-              <p className="text-gray-300">
-                <span className="text-gray-500">Runtime:</span> {tmdb.runtime} min
-              </p>
-            )}
-            {movie.theater_count && (
-              <p className="text-gray-300">
-                <span className="text-gray-500">Theaters:</span> {movie.theater_count.toLocaleString()}
-              </p>
-            )}
+            {/* Right column: Budget, Distributor, Runtime */}
+            <div className="space-y-1 flex-1">
+              {formatBudget(tmdb?.budget ?? null) && (
+                <p className="text-gray-300">
+                  <span className="text-gray-500">Budget:</span> {formatBudget(tmdb?.budget ?? null)}
+                </p>
+              )}
+              {movie.distributor && (
+                <p className="text-gray-300">
+                  <span className="text-gray-500">Distributor:</span> {movie.distributor}
+                </p>
+              )}
+              {tmdb?.runtime && (
+                <p className="text-gray-300">
+                  <span className="text-gray-500">Runtime:</span> {tmdb.runtime} min
+                </p>
+              )}
+              {movie.theater_count && (
+                <p className="text-gray-300">
+                  <span className="text-gray-500">Theaters:</span> {movie.theater_count.toLocaleString()}
+                </p>
+              )}
+            </div>
           </div>
+
+          {tmdb?.overview && (
+            <p className="text-sm text-gray-400 mt-auto">{tmdb.overview}</p>
+          )}
         </div>
 
         {/* Right: Game Info */}
@@ -297,14 +342,19 @@ export function ChartMovieRow({ movie, contestStatus }: ChartMovieRowProps) {
             <div>
               <div className="text-xs text-gray-500 uppercase tracking-wide">Projection</div>
               <div className="text-base text-gray-100">
-                {movie.projected_gross.toFixed(1)} pts
+                ${movie.projected_gross.toFixed(1)}M
               </div>
-              {!isNewRelease(movie.release_date) && movie.prior_week_gross !== null && (
-                <div className="text-xs text-gray-500 mt-0.5">
-                  Prior: {movie.prior_week_gross.toFixed(1)} pts
-                </div>
-              )}
             </div>
+
+            {/* Last week (for holdovers) */}
+            {!isNewRelease(movie.release_date) && movie.prior_week_gross !== null && (
+              <div>
+                <div className="text-xs text-gray-500 uppercase tracking-wide">Last week</div>
+                <div className="text-base text-gray-100">
+                  ${movie.prior_week_gross.toFixed(1)}M
+                </div>
+              </div>
+            )}
 
             {/* Score (shown for resolved or locked with estimates) */}
             {(isResolved || (isLocked && hasEstimates)) && (
