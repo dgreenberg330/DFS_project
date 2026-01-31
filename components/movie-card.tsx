@@ -7,6 +7,20 @@
 import { getTMDBPosterUrl } from '@/lib/tmdb';
 import type { Movie } from '@/types';
 
+/**
+ * Checks if movie is new (first week in theater)
+ */
+function isNewRelease(releaseDate: string): boolean {
+  // Parse as local date to avoid timezone issues
+  const [year, month, day] = releaseDate.split('-').map(Number);
+  const release = new Date(year, month - 1, day);
+  const now = new Date();
+  const diffTime = now.getTime() - release.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const weeks = Math.max(1, Math.ceil(diffDays / 7));
+  return weeks === 1;
+}
+
 interface MovieCardProps {
   movie: Movie;
   isSelected?: boolean;
@@ -119,6 +133,13 @@ export function MovieCard({
         {/* Selected indicator glow */}
         {isSelected && (
           <div className="absolute inset-0 bg-accent/10 pointer-events-none" />
+        )}
+
+        {/* New release banner */}
+        {isNewRelease(movie.release_date) && (
+          <div className="absolute bottom-0 left-0 bg-green-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-tr">
+            NEW
+          </div>
         )}
       </div>
 

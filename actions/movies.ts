@@ -58,6 +58,7 @@ export async function createMovie(input: CreateMovieInput): Promise<Movie> {
       theater_count: input.theater_count || null,
       salary: input.salary,
       projected_gross: input.projected_gross,
+      prior_week_gross: input.prior_week_gross || null,
       actual_gross: null, // Will be filled Sunday night
       tmdb_id: input.tmdb_id || null,
       poster_path: input.poster_path || null,
@@ -125,6 +126,7 @@ export async function batchCreateMovies(movies: CreateMovieInput[]): Promise<Mov
         theater_count: input.theater_count || null,
         salary: input.salary,
         projected_gross: input.projected_gross,
+        prior_week_gross: input.prior_week_gross || null,
         actual_gross: null,
         tmdb_id: input.tmdb_id || null,
         poster_path: input.poster_path || null,

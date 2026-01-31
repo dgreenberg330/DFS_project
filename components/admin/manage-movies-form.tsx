@@ -28,6 +28,7 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
   const [theaterCount, setTheaterCount] = useState('');
   const [salary, setSalary] = useState('');
   const [projectedGross, setProjectedGross] = useState('');
+  const [priorWeekGross, setPriorWeekGross] = useState('');
   const [tmdbId, setTmdbId] = useState('');
   const [posterPath, setPosterPath] = useState('');
   const [addLoading, setAddLoading] = useState(false);
@@ -81,6 +82,7 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
         theater_count: theaterCount ? parseInt(theaterCount) : undefined,
         salary: salaryNum,
         projected_gross: projectedNum,
+        prior_week_gross: priorWeekGross ? parseFloat(priorWeekGross) : undefined,
         tmdb_id: tmdbId ? parseInt(tmdbId) : undefined,
         poster_path: posterPath || undefined,
       });
@@ -94,6 +96,7 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
       setTheaterCount('');
       setSalary('');
       setProjectedGross('');
+      setPriorWeekGross('');
       setTmdbId('');
       setPosterPath('');
 
@@ -399,6 +402,20 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
+              Prior Week Gross (millions)
+            </label>
+            <input
+              type="number"
+              step="0.1"
+              value={priorWeekGross}
+              onChange={(e) => setPriorWeekGross(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="For holdover movies"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               TMDB ID
             </label>
             <input
@@ -692,6 +709,7 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Theaters</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Salary</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Projected</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Prior Wk</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">TMDB</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Poster</th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
@@ -768,6 +786,18 @@ export function ManageMoviesForm({ contest, movies: initialMovies, historicalMov
                               className="px-2 py-1 border rounded w-20"
                             />
                           ) : `$${movie.projected_gross}M`}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-500">
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              step="0.1"
+                              value={editData.prior_week_gross ?? movie.prior_week_gross ?? ''}
+                              onChange={(e) => setEditData({...editData, prior_week_gross: e.target.value ? parseFloat(e.target.value) : null})}
+                              className="px-2 py-1 border rounded w-20"
+                              placeholder="Prior"
+                            />
+                          ) : (movie.prior_week_gross ? `$${movie.prior_week_gross}M` : '-')}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-500">
                           {isEditing ? (

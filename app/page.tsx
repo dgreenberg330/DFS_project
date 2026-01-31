@@ -4,6 +4,7 @@
 
 import Link from 'next/link';
 import { getCurrentContest } from '@/actions/contests';
+import { getThisWeeksMovies } from '@/actions/charts';
 import { Header } from '@/components/header';
 import { ExpandableMovieList } from '@/components/expandable-movie-list';
 import { WebApplicationJsonLd, FAQJsonLd } from '@/components/json-ld';
@@ -27,7 +28,11 @@ export const metadata: Metadata = {
 };
 
 export default async function LandingPage() {
-  const currentContest = await getCurrentContest();
+  // Fetch both contest (for CTA/lock time) and movies (from charts, persists after resolved)
+  const [currentContest, thisWeeksMovies] = await Promise.all([
+    getCurrentContest(),
+    getThisWeeksMovies(),
+  ]);
 
   return (
     <div className="min-h-screen bg-dark-bg">
@@ -75,10 +80,10 @@ export default async function LandingPage() {
         </div>
       </section>
 
-        {/* Movie Slate Preview */}
-        {currentContest && currentContest.movies.length > 0 && (
+        {/* Movie Slate Preview - Uses charts data (persists even after contest resolved) */}
+        {thisWeeksMovies.length > 0 && (
           <div className="max-w-4xl mx-auto px-4 -mt-6 sm:-mt-8 mb-12 sm:mb-16">
-            <ExpandableMovieList movies={currentContest.movies} />
+            <ExpandableMovieList movies={thisWeeksMovies} />
           </div>
         )}
 

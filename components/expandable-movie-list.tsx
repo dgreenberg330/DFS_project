@@ -5,6 +5,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { MovieCard } from '@/components/movie-card';
 import { Movie } from '@/types';
 
@@ -24,9 +25,12 @@ export function ExpandableMovieList({ movies }: ExpandableMovieListProps) {
 
   return (
     <div className="bg-dark-surface rounded-lg shadow-lg p-4 sm:p-6 border border-dark-border">
-      <h3 className="text-base sm:text-lg font-semibold text-gray-100 mb-3 sm:mb-4">
+      <Link
+        href="/charts"
+        className="block text-base sm:text-lg font-semibold text-gray-100 mb-3 sm:mb-4 hover:underline"
+      >
         This Week&apos;s Movies ({movies.length})
-      </h3>
+      </Link>
 
       {/* Mobile: Horizontal scroll */}
       <div className="md:hidden overflow-x-auto pb-2 scrollbar-hide">

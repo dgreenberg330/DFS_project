@@ -64,6 +64,9 @@ export interface Movie {
   // Actuals (null until results entered Sunday night)
   actual_gross: number | null; // Decimal millions
 
+  // Prior week gross for holdover movies (week 2+)
+  prior_week_gross: number | null; // Decimal millions from previous weekend
+
   // Daily estimates for preliminary leaderboards (null until entered)
   friday_estimate: number | null; // Friday gross (entered Saturday)
   saturday_estimate: number | null; // Saturday gross (entered Sunday)
@@ -201,6 +204,7 @@ export interface CreateMovieInput {
   theater_count?: number;
   salary: number;
   projected_gross: number;
+  prior_week_gross?: number; // For holdover movies (week 2+)
   tmdb_id?: number;
   poster_path?: string;
 }
@@ -325,6 +329,7 @@ export interface UpdateMovieInput {
   theater_count?: number | null;
   salary?: number;
   projected_gross?: number;
+  prior_week_gross?: number | null;
   tmdb_id?: number | null;
   poster_path?: string | null;
 }
@@ -353,6 +358,30 @@ export type EstimateDay = 'none' | 'friday' | 'saturday' | 'sunday' | 'final';
 export interface BatchDailyEstimatesInput {
   movieId: string;
   estimate: number;
+}
+
+// ============================================================================
+// TMDB API TYPES (Charts Page)
+// ============================================================================
+
+/**
+ * Extended movie details fetched from TMDB API
+ */
+export interface TMDBMovieDetails {
+  tmdb_id: number;
+  overview: string | null;
+  budget: number | null;
+  runtime: number | null;
+  genres: string[];
+  director: string | null;
+  cast: string[]; // Top 3 cast members
+}
+
+/**
+ * Movie with TMDB details attached (for charts page)
+ */
+export interface MovieWithTMDBDetails extends Movie {
+  tmdb_details: TMDBMovieDetails | null;
 }
 
 // ============================================================================
