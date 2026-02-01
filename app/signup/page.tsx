@@ -25,7 +25,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function SignupPage() {
+interface PageProps {
+  searchParams: Promise<{ invite_token?: string }>;
+}
+
+export default async function SignupPage({ searchParams }: PageProps) {
+  const { invite_token: inviteToken } = await searchParams;
+
   // If already logged in, redirect to account
   const user = await getUser();
   if (user) {
@@ -42,11 +48,13 @@ export default async function SignupPage() {
               Create Account
             </h2>
             <p className="mt-2 text-center text-sm text-gray-400">
-              Sign up to start playing
+              {inviteToken
+                ? 'Sign up to connect with your friend'
+                : 'Sign up to start playing'}
             </p>
           </div>
 
-          <SignupForm />
+          <SignupForm inviteToken={inviteToken} />
         </div>
       </div>
     </div>

@@ -6,6 +6,7 @@
 import { createClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
+import { processInviteSignup, processPendingInvitesForEmail } from '@/actions/friend-invites';
 
 export async function GET(request: Request) {
   try {
@@ -17,6 +18,7 @@ export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url);
     const code = searchParams.get('code');
     const type = searchParams.get('type'); // 'recovery' for password reset
+    const inviteToken = searchParams.get('invite_token'); // friend invite token
     const next = searchParams.get('next') ?? '/account';
 
     // Defensive check: validate code exists
@@ -91,6 +93,21 @@ export async function GET(request: Request) {
         }
         // If no username in metadata or profile creation failed, continue anyway
         // The account page will handle missing profile gracefully
+
+        // Process friend invite if present
+        if (inviteToken) {
+          // User signed up via invite link - auto-create friendship
+          await processInviteSignup(inviteToken, user.id);
+        } else if (user.email) {
+          // User signed up independently - check for pending invites to their email
+          await processPendingInvitesForEmail(user.email, user.id);
+        }
+      } else {
+        // Profile exists - still check for pending invites if this is a new session
+        // (e.g., user created account but didn't finish signup flow)
+        if (inviteToken) {
+          await processInviteSignup(inviteToken, user.id);
+        }
       }
     }
 

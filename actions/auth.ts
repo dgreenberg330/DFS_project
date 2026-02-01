@@ -140,8 +140,9 @@ export async function signIn(email: string, password: string) {
 
 /**
  * Signs up new user with email, password, and username
+ * Optional inviteToken for friend invite flow
  */
-export async function signUp(email: string, password: string, username: string) {
+export async function signUp(email: string, password: string, username: string, inviteToken?: string) {
   // Check rate limit first
   const rateLimitError = await checkAuthRateLimit();
   if (rateLimitError) {
@@ -196,11 +197,17 @@ export async function signUp(email: string, password: string, username: string) 
     return { error: 'Username is already taken. Please choose another.' };
   }
 
+  // Build redirect URL with optional invite token
+  let redirectUrl = `${origin}/auth/callback`;
+  if (inviteToken) {
+    redirectUrl += `?invite_token=${encodeURIComponent(inviteToken)}`;
+  }
+
   const { data, error } = await supabase.auth.signUp({
     email: email.trim(),
     password,
     options: {
-      emailRedirectTo: `${origin}/auth/callback`,
+      emailRedirectTo: redirectUrl,
       data: {
         username: trimmedUsername, // Store in user metadata as backup
       },

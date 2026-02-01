@@ -4,16 +4,19 @@
 
 import { getContest } from '@/actions/contests';
 import { getLeaderboard, getPerfectLineupInfo, getPreliminaryLeaderboard, getCurrentEstimateDay } from '@/actions/scoring';
+import { getFriendIds } from '@/actions/friends';
 import { getUser } from '@/lib/supabase-server';
 import { Header } from '@/components/header';
 import { BreadcrumbJsonLd } from '@/components/json-ld';
 import { LeaderboardViewTracker } from '@/components/gtm-tracker';
 import { LeaderboardEntry } from '@/components/leaderboard-entry';
+import { LeaderboardTabs } from '@/components/leaderboard-tabs';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ filter?: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -46,10 +49,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function LeaderboardPage({ params }: PageProps) {
+export default async function LeaderboardPage({ params, searchParams }: PageProps) {
   const { id: contestId } = await params;
+  const { filter } = await searchParams;
   const user = await getUser();
   const contest = await getContest(contestId);
+
+  // Get friend IDs for filtering (only if user is logged in)
+  const friendIds = user ? await getFriendIds() : [];
+  const showFriendsOnly = filter === 'friends' && user;
+
+  // Count friends who entered this contest (calculated after we get the leaderboard)
+  let friendsInContest = 0;
 
   // For upcoming contests, show waiting message
   if (contest.status === 'upcoming') {
@@ -108,7 +119,19 @@ export default async function LeaderboardPage({ params }: PageProps) {
         );
       }
 
-      const leaderboard = preliminaryData.entries;
+      const fullLeaderboard = preliminaryData.entries;
+
+      // Count friends in contest
+      friendsInContest = fullLeaderboard.filter((entry) =>
+        friendIds.includes(entry.user_id)
+      ).length;
+
+      // Filter leaderboard if showing friends only
+      const leaderboard = showFriendsOnly
+        ? fullLeaderboard.filter((entry) =>
+            entry.user_id === user?.id || friendIds.includes(entry.user_id)
+          )
+        : fullLeaderboard;
 
       // Determine which day's estimates are available
       let estimateDay: 'friday' | 'saturday' | 'weekend' = 'weekend';
@@ -183,33 +206,47 @@ export default async function LeaderboardPage({ params }: PageProps) {
               </p>
             </div>
 
+            {/* Leaderboard Tabs (only show if user is logged in) */}
+            {user && (
+              <LeaderboardTabs contestId={contestId} friendCount={friendsInContest} />
+            )}
+
             {/* Leaderboard */}
             <div className="bg-dark-surface rounded-lg border border-dark-border">
               <div className="p-4 border-b border-dark-border">
-                <h2 className="font-semibold text-gray-100">Rankings</h2>
+                <h2 className="font-semibold text-gray-100">
+                  {showFriendsOnly ? 'Friends Rankings' : 'Rankings'}
+                </h2>
               </div>
 
-              <div className="divide-y divide-dark-border">
-                {leaderboard.map((entry, index) => {
-                  const lineup = Array.isArray(entry.lineup) ? entry.lineup[0] : entry.lineup;
-                  const movies = lineup?.movies || [];
-                  const isUserEntry = !!(user && entry.user_id === user.id);
+              {showFriendsOnly && leaderboard.length === 0 ? (
+                <div className="p-6 text-center text-gray-400">
+                  <p>No friends entered this contest.</p>
+                  <p className="text-sm mt-1">Add friends on your account page to see them here.</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-dark-border">
+                  {leaderboard.map((entry, index) => {
+                    const lineup = Array.isArray(entry.lineup) ? entry.lineup[0] : entry.lineup;
+                    const movies = lineup?.movies || [];
+                    const isUserEntry = !!(user && entry.user_id === user.id);
 
-                  return (
-                    <LeaderboardEntry
-                      key={entry.id}
-                      rank={entry.rank ?? index + 1}
-                      index={index}
-                      username={entry.user.username}
-                      isUserEntry={isUserEntry}
-                      isPerfectLineup={false}
-                      isPreliminary={true}
-                      totalScore={entry.currentScore ?? 0}
-                      movies={movies}
-                    />
-                  );
-                })}
-              </div>
+                    return (
+                      <LeaderboardEntry
+                        key={entry.id}
+                        rank={entry.rank ?? index + 1}
+                        index={index}
+                        username={entry.user.username}
+                        isUserEntry={isUserEntry}
+                        isPerfectLineup={false}
+                        isPreliminary={true}
+                        totalScore={entry.currentScore ?? 0}
+                        movies={movies}
+                      />
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Navigation */}
@@ -251,10 +288,22 @@ export default async function LeaderboardPage({ params }: PageProps) {
   }
 
   // For resolved contests, show final leaderboard
-  const [leaderboard, perfectLineupInfo] = await Promise.all([
+  const [fullLeaderboard, perfectLineupInfo] = await Promise.all([
     getLeaderboard(contestId),
     getPerfectLineupInfo(contestId),
   ]);
+
+  // Count friends in contest
+  friendsInContest = fullLeaderboard.filter((entry) =>
+    friendIds.includes(entry.user_id)
+  ).length;
+
+  // Filter leaderboard if showing friends only
+  const leaderboard = showFriendsOnly
+    ? fullLeaderboard.filter((entry) =>
+        entry.user_id === user?.id || friendIds.includes(entry.user_id)
+      )
+    : fullLeaderboard;
 
   // Find user's entry if logged in
   const userEntryIndex = user
@@ -311,35 +360,49 @@ export default async function LeaderboardPage({ params }: PageProps) {
           </div>
         </div>
 
+        {/* Leaderboard Tabs (only show if user is logged in) */}
+        {user && (
+          <LeaderboardTabs contestId={contestId} friendCount={friendsInContest} />
+        )}
+
         {/* Leaderboard */}
         <div className="bg-dark-surface rounded-lg border border-dark-border">
           <div className="p-4 border-b border-dark-border">
-            <h2 className="font-semibold text-gray-100">Rankings</h2>
+            <h2 className="font-semibold text-gray-100">
+              {showFriendsOnly ? 'Friends Rankings' : 'Rankings'}
+            </h2>
           </div>
 
-          <div className="divide-y divide-dark-border">
-            {leaderboard.map((entry, index) => {
-              const lineup = Array.isArray(entry.lineup) ? entry.lineup[0] : entry.lineup;
-              const movies = lineup.movies || [];
-              const isUserEntry = !!(user && entry.user_id === user.id);
+          {showFriendsOnly && leaderboard.length === 0 ? (
+            <div className="p-6 text-center text-gray-400">
+              <p>No friends entered this contest.</p>
+              <p className="text-sm mt-1">Add friends on your account page to see them here.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-dark-border">
+              {leaderboard.map((entry, index) => {
+                const lineup = Array.isArray(entry.lineup) ? entry.lineup[0] : entry.lineup;
+                const movies = lineup.movies || [];
+                const isUserEntry = !!(user && entry.user_id === user.id);
 
-              const isPerfectLineup = perfectLineupInfo.perfectLineupUserIds.includes(entry.user_id);
+                const isPerfectLineup = perfectLineupInfo.perfectLineupUserIds.includes(entry.user_id);
 
-              return (
-                <LeaderboardEntry
-                  key={entry.id}
-                  rank={entry.rank ?? index + 1}
-                  index={index}
-                  username={entry.user.username}
-                  isUserEntry={isUserEntry}
-                  isPerfectLineup={isPerfectLineup}
-                  isPreliminary={false}
-                  totalScore={lineup.total_score ?? 0}
-                  movies={movies}
-                />
-              );
-            })}
-          </div>
+                return (
+                  <LeaderboardEntry
+                    key={entry.id}
+                    rank={entry.rank ?? index + 1}
+                    index={index}
+                    username={entry.user.username}
+                    isUserEntry={isUserEntry}
+                    isPerfectLineup={isPerfectLineup}
+                    isPreliminary={false}
+                    totalScore={lineup.total_score ?? 0}
+                    movies={movies}
+                  />
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Navigation */}

@@ -385,6 +385,89 @@ export interface MovieWithTMDBDetails extends Movie {
 }
 
 // ============================================================================
+// FRIENDS TYPES
+// ============================================================================
+
+/**
+ * Friendship status (pending, accepted, rejected)
+ */
+export type FriendRequestStatus = 'pending' | 'accepted' | 'rejected';
+
+/**
+ * Friend invite status
+ */
+export type FriendInviteStatus = 'pending' | 'accepted' | 'cancelled';
+
+/**
+ * Friendship record (bidirectional relationship)
+ */
+export interface Friendship {
+  id: string;
+  user_a_id: string;
+  user_b_id: string;
+  created_at: string;
+}
+
+/**
+ * Friend request record
+ */
+export interface FriendRequest {
+  id: string;
+  from_user_id: string;
+  to_user_id: string;
+  status: FriendRequestStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Friend request with user profile data
+ */
+export interface FriendRequestWithUser extends FriendRequest {
+  from_user: {
+    id: string;
+    username: string;
+  };
+  to_user: {
+    id: string;
+    username: string;
+  };
+}
+
+/**
+ * Friend invite for non-users
+ */
+export interface FriendInvite {
+  id: string;
+  inviter_user_id: string;
+  invited_email: string;
+  invite_token: string;
+  status: FriendInviteStatus;
+  registered_user_id: string | null;
+  created_at: string;
+}
+
+/**
+ * Friend data for display in friends list
+ */
+export interface FriendData {
+  user_id: string;
+  username: string;
+  friendship_id: string;
+  created_at: string;
+}
+
+/**
+ * User search result with friend status
+ */
+export interface UserSearchResult {
+  user_id: string;
+  username: string;
+  friend_status: 'none' | 'friends' | 'pending_sent' | 'pending_received';
+  request_id?: string;
+}
+
+// ============================================================================
 // DESIGN NOTES
 // ============================================================================
 /*

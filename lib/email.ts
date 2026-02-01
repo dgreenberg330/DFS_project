@@ -52,6 +52,11 @@ interface NewContestData extends BaseEmailData {
   contestUrl: string;
 }
 
+interface FriendInviteData {
+  inviterUsername: string;
+  inviteToken: string;
+}
+
 /**
  * Generate lock reminder email HTML
  */
@@ -150,6 +155,56 @@ function contestResultsTemplate(data: ContestResultsData): string {
     </p>
     <p style="margin: 0;">
       <a href="${data.unsubscribeUrl}" style="color: #9ca3af; text-decoration: underline;">Unsubscribe from results</a>
+    </p>
+  </div>
+</body>
+</html>
+  `.trim();
+}
+
+/**
+ * Generate friend invite email HTML
+ */
+function friendInviteTemplate(data: FriendInviteData): string {
+  const signupUrl = `${APP_URL}/signup?invite_token=${data.inviteToken}`;
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>You're Invited to Shugsy</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: #2563eb; padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+    <h1 style="color: white; margin: 0; font-size: 24px;">You're Invited!</h1>
+  </div>
+
+  <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+    <p style="margin-top: 0;">Hey there!</p>
+
+    <p><strong>@${data.inviterUsername}</strong> invited you to join Shugsy, the box office fantasy sports game.</p>
+
+    <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 20px 0;">
+      <h2 style="margin: 0 0 8px 0; font-size: 18px;">How it works</h2>
+      <ul style="margin: 12px 0 0 0; padding-left: 20px; color: #6b7280;">
+        <li>Pick 2-4 movies each week</li>
+        <li>Score points based on real box office results</li>
+        <li>Compete with friends on the leaderboard</li>
+      </ul>
+    </div>
+
+    <p>Sign up now and you'll automatically become friends with @${data.inviterUsername}!</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${signupUrl}" style="background: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Join Shugsy</a>
+    </div>
+  </div>
+
+  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+    <p style="margin: 0;">
+      <a href="${APP_URL}" style="color: #6b7280; text-decoration: none;">Shugsy</a> - Box Office Fantasy
     </p>
   </div>
 </body>
@@ -324,6 +379,36 @@ export async function sendNewContestEmail(
       to,
       subject: `New contest: ${data.contestName}`,
       html: newContestTemplate({ ...data, unsubscribeUrl }),
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, resendId: result?.id };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Send friend invite email
+ */
+export async function sendFriendInviteEmail(
+  to: string,
+  data: FriendInviteData
+): Promise<SendEmailResult> {
+  const resend = getResendClient();
+  if (!resend) {
+    return { success: false, error: 'Email service not configured' };
+  }
+
+  try {
+    const { data: result, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject: `@${data.inviterUsername} invited you to Shugsy`,
+      html: friendInviteTemplate(data),
     });
 
     if (error) {

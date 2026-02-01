@@ -12,6 +12,7 @@ import {
   getEstimateDirection,
 } from '@/actions/scoring';
 import { Header } from '@/components/header';
+import { FriendsSection } from '@/components/friends-section';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import type { Movie, Contest, Lineup, Entry } from '@/types';
@@ -88,6 +89,11 @@ export default async function AccountPage() {
             )}
             <p className="text-sm text-gray-400">{user.email}</p>
           </div>
+        </div>
+
+        {/* Friends Section */}
+        <div className="mb-6">
+          <FriendsSection />
         </div>
 
         {/* Active Contests */}
@@ -361,6 +367,7 @@ export default async function AccountPage() {
             </div>
           </div>
         )}
+
       </div>
     </div>
   );

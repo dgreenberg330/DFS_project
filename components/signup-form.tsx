@@ -9,7 +9,11 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
-export function SignupForm() {
+interface SignupFormProps {
+  inviteToken?: string;
+}
+
+export function SignupForm({ inviteToken }: SignupFormProps) {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -41,7 +45,7 @@ export function SignupForm() {
     setLoading(true);
     setEmailExistsError(false);
 
-    const result = await signUp(email, password, username);
+    const result = await signUp(email, password, username, inviteToken);
 
     setLoading(false);
 
