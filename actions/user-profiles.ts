@@ -89,11 +89,11 @@ export async function setUsername(username: string): Promise<{ error?: string }>
   const trimmed = username.trim();
   const supabase = await createClient();
 
-  // Check if username is already taken
+  // Check if username is already taken (case-insensitive)
   const { data: existing } = await supabase
     .from('user_profiles')
     .select('user_id')
-    .eq('username', trimmed)
+    .ilike('username', trimmed)
     .maybeSingle();
 
   if (existing && existing.user_id !== user.id) {

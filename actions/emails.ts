@@ -19,6 +19,13 @@ import type { EmailPreferencesInput, EmailType } from '@/types';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://shugsy.com';
 
+// Rate limit delay (ms) - Resend allows 2 requests/second, so 550ms gives buffer
+const RATE_LIMIT_DELAY = 550;
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // ============================================================================
 // User Actions
 // ============================================================================
@@ -305,6 +312,9 @@ export async function sendLockReminderEmails(
       failed++;
       errors.push(`${email}: ${result.error}`);
     }
+
+    // Rate limit: wait between sends to avoid hitting Resend's 2 req/sec limit
+    await delay(RATE_LIMIT_DELAY);
   }
 
   return { sent, failed, errors };
@@ -455,6 +465,9 @@ export async function sendContestResultsEmails(
       failed++;
       errors.push(`${email}: ${result.error}`);
     }
+
+    // Rate limit: wait between sends to avoid hitting Resend's 2 req/sec limit
+    await delay(RATE_LIMIT_DELAY);
   }
 
   return { sent, failed, errors };
@@ -577,6 +590,9 @@ export async function sendNewContestEmails(
       failed++;
       errors.push(`${email}: ${result.error}`);
     }
+
+    // Rate limit: wait between sends to avoid hitting Resend's 2 req/sec limit
+    await delay(RATE_LIMIT_DELAY);
   }
 
   return { sent, failed, errors };

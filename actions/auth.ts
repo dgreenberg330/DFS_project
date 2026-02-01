@@ -186,11 +186,11 @@ export async function signUp(email: string, password: string, username: string, 
   const headersList = await headers();
   const origin = headersList.get('origin') || 'http://localhost:3000';
 
-  // Check if username is already taken
+  // Check if username is already taken (case-insensitive)
   const { data: existingUsername } = await supabase
     .from('user_profiles')
     .select('user_id')
-    .eq('username', trimmedUsername)
+    .ilike('username', trimmedUsername)
     .maybeSingle();
 
   if (existingUsername) {
