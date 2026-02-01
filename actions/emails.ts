@@ -17,7 +17,7 @@ import {
 } from '@/lib/email';
 import type { EmailPreferencesInput, EmailType } from '@/types';
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://shugsy.com';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.shugsy.com';
 
 // Rate limit delay (ms) - Resend allows 2 requests/second, so 550ms gives buffer
 const RATE_LIMIT_DELAY = 550;

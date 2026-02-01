@@ -20,7 +20,7 @@ function getResendClient(): Resend | null {
 
 // Email sender configuration
 const FROM_EMAIL = process.env.EMAIL_FROM || 'Shugsy <team@shugsy.com>';
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://shugsy.com';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.shugsy.com';
 
 // ============================================================================
 // Email Templates

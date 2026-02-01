@@ -5,7 +5,7 @@
 import { MetadataRoute } from 'next'
 import { createClient } from '@supabase/supabase-js'
 
-const siteUrl = 'https://shugsy.com'
+const siteUrl = 'https://www.shugsy.com'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Create a simple Supabase client for sitemap generation (no auth needed)

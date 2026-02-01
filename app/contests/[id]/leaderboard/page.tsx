@@ -162,9 +162,9 @@ export default async function LeaderboardPage({ params, searchParams }: PageProp
           />
           <BreadcrumbJsonLd
             items={[
-              { name: 'Home', url: 'https://shugsy.com' },
-              { name: contest.name, url: `https://shugsy.com/contests/${contestId}` },
-              { name: 'Rankings', url: `https://shugsy.com/contests/${contestId}/leaderboard` },
+              { name: 'Home', url: 'https://www.shugsy.com' },
+              { name: contest.name, url: `https://www.shugsy.com/contests/${contestId}` },
+              { name: 'Rankings', url: `https://www.shugsy.com/contests/${contestId}/leaderboard` },
             ]}
           />
           <Header />
@@ -318,9 +318,9 @@ export default async function LeaderboardPage({ params, searchParams }: PageProp
       />
       <BreadcrumbJsonLd
         items={[
-          { name: 'Home', url: 'https://shugsy.com' },
-          { name: contest.name, url: `https://shugsy.com/contests/${contestId}` },
-          { name: 'Leaderboard', url: `https://shugsy.com/contests/${contestId}/leaderboard` },
+          { name: 'Home', url: 'https://www.shugsy.com' },
+          { name: contest.name, url: `https://www.shugsy.com/contests/${contestId}` },
+          { name: 'Leaderboard', url: `https://www.shugsy.com/contests/${contestId}/leaderboard` },
         ]}
       />
       <Header />

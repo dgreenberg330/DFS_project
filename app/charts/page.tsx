@@ -58,8 +58,8 @@ export default async function ChartsPage() {
     <div className="min-h-screen bg-dark-bg">
       <BreadcrumbJsonLd
         items={[
-          { name: 'Home', url: 'https://shugsy.com' },
-          { name: 'Charts', url: 'https://shugsy.com/charts' },
+          { name: 'Home', url: 'https://www.shugsy.com' },
+          { name: 'Charts', url: 'https://www.shugsy.com/charts' },
         ]}
       />
       <Header />

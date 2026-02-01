@@ -119,12 +119,12 @@ export default async function ContestPage({ params }: PageProps) {
         description={`Predict opening weekend box office for movies like ${contest.movies?.slice(0, 3).map((m: Movie) => m.title).join(', ') || 'this weekend\'s releases'}. Free fantasy sports game.`}
         startDate={weekendStart.toISOString()}
         endDate={weekendEnd.toISOString()}
-        url={`https://shugsy.com/contests/${contestId}`}
+        url={`https://www.shugsy.com/contests/${contestId}`}
       />
       <BreadcrumbJsonLd
         items={[
-          { name: 'Home', url: 'https://shugsy.com' },
-          { name: contest.name, url: `https://shugsy.com/contests/${contestId}` },
+          { name: 'Home', url: 'https://www.shugsy.com' },
+          { name: contest.name, url: `https://www.shugsy.com/contests/${contestId}` },
         ]}
       />
       <Header />
