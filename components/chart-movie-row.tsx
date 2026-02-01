@@ -100,23 +100,19 @@ export function ChartMovieRow({ movie, contestStatus }: ChartMovieRowProps) {
 
   // Determine what to display for score
   let scoreValue: number;
-  let scoreLabel: string;
   let showDirection = false;
 
   if (isResolved && movie.actual_gross !== null) {
     // Final score
     scoreValue = movie.actual_gross;
-    scoreLabel = 'pts';
     showDirection = true;
   } else if (isLocked && hasEstimates && currentEstimate !== null) {
     // Estimated score during locked contest
     scoreValue = currentEstimate;
-    scoreLabel = 'est.';
     showDirection = true;
   } else {
     // Projection (upcoming or no estimates)
     scoreValue = movie.projected_gross;
-    scoreLabel = 'proj.';
   }
 
   const scoreColor =
@@ -135,20 +131,16 @@ export function ChartMovieRow({ movie, contestStatus }: ChartMovieRowProps) {
           <h3 className="text-base font-semibold text-gray-100 leading-tight">{movie.title}</h3>
           <div className="flex-shrink-0 ml-2">
             {(isResolved || (isLocked && hasEstimates)) ? (
-              <div className={`text-sm font-bold flex items-center gap-1 ${scoreColor}`}>
-                <span className="text-[10px] text-gray-500 uppercase">{isResolved ? 'Score:' : 'Est:'}</span>
-                {showDirection && direction === 'uptick' && (
-                  <img src="/uptick.png" alt="" className="w-3 h-3" />
-                )}
-                {showDirection && direction === 'downtick' && (
-                  <img src="/downtick.png" alt="" className="w-3 h-3" />
-                )}
-                {scoreValue.toFixed(1)} {scoreLabel}
-              </div>
-            ) : (
+              /* When estimates/score available: show Cost here, Est moves to floated section */
               <div className="text-sm font-semibold text-accent flex items-center gap-1">
                 <span className="text-[10px] text-gray-500 uppercase">Cost:</span>
                 ${movie.salary.toLocaleString()}
+              </div>
+            ) : (
+              /* When no estimates: show Est (projection) here */
+              <div className="text-sm font-semibold text-gray-100 flex items-center gap-1">
+                <span className="text-[10px] text-gray-500 uppercase">Est:</span>
+                ${movie.projected_gross.toFixed(1)}M
               </div>
             )}
           </div>
@@ -185,7 +177,25 @@ export function ChartMovieRow({ movie, contestStatus }: ChartMovieRowProps) {
           {/* Floated Game Info (right) */}
           <div className="float-right text-right ml-2 w-16 -mt-0.5">
             <div className="space-y-1">
+              {/* When estimates available: show Est here (swapped with title row) */}
               {(isResolved || (isLocked && hasEstimates)) && (
+                <div>
+                  <div className="text-[10px] text-gray-500 uppercase">
+                    {isResolved ? 'Score' : 'Est'}
+                  </div>
+                  <div className={`text-sm font-bold flex items-center justify-end gap-1 ${scoreColor}`}>
+                    {showDirection && direction === 'uptick' && (
+                      <img src="/uptick.png" alt="" className="w-3 h-3" />
+                    )}
+                    {showDirection && direction === 'downtick' && (
+                      <img src="/downtick.png" alt="" className="w-3 h-3" />
+                    )}
+                    ${scoreValue.toFixed(1)}M
+                  </div>
+                </div>
+              )}
+              {/* When no estimates: show Cost here (swapped with title row) */}
+              {!isResolved && !(isLocked && hasEstimates) && (
                 <div>
                   <div className="text-[10px] text-gray-500 uppercase">Cost</div>
                   <div className="text-sm font-semibold text-accent">${movie.salary.toLocaleString()}</div>
@@ -338,6 +348,24 @@ export function ChartMovieRow({ movie, contestStatus }: ChartMovieRowProps) {
               </div>
             </div>
 
+            {/* Estimate (shown above projection when available) */}
+            {(isResolved || (isLocked && hasEstimates)) && (
+              <div>
+                <div className="text-xs text-gray-500 uppercase tracking-wide">
+                  {isResolved ? 'Score' : 'Estimate'}
+                </div>
+                <div className={`text-lg font-bold flex items-center justify-end gap-1 ${scoreColor}`}>
+                  {showDirection && direction === 'uptick' && (
+                    <img src="/uptick.png" alt="" className="w-3.5 h-3.5" />
+                  )}
+                  {showDirection && direction === 'downtick' && (
+                    <img src="/downtick.png" alt="" className="w-3.5 h-3.5" />
+                  )}
+                  ${scoreValue.toFixed(1)}M
+                </div>
+              </div>
+            )}
+
             {/* Projection */}
             <div>
               <div className="text-xs text-gray-500 uppercase tracking-wide">Projection</div>
@@ -352,24 +380,6 @@ export function ChartMovieRow({ movie, contestStatus }: ChartMovieRowProps) {
                 <div className="text-xs text-gray-500 uppercase tracking-wide">Last week</div>
                 <div className="text-base text-gray-100">
                   ${movie.prior_week_gross.toFixed(1)}M
-                </div>
-              </div>
-            )}
-
-            {/* Score (shown for resolved or locked with estimates) */}
-            {(isResolved || (isLocked && hasEstimates)) && (
-              <div>
-                <div className="text-xs text-gray-500 uppercase tracking-wide">
-                  {isResolved ? 'Score' : 'Estimate'}
-                </div>
-                <div className={`text-lg font-bold flex items-center justify-end gap-1 ${scoreColor}`}>
-                  {showDirection && direction === 'uptick' && (
-                    <img src="/uptick.png" alt="" className="w-3.5 h-3.5" />
-                  )}
-                  {showDirection && direction === 'downtick' && (
-                    <img src="/downtick.png" alt="" className="w-3.5 h-3.5" />
-                  )}
-                  {scoreValue.toFixed(1)} {scoreLabel}
                 </div>
               </div>
             )}

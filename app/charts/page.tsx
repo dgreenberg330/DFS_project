@@ -6,8 +6,9 @@ import { getChartsContestData } from '@/actions/charts';
 import { Header } from '@/components/header';
 import { ChartMovieRow } from '@/components/chart-movie-row';
 import { BreadcrumbJsonLd } from '@/components/json-ld';
+import { getCurrentEstimateDay } from '@/lib/estimate-utils';
 import type { Metadata } from 'next';
-import type { ContestStatus } from '@/types';
+import type { ContestStatus, EstimateDay } from '@/types';
 
 export const metadata: Metadata = {
   title: 'Box Office Charts | Shugsy',
@@ -28,8 +29,30 @@ export const metadata: Metadata = {
   },
 };
 
+function getEstimateBannerText(estimateDay: EstimateDay): string | null {
+  switch (estimateDay) {
+    case 'friday':
+      return 'Friday estimates released!';
+    case 'saturday':
+      return 'Friday & Saturday estimates released!';
+    case 'sunday':
+      return 'Weekend estimates released!';
+    default:
+      return null;
+  }
+}
+
 export default async function ChartsPage() {
   const { contest, movies } = await getChartsContestData();
+
+  // Determine highest estimate day across all movies
+  const estimateDays: EstimateDay[] = movies.map((m) => getCurrentEstimateDay(m));
+  const dayPriority: Record<EstimateDay, number> = { none: 0, friday: 1, saturday: 2, sunday: 3, final: 4 };
+  const highestEstimateDay = estimateDays.reduce<EstimateDay>(
+    (highest, current) => (dayPriority[current] > dayPriority[highest] ? current : highest),
+    'none'
+  );
+  const bannerText = getEstimateBannerText(highestEstimateDay);
 
   return (
     <div className="min-h-screen bg-dark-bg">
@@ -42,6 +65,13 @@ export default async function ChartsPage() {
       <Header />
 
       <main id="main-content" className="max-w-4xl mx-auto px-4 py-8 w-full">
+        {/* Estimate Banner */}
+        {bannerText && (
+          <div className="mb-4 bg-accent/10 border border-accent/30 rounded-lg px-4 py-3 text-center">
+            <span className="text-accent font-semibold">{bannerText}</span>
+          </div>
+        )}
+
         {/* Page Header */}
         <div className="mb-6">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-100">
