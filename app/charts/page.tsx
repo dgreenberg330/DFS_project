@@ -65,15 +65,8 @@ export default async function ChartsPage() {
       <Header />
 
       <main id="main-content" className="max-w-4xl mx-auto px-4 py-8 w-full">
-        {/* Estimate Banner */}
-        {bannerText && (
-          <div className="mb-4 bg-accent/10 border border-accent/30 rounded-lg px-4 py-3 text-center">
-            <span className="text-accent font-semibold">{bannerText}</span>
-          </div>
-        )}
-
         {/* Page Header */}
-        <div className="mb-6">
+        <div className="mb-4">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-100">
             Box Office Charts
           </h1>
@@ -83,6 +76,13 @@ export default async function ChartsPage() {
               : "This week's movies with projections and results"}
           </p>
         </div>
+
+        {/* Estimate Banner */}
+        {bannerText && (
+          <div className="mb-4 bg-accent/10 border border-accent/30 rounded-lg px-4 py-3 text-center">
+            <span className="text-accent font-semibold">{bannerText}</span>
+          </div>
+        )}
 
         {/* Movie List */}
         {movies.length > 0 ? (

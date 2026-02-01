@@ -6,13 +6,14 @@ import { getUser } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { getPastEntries } from '@/actions/account';
 import { getUserProfile } from '@/actions/user-profiles';
+import { getFriends, getIncomingFriendRequests } from '@/actions/friends';
 import {
   getCurrentEstimateDay,
   calculateCurrentEstimate,
   getEstimateDirection,
 } from '@/actions/scoring';
 import { Header } from '@/components/header';
-import { FriendsSection } from '@/components/friends-section';
+import { IncomingFriendRequests } from '@/components/incoming-friend-requests';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import type { Movie, Contest, Lineup, Entry } from '@/types';
@@ -46,8 +47,12 @@ export default async function AccountPage() {
     redirect('/login');
   }
 
-  // Fetch user profile - may be null if profile creation failed
-  const profile = await getUserProfile();
+  // Fetch user profile and friends data
+  const [profile, friends, incomingRequests] = await Promise.all([
+    getUserProfile(),
+    getFriends(),
+    getIncomingFriendRequests(),
+  ]);
 
   // Fetch past contest entries with error handling
   let allEntries: EntryData[] = [];
@@ -82,19 +87,39 @@ export default async function AccountPage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Account Header */}
         <div className="bg-dark-elevated rounded-lg border border-dark-border p-6 mb-6">
-          <div className="space-y-1">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-100">Account</h1>
-            {profile && (
-              <p className="text-base sm:text-lg text-gray-300">@{profile.username}</p>
-            )}
-            <p className="text-sm text-gray-400">{user.email}</p>
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-100">Account</h1>
+              {profile && (
+                <p className="text-base sm:text-lg text-gray-300">@{profile.username}</p>
+              )}
+              <p className="text-sm text-gray-400">{user.email}</p>
+            </div>
+            <div className="text-right">
+              <Link
+                href="/friends"
+                className="text-base font-medium text-gray-100 hover:text-accent transition-colors"
+              >
+                {friends.length} {friends.length === 1 ? 'Friend' : 'Friends'}
+              </Link>
+              {incomingRequests.length > 0 && (
+                <Link
+                  href="/friends"
+                  className="block text-sm text-accent hover:text-accent-dark transition-colors"
+                >
+                  {incomingRequests.length} {incomingRequests.length === 1 ? 'Request' : 'Requests'}
+                </Link>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Friends Section */}
-        <div className="mb-6">
-          <FriendsSection />
-        </div>
+        {/* Incoming Friend Requests */}
+        {incomingRequests.length > 0 && (
+          <div className="mb-6">
+            <IncomingFriendRequests requests={incomingRequests} />
+          </div>
+        )}
 
         {/* Active Contests */}
         {activeEntries.length > 0 && (

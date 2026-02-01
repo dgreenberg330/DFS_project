@@ -110,7 +110,7 @@ export function UserSearch() {
 
       {/* Search Results Dropdown */}
       {isOpen && results.length > 0 && (
-        <div className="absolute z-10 w-full mt-1 bg-dark-elevated border border-dark-border rounded-lg shadow-lg overflow-hidden">
+        <div className="absolute z-50 w-full mt-1 bg-dark-elevated border border-dark-border rounded-lg shadow-lg overflow-hidden">
           {results.map((user) => (
             <div
               key={user.user_id}
@@ -154,7 +154,7 @@ export function UserSearch() {
 
       {/* No results message */}
       {isOpen && query.length >= 2 && results.length === 0 && !isPending && (
-        <div className="absolute z-10 w-full mt-1 bg-dark-elevated border border-dark-border rounded-lg shadow-lg p-3">
+        <div className="absolute z-50 w-full mt-1 bg-dark-elevated border border-dark-border rounded-lg shadow-lg p-3">
           <p className="text-sm text-gray-400">No users found</p>
         </div>
       )}

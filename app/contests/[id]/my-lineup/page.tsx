@@ -266,7 +266,7 @@ export default async function MyLineupPage({ params }: PageProps) {
               <div className="text-xs text-gray-400">Movies</div>
             </div>
             <div>
-              <div className="text-xl sm:text-2xl font-bold text-gray-100">${totalSalary}</div>
+              <div className="text-xl sm:text-2xl font-bold text-gray-100">${totalSalary.toLocaleString()}</div>
               <div className="text-xs text-gray-400">Total Salary</div>
             </div>
             <div>
@@ -381,7 +381,7 @@ export default async function MyLineupPage({ params }: PageProps) {
                         </div>
                       )}
                       {/* Salary - Bottom, smallest */}
-                      <div className="text-xs text-gray-500">${movie.salary}</div>
+                      <div className="text-xs text-gray-500">${movie.salary.toLocaleString()}</div>
                     </div>
                   </div>
                 </div>
