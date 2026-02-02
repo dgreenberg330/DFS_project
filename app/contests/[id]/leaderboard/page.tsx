@@ -38,10 +38,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: isPreliminary ? `${contest.name} Current Rankings` : `${contest.name} Leaderboard`,
       description,
       url: `https://www.shugsy.com/contests/${contestId}/leaderboard`,
-      images: [{ url: '/shugsy-share.png', width: 1200, height: 628 }],
+      images: [{ url: '/shugsy-preview-card.png', width: 1200, height: 628 }],
     },
     twitter: {
-      images: [{ url: '/shugsy-share.png', width: 1200, height: 628 }],
+      images: [{ url: '/shugsy-preview-card.png', width: 1200, height: 628 }],
     },
     alternates: {
       canonical: `https://www.shugsy.com/contests/${contestId}/leaderboard`,

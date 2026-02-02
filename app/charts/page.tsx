@@ -22,10 +22,10 @@ export const metadata: Metadata = {
     description:
       "Track this week's movie slate with projections and box office results for fantasy sports.",
     url: 'https://www.shugsy.com/charts',
-    images: [{ url: '/shugsy-share.png', width: 1200, height: 628 }],
+    images: [{ url: '/shugsy-preview-card.png', width: 1200, height: 628 }],
   },
   twitter: {
-    images: [{ url: '/shugsy-share.png', width: 1200, height: 628 }],
+    images: [{ url: '/shugsy-preview-card.png', width: 1200, height: 628 }],
   },
 };
 
