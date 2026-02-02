@@ -29,10 +29,9 @@ export const metadata: Metadata = {
   publisher: 'Shugsy',
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: '48x48' },
-      { url: '/logo_s_square.png', sizes: '236x236', type: 'image/png' },
+      { url: '/profile-pic-official.png', sizes: '1024x1024', type: 'image/png' },
     ],
-    apple: '/logo_s_square.png',
+    apple: '/profile-pic-official.png',
   },
   manifest: '/manifest.json',
   openGraph: {
