@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
-    images: [{ url: '/shugsy-twitter-share.png', width: 800, height: 800 }],
+    images: [{ url: '/shugsy-twitter-share.png?v=1', width: 800, height: 800 }],
   },
 };
 
