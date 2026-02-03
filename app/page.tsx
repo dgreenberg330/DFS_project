@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     title: 'Shugsy - Fantasy Sports for the Box Office',
     description: 'Play free box office fantasy sports. Pick movies, predict grosses, win the weekend!',
     url: 'https://www.shugsy.com',
-    images: [{ url: '/shugsy-preview-card.png?v=2', width: 1200, height: 628 }],
+    images: [{ url: 'https://i.imgur.com/2xJ0DV8.png', width: 1200, height: 628 }],
   },
   twitter: {
     card: 'summary_large_image',

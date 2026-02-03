@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: `${contest.name} - Box Office Fantasy Contest`,
       description,
       url: `https://www.shugsy.com/contests/${contestId}`,
-      images: [{ url: '/shugsy-preview-card.png?v=2', width: 1200, height: 628 }],
+      images: [{ url: 'https://i.imgur.com/2xJ0DV8.png', width: 1200, height: 628 }],
     },
     twitter: {
       card: 'summary_large_image',
