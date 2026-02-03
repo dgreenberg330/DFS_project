@@ -51,10 +51,9 @@ export const metadata: Metadata = {
     ],
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: 'Shugsy - Fantasy Sports for the Box Office',
     description: 'Free fantasy sports game for movie box office. Pick your lineup of movies and compete on the leaderboard.',
-    images: ['/shugsy-twitter-share.png?v=1'],
   },
   robots: {
     index: true,
