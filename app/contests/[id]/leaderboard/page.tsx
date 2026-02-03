@@ -42,6 +42,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: 'summary_large_image',
+      images: {
+        url: 'https://www.shugsy.com/shugsy-preview-card.png',
+        type: 'image/png',
+        width: 1200,
+        height: 628,
+      },
     },
     alternates: {
       canonical: `https://www.shugsy.com/contests/${contestId}/leaderboard`,

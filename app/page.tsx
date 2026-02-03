@@ -24,6 +24,12 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
+    images: {
+      url: 'https://www.shugsy.com/shugsy-preview-card.png',
+      type: 'image/png',
+      width: 1200,
+      height: 628,
+    },
   },
 };
 
