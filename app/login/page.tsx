@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     images: {
-      url: 'https://www.shugsy.com/shugsy-preview-card.png?v=2',
+      url: 'https://i.imgur.com/2xJ0DV8.png',
       type: 'image/png',
       width: 1200,
       height: 628,
