@@ -2,7 +2,7 @@
 // Cron Endpoint: Auto-Lock Contests
 // ============================================================================
 // Vercel Cron calls this endpoint to automatically lock expired contests
-// Schedule: Friday 00:00 and 01:00 UTC (covers Thursday 8PM ET in both EDT and EST)
+// Schedule: Friday 01:00 UTC (Thursday 8PM EST / 9PM EDT)
 // ============================================================================
 
 import { NextResponse } from 'next/server';
