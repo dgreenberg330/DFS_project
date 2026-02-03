@@ -46,10 +46,11 @@ function getWeeksInTheater(releaseDate: string): number {
 }
 
 /**
- * Checks if movie is new (first week)
+ * Checks if movie is new (opening weekend, not a holdover)
+ * Uses prior_week_gross as the indicator — holdover movies have prior weekend data
  */
-function isNewRelease(releaseDate: string): boolean {
-  return getWeeksInTheater(releaseDate) === 1;
+function isNewRelease(priorWeekGross: number | null): boolean {
+  return priorWeekGross === null;
 }
 
 /**
@@ -167,7 +168,7 @@ export function ChartMovieRow({ movie, contestStatus }: ChartMovieRowProps) {
                 </span>
               </div>
             )}
-            {isNewRelease(movie.release_date) && (
+            {isNewRelease(movie.prior_week_gross) && (
               <div className="absolute bottom-0 left-0 bg-green-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-tr">
                 NEW
               </div>
@@ -205,7 +206,7 @@ export function ChartMovieRow({ movie, contestStatus }: ChartMovieRowProps) {
                 <div className="text-[10px] text-gray-500 uppercase">Proj</div>
                 <div className="text-xs text-gray-100">${movie.projected_gross.toFixed(1)}M</div>
               </div>
-              {!isNewRelease(movie.release_date) && movie.prior_week_gross !== null && (
+              {!isNewRelease(movie.prior_week_gross) && movie.prior_week_gross !== null && (
                 <div>
                   <div className="text-[10px] text-gray-500 uppercase">Last wk</div>
                   <div className="text-xs text-gray-100">${movie.prior_week_gross.toFixed(1)}M</div>
@@ -277,7 +278,7 @@ export function ChartMovieRow({ movie, contestStatus }: ChartMovieRowProps) {
               </span>
             </div>
           )}
-          {isNewRelease(movie.release_date) && (
+          {isNewRelease(movie.prior_week_gross) && (
             <div className="absolute bottom-0 left-0 bg-green-600 text-white text-xs font-bold px-2 py-0.5 rounded-tr">
               NEW
             </div>
@@ -375,7 +376,7 @@ export function ChartMovieRow({ movie, contestStatus }: ChartMovieRowProps) {
             </div>
 
             {/* Last week (for holdovers) */}
-            {!isNewRelease(movie.release_date) && movie.prior_week_gross !== null && (
+            {!isNewRelease(movie.prior_week_gross) && movie.prior_week_gross !== null && (
               <div>
                 <div className="text-xs text-gray-500 uppercase tracking-wide">Last week</div>
                 <div className="text-base text-gray-100">

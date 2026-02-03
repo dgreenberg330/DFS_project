@@ -8,17 +8,11 @@ import { getTMDBPosterUrl } from '@/lib/tmdb';
 import type { Movie } from '@/types';
 
 /**
- * Checks if movie is new (first week in theater)
+ * Checks if movie is new (opening weekend, not a holdover)
+ * Uses prior_week_gross as the indicator — holdover movies have prior weekend data
  */
-function isNewRelease(releaseDate: string): boolean {
-  // Parse as local date to avoid timezone issues
-  const [year, month, day] = releaseDate.split('-').map(Number);
-  const release = new Date(year, month - 1, day);
-  const now = new Date();
-  const diffTime = now.getTime() - release.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  const weeks = Math.max(1, Math.ceil(diffDays / 7));
-  return weeks === 1;
+function isNewRelease(priorWeekGross: number | null): boolean {
+  return priorWeekGross === null;
 }
 
 interface MovieCardProps {
@@ -136,7 +130,7 @@ export function MovieCard({
         )}
 
         {/* New release banner */}
-        {isNewRelease(movie.release_date) && (
+        {isNewRelease(movie.prior_week_gross) && (
           <div className="absolute bottom-0 left-0 bg-green-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-tr">
             NEW
           </div>

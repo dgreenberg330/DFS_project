@@ -72,19 +72,19 @@ function lockReminderTemplate(data: LockReminderData): string {
   <title>Lineups Lock Soon</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: #2563eb; padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">Lineups Lock in ${hoursText}!</h1>
+  <div style="background: #7c3aed; padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+    <h1 style="color: white; margin: 0; font-size: 24px;">This Weekend's Contest Locks in ${hoursText}!</h1>
   </div>
 
   <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
     <p style="margin-top: 0;">Hey @${data.username},</p>
 
-    <p>Don't miss out! <strong>${data.contestName}</strong> locks in <strong>${hoursText}</strong>.</p>
+    <p>This weekend's contest locks in <strong>${hoursText}</strong>.</p>
 
     <p>Make sure your lineup is set before Thursday at 8PM ET.</p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${data.contestUrl}" style="background: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">View Contest</a>
+      <a href="${data.contestUrl}" style="background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">View Contest</a>
     </div>
 
     <p style="color: #6b7280; font-size: 14px;">Good luck this weekend!</p>
@@ -109,7 +109,7 @@ function lockReminderTemplate(data: LockReminderData): string {
 function contestResultsTemplate(data: ContestResultsData): string {
   const rankSuffix = getRankSuffix(data.rank);
   const isWinner = data.rank === 1;
-  const headerColor = isWinner ? '#059669' : '#1e40af';
+  const headerColor = isWinner ? '#059669' : '#7c3aed';
   const headerText = isWinner ? 'You Won!' : 'Results Are In!';
 
   return `
@@ -128,10 +128,10 @@ function contestResultsTemplate(data: ContestResultsData): string {
   <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
     <p style="margin-top: 0;">Hey @${data.username},</p>
 
-    <p>Final results for <strong>${data.contestName}</strong> are in!</p>
+    <p>Final results for this weekend are in!</p>
 
     <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
-      <div style="font-size: 48px; font-weight: bold; color: ${isWinner ? '#059669' : '#2563eb'};">
+      <div style="font-size: 48px; font-weight: bold; color: ${isWinner ? '#059669' : '#7c3aed'};">
         ${data.rank}${rankSuffix}
       </div>
       <div style="color: #6b7280; font-size: 14px; margin-top: 4px;">
@@ -145,7 +145,7 @@ function contestResultsTemplate(data: ContestResultsData): string {
     ${isWinner ? '<p style="text-align: center; font-size: 18px;">Congratulations on the win!</p>' : ''}
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${data.leaderboardUrl}" style="background: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">View Leaderboard</a>
+      <a href="${data.leaderboardUrl}" style="background: ${isWinner ? '#059669' : '#7c3aed'}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">View Leaderboard</a>
     </div>
   </div>
 
@@ -232,7 +232,7 @@ function newContestTemplate(data: NewContestData): string {
   <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
     <p style="margin-top: 0;">Hey @${data.username},</p>
 
-    <p>A new box office contest is ready for you!</p>
+    <p>A new contest is ready for you!</p>
 
     <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 20px 0;">
       <h2 style="margin: 0 0 8px 0; font-size: 18px;">${data.contestName}</h2>
@@ -240,7 +240,7 @@ function newContestTemplate(data: NewContestData): string {
       <p style="margin: 12px 0 0 0; font-size: 14px;"><strong>${data.movieCount} movies</strong> to choose from</p>
     </div>
 
-    <p>Build your lineup now and predict which movies will dominate the box office!</p>
+    <p>Build your lineup now!</p>
 
     <div style="text-align: center; margin: 30px 0;">
       <a href="${data.contestUrl}" style="background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Enter Contest</a>
@@ -307,7 +307,7 @@ export async function sendLockReminderEmail(
     const { data: result, error } = await resend.emails.send({
       from: FROM_EMAIL,
       to,
-      subject: `Lineups lock in ${data.hoursUntilLock} hours - ${data.contestName}`,
+      subject: `This weekend's contest locks in ${data.hoursUntilLock} hours`,
       html: lockReminderTemplate({ ...data, unsubscribeUrl }),
     });
 
@@ -337,8 +337,8 @@ export async function sendContestResultsEmail(
   const unsubscribeUrl = getUnsubscribeUrl(unsubscribeToken, 'contest_results');
   const isWinner = data.rank === 1;
   const subject = isWinner
-    ? `You won ${data.contestName}!`
-    : `Your results for ${data.contestName}`;
+    ? `You won this weekend's contest!`
+    : `Your results for this weekend's contest`;
 
   try {
     const { data: result, error } = await resend.emails.send({

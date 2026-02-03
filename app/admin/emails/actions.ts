@@ -41,19 +41,19 @@ function lockReminderTemplate(): string {
   <title>Lineups Lock Soon</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: #2563eb; padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">Lineups Lock in 3 hours!</h1>
+  <div style="background: #7c3aed; padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+    <h1 style="color: white; margin: 0; font-size: 24px;">This Weekend's Contest Locks in 3 hours!</h1>
   </div>
 
   <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
     <p style="margin-top: 0;">Hey @${SAMPLE_DATA.username},</p>
 
-    <p>Don't miss out! <strong>${SAMPLE_DATA.contestName}</strong> locks in <strong>3 hours</strong>.</p>
+    <p>This weekend's contest locks in <strong>3 hours</strong>.</p>
 
     <p>Make sure your lineup is set before Thursday at 8PM ET.</p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${APP_URL}/contests/sample" style="background: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">View Contest</a>
+      <a href="${APP_URL}/contests/sample" style="background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">View Contest</a>
     </div>
 
     <p style="color: #6b7280; font-size: 14px;">Good luck this weekend!</p>
@@ -75,7 +75,7 @@ function lockReminderTemplate(): string {
 function contestResultsTemplate(isWinner: boolean = false): string {
   const rank = isWinner ? 1 : 3;
   const rankSuffix = getRankSuffix(rank);
-  const headerColor = isWinner ? '#059669' : '#1e40af';
+  const headerColor = isWinner ? '#059669' : '#7c3aed';
   const headerText = isWinner ? 'You Won!' : 'Results Are In!';
 
   return `
@@ -94,10 +94,10 @@ function contestResultsTemplate(isWinner: boolean = false): string {
   <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
     <p style="margin-top: 0;">Hey @${SAMPLE_DATA.username},</p>
 
-    <p>Final results for <strong>${SAMPLE_DATA.contestName}</strong> are in!</p>
+    <p>Final results for this weekend are in!</p>
 
     <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
-      <div style="font-size: 48px; font-weight: bold; color: ${isWinner ? '#059669' : '#2563eb'};">
+      <div style="font-size: 48px; font-weight: bold; color: ${isWinner ? '#059669' : '#7c3aed'};">
         ${rank}${rankSuffix}
       </div>
       <div style="color: #6b7280; font-size: 14px; margin-top: 4px;">
@@ -111,7 +111,7 @@ function contestResultsTemplate(isWinner: boolean = false): string {
     ${isWinner ? '<p style="text-align: center; font-size: 18px;">Congratulations on the win!</p>' : ''}
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${APP_URL}/contests/sample/leaderboard" style="background: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">View Leaderboard</a>
+      <a href="${APP_URL}/contests/sample/leaderboard" style="background: ${isWinner ? '#059669' : '#7c3aed'}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">View Leaderboard</a>
     </div>
   </div>
 
@@ -145,7 +145,7 @@ function newContestTemplate(): string {
   <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
     <p style="margin-top: 0;">Hey @${SAMPLE_DATA.username},</p>
 
-    <p>A new box office contest is ready for you!</p>
+    <p>A new contest is ready for you!</p>
 
     <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 20px 0;">
       <h2 style="margin: 0 0 8px 0; font-size: 18px;">${SAMPLE_DATA.contestName}</h2>
@@ -153,7 +153,7 @@ function newContestTemplate(): string {
       <p style="margin: 12px 0 0 0; font-size: 14px;"><strong>8 movies</strong> to choose from</p>
     </div>
 
-    <p>Build your lineup now and predict which movies will dominate the box office!</p>
+    <p>Build your lineup now!</p>
 
     <div style="text-align: center; margin: 30px 0;">
       <a href="${APP_URL}/contests/sample" style="background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Enter Contest</a>
@@ -212,11 +212,11 @@ export async function sendTestEmail(
   switch (emailType) {
     case 'lock_reminder':
       html = lockReminderTemplate();
-      subject = `[TEST] Lineups lock in 3 hours - ${SAMPLE_DATA.contestName}`;
+      subject = `[TEST] This weekend's contest locks in 3 hours`;
       break;
     case 'contest_results':
       html = contestResultsTemplate(false);
-      subject = `[TEST] Your results for ${SAMPLE_DATA.contestName}`;
+      subject = `[TEST] Your results for this weekend's contest`;
       break;
     case 'new_contest':
       html = newContestTemplate();
