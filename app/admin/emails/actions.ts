@@ -42,15 +42,15 @@ function lockReminderTemplate(): string {
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: #7c3aed; padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">This Weekend's Contest Locks in 3 hours!</h1>
+    <h1 style="color: white; margin: 0; font-size: 24px;">Lineups Lock in 3 hours!</h1>
   </div>
 
   <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
     <p style="margin-top: 0;">Hey @${SAMPLE_DATA.username},</p>
 
-    <p>This weekend's contest locks in <strong>3 hours</strong>.</p>
+    <p>Don't miss out! This weekend's contest locks in <strong>3 hours</strong>.</p>
 
-    <p>Make sure your lineup is set before Thursday at 8PM ET.</p>
+    <p>Make sure your lineup is set before Thursday 8PM ET.</p>
 
     <div style="text-align: center; margin: 30px 0;">
       <a href="${APP_URL}/contests/sample" style="background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">View Contest</a>
