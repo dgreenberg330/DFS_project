@@ -27,14 +27,25 @@ This is a box office fantasy sports game where users create lineups of movies to
 ```
 /app                    # Next.js App Router (pages and layouts)
   /admin               # Protected admin routes
-  /contests/[id]       # Dynamic contest pages
+  /account             # User account and past results
+  /charts              # Box office charts with projections
+  /contests/[id]       # Dynamic contest pages (lineup builder, leaderboard)
+  /friends             # Friends list, search, invites
+  /settings            # User settings and email preferences
   /auth/callback       # OAuth callback handler
+  /forgot-password     # Password reset flow
+  /login, /signup      # Authentication pages
+  /privacy, /terms     # Legal pages
+  /credits             # Attribution page
 /components            # Reusable React components (mostly client)
+  /admin               # Admin-specific components
 /actions               # Server actions ('use server')
-/lib                   # Utilities and Supabase clients
-/public                # Static assets
+/lib                   # Utilities, Supabase clients, email service
+/public                # Static assets (logos, badges, icons)
+/migrations            # SQL migration files for Supabase
 types.ts               # Centralized TypeScript definitions
-middleware.ts          # Session refresh middleware
+middleware.ts          # Session refresh, security headers, CSP
+next.config.js         # Social media tracking redirects
 ```
 
 ## Core Architecture
@@ -57,14 +68,23 @@ Contests and lineups flow through distinct states:
 
 All contest times stored in UTC, displayed in ET on frontend. Lock time: Thursday 8PM ET.
 
-### Frontend Pages (6 total)
+### Frontend Pages
 
+**Public Pages:**
 1. Landing page - Value proposition, CTA to current contest
 2. Contest page - Rules, entry count, countdown to lock
-3. Lineup builder - Real-time salary validation, prevent illegal lineups, show projected total
-4. My lineup - Read-only view after submission
-5. Leaderboard - Ranks and scores (updates only after final scoring, no live updates in MVP)
-6. Account - Login, past results
+3. Charts page - Weekly movie slate with projections, estimates, and actuals
+4. Login/Signup - Authentication with email/password
+5. Privacy/Terms - Legal pages
+6. Forgot password - Password reset flow
+
+**Authenticated Pages:**
+7. Lineup builder - Real-time salary validation, prevent illegal lineups
+8. My lineup - Read-only view after submission with perfect lineup badge
+9. Leaderboard - Ranks and scores with friends filtering
+10. Account - Past results, performance stats
+11. Friends - Search users, send/manage invites, friends list
+12. Settings - Email preferences, account settings
 
 ### Lineup Constraints
 
@@ -99,6 +119,26 @@ Salaries derived from projected opening weekend gross using linear scale:
 
 Note: Manual data entry acceptable until 100+ weekly users. Carryover movies (second weekend, released in last 14 days) are optional and must be explicitly added by admin.
 
+### Charts Page
+
+Public page showing weekly movie slate with:
+- Movie posters (from TMDB API)
+- Projections, Friday/Saturday estimates, final actuals
+- Salary information
+- Theater counts
+
+Related files: `app/charts/page.tsx`, `actions/charts.ts`, `components/chart-movie-row.tsx`, `lib/tmdb-api.ts`
+
+### Friends Feature
+
+Users can add friends and filter leaderboards to compete with their social circle:
+- **User search** - Find users by username (case-insensitive)
+- **Friend invites** - Send/accept/decline friend requests
+- **Friends list** - View and manage friends
+- **Leaderboard filtering** - Toggle between "All" and "Friends Only" views
+
+Related files: `actions/friends.ts`, `actions/friend-invites.ts`, `components/friends-*.tsx`, `app/friends/`
+
 ## Supabase Client Patterns
 
 Two client types exist - use the correct one:
@@ -120,6 +160,24 @@ Two client types exist - use the correct one:
 | `isAdmin()` | `lib/admin.ts` | Boolean check for conditional logic |
 
 Admin users are stored in the `admin_users` table.
+
+## Email System
+
+Emails are sent via **Resend** with graceful degradation if not configured.
+
+### Email Types
+| Email | Trigger | File |
+|-------|---------|------|
+| New Contest | Admin publishes contest | `actions/emails.ts` |
+| Lock Reminder | Cron job 3hrs before lock | `app/api/cron/lock-reminder/` |
+| Results | Admin finalizes scoring | `actions/emails.ts` |
+| Friend Invite | User sends invite | `actions/friend-invites.ts` |
+| Password Reset | User requests reset | `actions/auth.ts` |
+
+### Rate Limiting
+- Email rate limiting via Upstash Redis
+- Duplicate prevention tracked in `sent_emails` table
+- Users can manage preferences in Settings page
 
 ## Code Conventions
 
@@ -183,6 +241,25 @@ Use components from `components/json-ld.tsx` when relevant:
 ### Key Target Keywords
 Primary: "box office fantasy", "movie fantasy sports", "predict box office", "opening weekend predictions"
 
+### Social Preview Images
+Social preview images (og:image, twitter:image) are hosted on **Imgur** due to Twitter/X compatibility issues with Vercel CDN. When updating social images:
+1. Upload to Imgur
+2. Use direct link format: `https://i.imgur.com/XXXXXXX.png`
+3. Update URLs in `app/layout.tsx` and page-specific metadata
+
+### Social Media Tracking Redirects
+Short URLs for tracking traffic sources (configured in `next.config.js`):
+| URL | Platform | UTM Source |
+|-----|----------|------------|
+| `/x` | Twitter/X | twitter |
+| `/ig` | Instagram | instagram |
+| `/r` | Reddit | reddit |
+| `/fb` | Facebook | facebook |
+| `/tt` | TikTok | tiktok |
+| `/li` | LinkedIn | linkedin |
+
+All redirect to homepage with UTM parameters for Google Analytics tracking.
+
 ## Git Workflow
 
 ### Branching Strategy
@@ -224,7 +301,7 @@ git tag -a v1.0.1 -m "Brief description of changes"
 git push origin v1.0.1
 ```
 
-Current version: v1.0.0 (January 2025)
+Current version: v1.1.0 (February 2025) - Added friends feature, charts page, social tracking
 
 ## Weekly Operations Workflow
 
@@ -243,8 +320,9 @@ UPSTASH_REDIS_REST_URL=...                # Optional - Rate limiting (graceful d
 UPSTASH_REDIS_REST_TOKEN=...              # Optional - Rate limiting token
 RESEND_API_KEY=...                        # Optional - Email service (graceful degradation if missing)
 EMAIL_FROM=Shugsy <noreply@shugsy.com>    # Optional - Email sender address
-NEXT_PUBLIC_APP_URL=https://shugsy.com    # Required for email links
+NEXT_PUBLIC_APP_URL=https://www.shugsy.com # Required for email links (use www)
 CRON_SECRET=...                           # Optional - Vercel Cron authorization
+TMDB_API_KEY=...                          # Optional - Movie posters on charts page
 ```
 
 All variables are server-only (no `NEXT_PUBLIC_` prefix) except `NEXT_PUBLIC_APP_URL`. This prevents API keys from being exposed in the client JavaScript bundle.
