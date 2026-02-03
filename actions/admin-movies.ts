@@ -206,7 +206,7 @@ export async function copyMovieToContest(
       theater_count: sourceMovie.theater_count,
       salary: overrides?.salary || sourceMovie.salary,
       projected_gross: overrides?.projected_gross || sourceMovie.projected_gross,
-      prior_week_gross: sourceMovie.prior_week_gross,
+      prior_week_gross: sourceMovie.actual_gross ?? sourceMovie.prior_week_gross,
       tmdb_id: sourceMovie.tmdb_id,
       poster_path: sourceMovie.poster_path,
     })
