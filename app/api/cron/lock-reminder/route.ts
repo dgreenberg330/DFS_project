@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { sendLockReminderEmails } from '@/actions/emails';
 import { isEmailConfigured } from '@/lib/email';
+import { isPushConfigured } from '@/lib/push';
 
 // Verify cron secret to prevent unauthorized calls
 function verifyCronSecret(request: Request): boolean {
@@ -29,10 +30,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Check if email is configured
-  if (!isEmailConfigured()) {
+  // Check if any notification service is configured
+  if (!isEmailConfigured() && !isPushConfigured()) {
     return NextResponse.json({
-      message: 'Email service not configured',
+      message: 'No notification services configured',
       skipped: true,
     });
   }
@@ -69,17 +70,21 @@ export async function GET(request: Request) {
     hoursUntilLock: number;
     sent: number;
     failed: number;
+    pushSent: number;
+    pushFailed: number;
   }[] = [];
 
   for (const contest of contests) {
     try {
-      const { sent, failed } = await sendLockReminderEmails(contest.id, 3);
+      const { sent, failed, pushSent, pushFailed } = await sendLockReminderEmails(contest.id, 3);
       results.push({
         contestId: contest.id,
         contestName: contest.name,
         hoursUntilLock: 3,
         sent,
         failed,
+        pushSent,
+        pushFailed,
       });
     } catch (err) {
       console.error(`Failed to send reminders for ${contest.name}:`, err);
@@ -89,6 +94,8 @@ export async function GET(request: Request) {
         hoursUntilLock: 3,
         sent: 0,
         failed: -1, // Indicates complete failure
+        pushSent: 0,
+        pushFailed: 0,
       });
     }
   }

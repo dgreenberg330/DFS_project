@@ -116,7 +116,8 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
 
     try {
       const result = await sendNewContestEmails(contest.id);
-      setSuccessMessage(`Sent ${result.sent} announcement email(s)${result.failed > 0 ? `, ${result.failed} failed` : ''}`);
+      const pushInfo = result.pushSent > 0 ? `, ${result.pushSent} push` : '';
+      setSuccessMessage(`Sent ${result.sent} email(s)${pushInfo}${result.failed > 0 ? `, ${result.failed} email failed` : ''}${result.pushFailed > 0 ? `, ${result.pushFailed} push failed` : ''}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to send emails');
     } finally {
@@ -135,7 +136,8 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
 
     try {
       const result = await sendContestResultsEmails(contest.id);
-      setSuccessMessage(`Sent ${result.sent} results email(s)${result.failed > 0 ? `, ${result.failed} failed` : ''}`);
+      const pushInfo = result.pushSent > 0 ? `, ${result.pushSent} push` : '';
+      setSuccessMessage(`Sent ${result.sent} email(s)${pushInfo}${result.failed > 0 ? `, ${result.failed} email failed` : ''}${result.pushFailed > 0 ? `, ${result.pushFailed} push failed` : ''}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to send emails');
     } finally {
@@ -154,7 +156,8 @@ export function ContestList({ contests: initialContests }: ContestListProps) {
 
     try {
       const result = await sendLockReminderEmails(contest.id, 24);
-      setSuccessMessage(`Sent ${result.sent} reminder email(s)${result.failed > 0 ? `, ${result.failed} failed` : ''}`);
+      const pushInfo = result.pushSent > 0 ? `, ${result.pushSent} push` : '';
+      setSuccessMessage(`Sent ${result.sent} email(s)${pushInfo}${result.failed > 0 ? `, ${result.failed} email failed` : ''}${result.pushFailed > 0 ? `, ${result.pushFailed} push failed` : ''}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to send emails');
     } finally {

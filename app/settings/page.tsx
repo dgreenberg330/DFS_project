@@ -2,10 +2,10 @@
 // Settings Page - User Preferences
 // ============================================================================
 
-import { getUser } from '@/lib/supabase-server';
+import { getUser, createClient } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { getUserProfile } from '@/actions/user-profiles';
-import { EmailPreferencesForm } from '@/components/email-preferences-form';
+import { NotificationPreferencesForm } from '@/components/email-preferences-form';
 import { UsernameForm } from '@/components/username-form';
 import { Header } from '@/components/header';
 import type { Metadata } from 'next';
@@ -27,6 +27,14 @@ export default async function SettingsPage() {
 
   const profile = await getUserProfile();
 
+  // Check if user has any registered devices (for push notification UI)
+  const supabase = await createClient();
+  const { count: deviceCount } = await supabase
+    .from('device_tokens')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('is_active', true);
+
   return (
     <div className="min-h-screen bg-dark-bg">
       <Header />
@@ -47,15 +55,21 @@ export default async function SettingsPage() {
           </div>
         </div>
 
-        {/* Email Notifications Section */}
+        {/* Notifications Section */}
         <div className="bg-dark-surface rounded-lg border border-dark-border p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-100 mb-4">Email Notifications</h2>
-          <EmailPreferencesForm
-            initialPreferences={{
+          <h2 className="text-lg font-semibold text-gray-100 mb-4">Notifications</h2>
+          <NotificationPreferencesForm
+            initialEmailPreferences={{
               email_lock_reminders: profile?.email_lock_reminders ?? true,
               email_contest_results: profile?.email_contest_results ?? true,
               email_new_contests: profile?.email_new_contests ?? true,
             }}
+            initialPushPreferences={{
+              push_lock_reminders: profile?.push_lock_reminders ?? true,
+              push_contest_results: profile?.push_contest_results ?? true,
+              push_new_contests: profile?.push_new_contests ?? true,
+            }}
+            hasDevices={(deviceCount ?? 0) > 0}
           />
         </div>
 

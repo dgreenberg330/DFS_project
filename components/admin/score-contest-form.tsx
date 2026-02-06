@@ -37,8 +37,8 @@ export function ScoreContestForm({ contest, entryCount, moviesWithoutActuals }: 
       const result = await sendContestResultsEmails(contest.id);
       setEmailStatus({
         sending: false,
-        sent: result.sent,
-        failed: result.failed,
+        sent: result.sent + result.pushSent,
+        failed: result.failed + result.pushFailed,
       });
     } catch (err: unknown) {
       setEmailStatus({

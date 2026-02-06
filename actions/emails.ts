@@ -15,7 +15,9 @@ import {
   sendNewContestEmail,
   isEmailConfigured,
 } from '@/lib/email';
-import type { EmailPreferencesInput, EmailType } from '@/types';
+import { sendPushToUser } from '@/lib/push-dispatch';
+import { isPushConfigured } from '@/lib/push';
+import type { EmailPreferencesInput, PushPreferencesInput, EmailType } from '@/types';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.shugsy.com';
 
@@ -53,6 +55,32 @@ export async function updateEmailPreferences(
   }
 
   revalidatePath('/account');
+  return {};
+}
+
+/**
+ * Update push notification preferences for current user
+ */
+export async function updatePushPreferences(
+  preferences: PushPreferencesInput
+): Promise<{ error?: string }> {
+  const user = await getUser();
+  if (!user) {
+    redirect('/login');
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('user_profiles')
+    .update(preferences)
+    .eq('user_id', user.id);
+
+  if (error) {
+    return { error: `Failed to update preferences: ${error.message}` };
+  }
+
+  revalidatePath('/settings');
   return {};
 }
 
@@ -195,11 +223,14 @@ export async function unsubscribeByToken(
 export async function sendLockReminderEmails(
   contestId: string,
   hoursUntilLock: number = 24
-): Promise<{ sent: number; failed: number; errors: string[] }> {
+): Promise<{ sent: number; failed: number; errors: string[]; pushSent: number; pushFailed: number }> {
   await checkAdminAccess();
 
-  if (!isEmailConfigured()) {
-    throw new Error('Email service not configured. Set RESEND_API_KEY environment variable.');
+  const emailConfigured = isEmailConfigured();
+  const pushConfigured = isPushConfigured();
+
+  if (!emailConfigured && !pushConfigured) {
+    throw new Error('Neither email nor push notifications are configured.');
   }
 
   const supabase = createAdminClient();
@@ -227,23 +258,22 @@ export async function sendLockReminderEmails(
 
   const usersWithEntries = new Set((existingEntries || []).map(e => e.user_id));
 
-  // Get all users with email_lock_reminders enabled
+  // Get all user profiles (need both email and push prefs)
   const { data: profiles, error: profilesError } = await supabase
     .from('user_profiles')
-    .select('user_id, username, unsubscribe_token, email_lock_reminders')
-    .eq('email_lock_reminders', true);
+    .select('user_id, username, unsubscribe_token, email_lock_reminders, push_lock_reminders');
 
   if (profilesError) {
     throw new Error(`Failed to fetch profiles: ${profilesError.message}`);
   }
 
-  // Filter out users who already have entries
+  // Filter to users who want at least one type of notification and don't have entries
   const eligibleProfiles = (profiles || []).filter(
-    p => !usersWithEntries.has(p.user_id)
+    p => !usersWithEntries.has(p.user_id) && (p.email_lock_reminders || p.push_lock_reminders)
   );
 
   if (eligibleProfiles.length === 0) {
-    return { sent: 0, failed: 0, errors: [] };
+    return { sent: 0, failed: 0, errors: [], pushSent: 0, pushFailed: 0 };
   }
 
   // Get emails from auth.users
@@ -258,66 +288,79 @@ export async function sendLockReminderEmails(
     authUsers.users.filter(u => userIds.includes(u.id)).map(u => [u.id, u.email])
   );
 
-  // Send emails
+  // Send notifications
   let sent = 0;
   let failed = 0;
+  let pushSent = 0;
+  let pushFailed = 0;
   const errors: string[] = [];
 
   for (const profile of eligibleProfiles) {
-    const email = userEmailMap.get(profile.user_id);
-    if (!email) continue;
+    // Send email if opted in
+    if (profile.email_lock_reminders && emailConfigured) {
+      const email = userEmailMap.get(profile.user_id);
+      if (email) {
+        // Check for duplicate - don't send if already sent today
+        const { data: existingLog } = await supabase
+          .from('email_logs')
+          .select('id')
+          .eq('user_id', profile.user_id)
+          .eq('contest_id', contestId)
+          .eq('email_type', 'lock_reminder')
+          .eq('status', 'sent')
+          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+          .maybeSingle();
 
-    // Check for duplicate - don't send if already sent today
-    const { data: existingLog } = await supabase
-      .from('email_logs')
-      .select('id')
-      .eq('user_id', profile.user_id)
-      .eq('contest_id', contestId)
-      .eq('email_type', 'lock_reminder')
-      .eq('status', 'sent')
-      .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-      .maybeSingle();
+        if (!existingLog) {
+          const result = await sendLockReminderEmail(
+            email,
+            profile.unsubscribe_token || '',
+            {
+              username: profile.username,
+              contestName: contest.name,
+              hoursUntilLock,
+              contestUrl: `${APP_URL}/contests/${contestId}`,
+            }
+          );
 
-    if (existingLog) {
-      continue; // Skip - already sent recently
-    }
+          // Log the email
+          await supabase.from('email_logs').insert({
+            user_id: profile.user_id,
+            contest_id: contestId,
+            email_type: 'lock_reminder' as EmailType,
+            recipient_email: email,
+            subject: `Lineups lock in ${hoursUntilLock} hours - ${contest.name}`,
+            status: result.success ? 'sent' : 'failed',
+            error_message: result.error || null,
+            resend_id: result.resendId || null,
+            sent_at: result.success ? new Date().toISOString() : null,
+          });
 
-    const result = await sendLockReminderEmail(
-      email,
-      profile.unsubscribe_token || '',
-      {
-        username: profile.username,
-        contestName: contest.name,
-        hoursUntilLock,
-        contestUrl: `${APP_URL}/contests/${contestId}`,
+          if (result.success) {
+            sent++;
+          } else {
+            failed++;
+            errors.push(`${email}: ${result.error}`);
+          }
+
+          await delay(RATE_LIMIT_DELAY);
+        }
       }
-    );
-
-    // Log the email
-    await supabase.from('email_logs').insert({
-      user_id: profile.user_id,
-      contest_id: contestId,
-      email_type: 'lock_reminder' as EmailType,
-      recipient_email: email,
-      subject: `Lineups lock in ${hoursUntilLock} hours - ${contest.name}`,
-      status: result.success ? 'sent' : 'failed',
-      error_message: result.error || null,
-      resend_id: result.resendId || null,
-      sent_at: result.success ? new Date().toISOString() : null,
-    });
-
-    if (result.success) {
-      sent++;
-    } else {
-      failed++;
-      errors.push(`${email}: ${result.error}`);
     }
 
-    // Rate limit: wait between sends to avoid hitting Resend's 2 req/sec limit
-    await delay(RATE_LIMIT_DELAY);
+    // Send push if opted in
+    if (profile.push_lock_reminders && pushConfigured) {
+      const pushResult = await sendPushToUser(profile.user_id, contestId, 'lock_reminder', {
+        title: 'Lineups Lock Soon!',
+        body: `${contest.name} locks in ${hoursUntilLock} hours. Set your lineup!`,
+        deepLink: `/contests/${contestId}`,
+      });
+      pushSent += pushResult.sent;
+      pushFailed += pushResult.failed;
+    }
   }
 
-  return { sent, failed, errors };
+  return { sent, failed, errors, pushSent, pushFailed };
 }
 
 // ============================================================================
@@ -329,11 +372,14 @@ export async function sendLockReminderEmails(
  */
 export async function sendContestResultsEmails(
   contestId: string
-): Promise<{ sent: number; failed: number; errors: string[] }> {
+): Promise<{ sent: number; failed: number; errors: string[]; pushSent: number; pushFailed: number }> {
   await checkAdminAccess();
 
-  if (!isEmailConfigured()) {
-    throw new Error('Email service not configured. Set RESEND_API_KEY environment variable.');
+  const emailConfigured = isEmailConfigured();
+  const pushConfigured = isPushConfigured();
+
+  if (!emailConfigured && !pushConfigured) {
+    throw new Error('Neither email nor push notifications are configured.');
   }
 
   const supabase = createAdminClient();
@@ -367,7 +413,7 @@ export async function sendContestResultsEmails(
   }
 
   if (!entries || entries.length === 0) {
-    return { sent: 0, failed: 0, errors: [] };
+    return { sent: 0, failed: 0, errors: [], pushSent: 0, pushFailed: 0 };
   }
 
   // Calculate ranks
@@ -392,11 +438,11 @@ export async function sendContestResultsEmails(
 
   const totalEntries = rankedEntries.length;
 
-  // Get profiles with email preferences
+  // Get profiles with email and push preferences
   const userIds = rankedEntries.map(e => e.user_id);
   const { data: profiles } = await supabase
     .from('user_profiles')
-    .select('user_id, username, unsubscribe_token, email_contest_results')
+    .select('user_id, username, unsubscribe_token, email_contest_results, push_contest_results')
     .in('user_id', userIds);
 
   const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
@@ -407,70 +453,88 @@ export async function sendContestResultsEmails(
     authUsers.users.filter(u => userIds.includes(u.id)).map(u => [u.id, u.email])
   );
 
-  // Send emails
+  // Send notifications
   let sent = 0;
   let failed = 0;
+  let pushSent = 0;
+  let pushFailed = 0;
   const errors: string[] = [];
 
   for (const entry of rankedEntries) {
     const profile = profileMap.get(entry.user_id);
-    if (!profile || !profile.email_contest_results) continue;
+    if (!profile) continue;
 
-    const email = userEmailMap.get(entry.user_id);
-    if (!email) continue;
+    // Send email if opted in
+    if (profile.email_contest_results && emailConfigured) {
+      const email = userEmailMap.get(entry.user_id);
+      if (email) {
+        // Check for duplicate
+        const { data: existingLog } = await supabase
+          .from('email_logs')
+          .select('id')
+          .eq('user_id', entry.user_id)
+          .eq('contest_id', contestId)
+          .eq('email_type', 'contest_results')
+          .eq('status', 'sent')
+          .maybeSingle();
 
-    // Check for duplicate
-    const { data: existingLog } = await supabase
-      .from('email_logs')
-      .select('id')
-      .eq('user_id', entry.user_id)
-      .eq('contest_id', contestId)
-      .eq('email_type', 'contest_results')
-      .eq('status', 'sent')
-      .maybeSingle();
+        if (!existingLog) {
+          const result = await sendContestResultsEmail(
+            email,
+            profile.unsubscribe_token || '',
+            {
+              username: profile.username,
+              contestName: contest.name,
+              rank: entry.rank,
+              totalEntries,
+              score: entry.total_score,
+              leaderboardUrl: `${APP_URL}/contests/${contestId}/leaderboard`,
+            }
+          );
 
-    if (existingLog) continue;
+          // Log the email
+          await supabase.from('email_logs').insert({
+            user_id: entry.user_id,
+            contest_id: contestId,
+            email_type: 'contest_results' as EmailType,
+            recipient_email: email,
+            subject: entry.rank === 1
+              ? `You won ${contest.name}!`
+              : `Your results for ${contest.name}`,
+            status: result.success ? 'sent' : 'failed',
+            error_message: result.error || null,
+            resend_id: result.resendId || null,
+            sent_at: result.success ? new Date().toISOString() : null,
+          });
 
-    const result = await sendContestResultsEmail(
-      email,
-      profile.unsubscribe_token || '',
-      {
-        username: profile.username,
-        contestName: contest.name,
-        rank: entry.rank,
-        totalEntries,
-        score: entry.total_score,
-        leaderboardUrl: `${APP_URL}/contests/${contestId}/leaderboard`,
+          if (result.success) {
+            sent++;
+          } else {
+            failed++;
+            errors.push(`${email}: ${result.error}`);
+          }
+
+          await delay(RATE_LIMIT_DELAY);
+        }
       }
-    );
-
-    // Log the email
-    await supabase.from('email_logs').insert({
-      user_id: entry.user_id,
-      contest_id: contestId,
-      email_type: 'contest_results' as EmailType,
-      recipient_email: email,
-      subject: entry.rank === 1
-        ? `You won ${contest.name}!`
-        : `Your results for ${contest.name}`,
-      status: result.success ? 'sent' : 'failed',
-      error_message: result.error || null,
-      resend_id: result.resendId || null,
-      sent_at: result.success ? new Date().toISOString() : null,
-    });
-
-    if (result.success) {
-      sent++;
-    } else {
-      failed++;
-      errors.push(`${email}: ${result.error}`);
     }
 
-    // Rate limit: wait between sends to avoid hitting Resend's 2 req/sec limit
-    await delay(RATE_LIMIT_DELAY);
+    // Send push if opted in
+    if (profile.push_contest_results && pushConfigured) {
+      const isWinner = entry.rank === 1;
+      const pushResult = await sendPushToUser(entry.user_id, contestId, 'contest_results', {
+        title: isWinner ? 'You Won!' : 'Results Are In!',
+        body: isWinner
+          ? `Congratulations! You won ${contest.name}!`
+          : `You finished #${entry.rank} with ${entry.total_score.toFixed(2)} pts`,
+        deepLink: `/contests/${contestId}`,
+      });
+      pushSent += pushResult.sent;
+      pushFailed += pushResult.failed;
+    }
   }
 
-  return { sent, failed, errors };
+  return { sent, failed, errors, pushSent, pushFailed };
 }
 
 // ============================================================================
@@ -482,11 +546,14 @@ export async function sendContestResultsEmails(
  */
 export async function sendNewContestEmails(
   contestId: string
-): Promise<{ sent: number; failed: number; errors: string[] }> {
+): Promise<{ sent: number; failed: number; errors: string[]; pushSent: number; pushFailed: number }> {
   await checkAdminAccess();
 
-  if (!isEmailConfigured()) {
-    throw new Error('Email service not configured. Set RESEND_API_KEY environment variable.');
+  const emailConfigured = isEmailConfigured();
+  const pushConfigured = isPushConfigured();
+
+  if (!emailConfigured && !pushConfigured) {
+    throw new Error('Neither email nor push notifications are configured.');
   }
 
   const supabase = createAdminClient();
@@ -512,22 +579,26 @@ export async function sendNewContestEmails(
     .select('*', { count: 'exact', head: true })
     .eq('contest_id', contestId);
 
-  // Get all users with email_new_contests enabled
+  // Get all user profiles (need both email and push prefs)
   const { data: profiles, error: profilesError } = await supabase
     .from('user_profiles')
-    .select('user_id, username, unsubscribe_token, email_new_contests')
-    .eq('email_new_contests', true);
+    .select('user_id, username, unsubscribe_token, email_new_contests, push_new_contests');
 
   if (profilesError) {
     throw new Error(`Failed to fetch profiles: ${profilesError.message}`);
   }
 
-  if (!profiles || profiles.length === 0) {
-    return { sent: 0, failed: 0, errors: [] };
+  // Filter to users who want at least one type of notification
+  const eligibleProfiles = (profiles || []).filter(
+    p => p.email_new_contests || p.push_new_contests
+  );
+
+  if (eligibleProfiles.length === 0) {
+    return { sent: 0, failed: 0, errors: [], pushSent: 0, pushFailed: 0 };
   }
 
   // Get emails
-  const userIds = profiles.map(p => p.user_id);
+  const userIds = eligibleProfiles.map(p => p.user_id);
   const { data: authUsers } = await supabase.auth.admin.listUsers();
   const userEmailMap = new Map(
     authUsers.users.filter(u => userIds.includes(u.id)).map(u => [u.id, u.email])
@@ -538,64 +609,79 @@ export async function sendNewContestEmails(
   const weekendEnd = new Date(contest.weekend_end + 'T00:00:00');
   const weekendDates = `${weekendStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekendEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
 
-  // Send emails
+  // Send notifications
   let sent = 0;
   let failed = 0;
+  let pushSent = 0;
+  let pushFailed = 0;
   const errors: string[] = [];
 
-  for (const profile of profiles) {
-    const email = userEmailMap.get(profile.user_id);
-    if (!email) continue;
+  for (const profile of eligibleProfiles) {
+    // Send email if opted in
+    if (profile.email_new_contests && emailConfigured) {
+      const email = userEmailMap.get(profile.user_id);
+      if (email) {
+        // Check for duplicate
+        const { data: existingLog } = await supabase
+          .from('email_logs')
+          .select('id')
+          .eq('user_id', profile.user_id)
+          .eq('contest_id', contestId)
+          .eq('email_type', 'new_contest')
+          .eq('status', 'sent')
+          .maybeSingle();
 
-    // Check for duplicate
-    const { data: existingLog } = await supabase
-      .from('email_logs')
-      .select('id')
-      .eq('user_id', profile.user_id)
-      .eq('contest_id', contestId)
-      .eq('email_type', 'new_contest')
-      .eq('status', 'sent')
-      .maybeSingle();
+        if (!existingLog) {
+          const result = await sendNewContestEmail(
+            email,
+            profile.unsubscribe_token || '',
+            {
+              username: profile.username,
+              contestName: contest.name,
+              weekendDates,
+              movieCount: movieCount || 0,
+              contestUrl: `${APP_URL}/contests/${contestId}`,
+            }
+          );
 
-    if (existingLog) continue;
+          // Log the email
+          await supabase.from('email_logs').insert({
+            user_id: profile.user_id,
+            contest_id: contestId,
+            email_type: 'new_contest' as EmailType,
+            recipient_email: email,
+            subject: `New contest: ${contest.name}`,
+            status: result.success ? 'sent' : 'failed',
+            error_message: result.error || null,
+            resend_id: result.resendId || null,
+            sent_at: result.success ? new Date().toISOString() : null,
+          });
 
-    const result = await sendNewContestEmail(
-      email,
-      profile.unsubscribe_token || '',
-      {
-        username: profile.username,
-        contestName: contest.name,
-        weekendDates,
-        movieCount: movieCount || 0,
-        contestUrl: `${APP_URL}/contests/${contestId}`,
+          if (result.success) {
+            sent++;
+          } else {
+            failed++;
+            errors.push(`${email}: ${result.error}`);
+          }
+
+          await delay(RATE_LIMIT_DELAY);
+        }
       }
-    );
-
-    // Log the email
-    await supabase.from('email_logs').insert({
-      user_id: profile.user_id,
-      contest_id: contestId,
-      email_type: 'new_contest' as EmailType,
-      recipient_email: email,
-      subject: `New contest: ${contest.name}`,
-      status: result.success ? 'sent' : 'failed',
-      error_message: result.error || null,
-      resend_id: result.resendId || null,
-      sent_at: result.success ? new Date().toISOString() : null,
-    });
-
-    if (result.success) {
-      sent++;
-    } else {
-      failed++;
-      errors.push(`${email}: ${result.error}`);
     }
 
-    // Rate limit: wait between sends to avoid hitting Resend's 2 req/sec limit
-    await delay(RATE_LIMIT_DELAY);
+    // Send push if opted in
+    if (profile.push_new_contests && pushConfigured) {
+      const pushResult = await sendPushToUser(profile.user_id, contestId, 'new_contest', {
+        title: 'New Contest Available!',
+        body: `${contest.name} is live with ${movieCount || 0} movies. Build your lineup!`,
+        deepLink: `/contests/${contestId}`,
+      });
+      pushSent += pushResult.sent;
+      pushFailed += pushResult.failed;
+    }
   }
 
-  return { sent, failed, errors };
+  return { sent, failed, errors, pushSent, pushFailed };
 }
 
 // ============================================================================

@@ -273,6 +273,10 @@ export interface UserProfile {
   email_lock_reminders: boolean;
   email_contest_results: boolean;
   email_new_contests: boolean;
+  // Push notification preferences
+  push_lock_reminders: boolean;
+  push_contest_results: boolean;
+  push_new_contests: boolean;
   unsubscribe_token: string | null;
   created_at: string;
   updated_at: string;
@@ -293,6 +297,11 @@ export interface EmailPreferencesInput {
 export type EmailType = 'lock_reminder' | 'contest_results' | 'new_contest';
 
 /**
+ * Push notification types (same values as EmailType)
+ */
+export type PushNotificationType = 'lock_reminder' | 'contest_results' | 'new_contest';
+
+/**
  * Email log entry for tracking sent emails
  */
 export interface EmailLog {
@@ -305,6 +314,50 @@ export interface EmailLog {
   status: 'pending' | 'sent' | 'failed';
   error_message: string | null;
   resend_id: string | null;
+  sent_at: string | null;
+  created_at: string;
+}
+
+/**
+ * Push notification preferences input for updates
+ */
+export interface PushPreferencesInput {
+  push_lock_reminders?: boolean;
+  push_contest_results?: boolean;
+  push_new_contests?: boolean;
+}
+
+/**
+ * Device token record (APNs device registration)
+ */
+export interface DeviceToken {
+  id: string;
+  user_id: string;
+  device_token: string;
+  platform: 'ios';
+  device_name: string | null;
+  app_version: string | null;
+  is_active: boolean;
+  last_used_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Push notification log entry
+ */
+export interface PushNotificationLog {
+  id: string;
+  user_id: string;
+  contest_id: string | null;
+  device_token_id: string | null;
+  notification_type: PushNotificationType;
+  title: string;
+  body: string;
+  deep_link: string | null;
+  status: 'pending' | 'sent' | 'failed';
+  error_message: string | null;
+  apns_id: string | null;
   sent_at: string | null;
   created_at: string;
 }

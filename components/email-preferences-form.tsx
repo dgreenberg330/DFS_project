@@ -1,99 +1,178 @@
 // ============================================================================
-// Email Preferences Form - User email notification settings
+// Notification Preferences Form - Email & Push notification settings
 // ============================================================================
 
 'use client';
 
 import { useState, useTransition } from 'react';
-import { updateEmailPreferences } from '@/actions/emails';
+import { updateEmailPreferences, updatePushPreferences } from '@/actions/emails';
 
-interface EmailPreferencesFormProps {
-  initialPreferences: {
+interface NotificationPreferencesFormProps {
+  initialEmailPreferences: {
     email_lock_reminders: boolean;
     email_contest_results: boolean;
     email_new_contests: boolean;
   };
+  initialPushPreferences: {
+    push_lock_reminders: boolean;
+    push_contest_results: boolean;
+    push_new_contests: boolean;
+  };
+  hasDevices: boolean;
 }
 
-export function EmailPreferencesForm({ initialPreferences }: EmailPreferencesFormProps) {
+// Keep old export name for backwards compatibility if imported elsewhere
+export const EmailPreferencesForm = NotificationPreferencesForm;
+
+export function NotificationPreferencesForm({
+  initialEmailPreferences,
+  initialPushPreferences,
+  hasDevices,
+}: NotificationPreferencesFormProps) {
   const [isPending, startTransition] = useTransition();
-  const [preferences, setPreferences] = useState(initialPreferences);
+  const [emailPrefs, setEmailPrefs] = useState(initialEmailPreferences);
+  const [pushPrefs, setPushPrefs] = useState(initialPushPreferences);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const handleToggle = (key: keyof typeof preferences) => {
+  const handleEmailToggle = (key: keyof typeof emailPrefs) => {
     const newPreferences = {
-      ...preferences,
-      [key]: !preferences[key],
+      ...emailPrefs,
+      [key]: !emailPrefs[key],
     };
-    setPreferences(newPreferences);
+    setEmailPrefs(newPreferences);
 
     startTransition(async () => {
       const result = await updateEmailPreferences({ [key]: newPreferences[key] });
       if (result.error) {
-        // Revert on error
-        setPreferences(preferences);
+        setEmailPrefs(emailPrefs);
         setMessage({ type: 'error', text: result.error });
       } else {
         setMessage({ type: 'success', text: 'Preferences updated' });
       }
-
-      // Clear message after 3 seconds
       setTimeout(() => setMessage(null), 3000);
     });
   };
 
-  const toggleItems = [
+  const handlePushToggle = (key: keyof typeof pushPrefs) => {
+    const newPreferences = {
+      ...pushPrefs,
+      [key]: !pushPrefs[key],
+    };
+    setPushPrefs(newPreferences);
+
+    startTransition(async () => {
+      const result = await updatePushPreferences({ [key]: newPreferences[key] });
+      if (result.error) {
+        setPushPrefs(pushPrefs);
+        setMessage({ type: 'error', text: result.error });
+      } else {
+        setMessage({ type: 'success', text: 'Preferences updated' });
+      }
+      setTimeout(() => setMessage(null), 3000);
+    });
+  };
+
+  const notificationItems = [
     {
-      key: 'email_lock_reminders' as const,
       label: 'Lock Reminders',
       description: 'Get notified before contest lineups lock (if you haven\'t entered)',
+      emailKey: 'email_lock_reminders' as const,
+      pushKey: 'push_lock_reminders' as const,
     },
     {
-      key: 'email_contest_results' as const,
       label: 'Contest Results',
       description: 'Receive your final score and rank when contests are scored',
+      emailKey: 'email_contest_results' as const,
+      pushKey: 'push_contest_results' as const,
     },
     {
-      key: 'email_new_contests' as const,
       label: 'New Contests',
       description: 'Be notified when new contests are available',
+      emailKey: 'email_new_contests' as const,
+      pushKey: 'push_new_contests' as const,
     },
   ];
 
   return (
-    <div className="space-y-4">
-      {toggleItems.map((item) => (
+    <div className="space-y-6">
+      {/* Column headers */}
+      <div className="flex items-center gap-4 pb-2 border-b border-dark-border">
+        <div className="flex-1" />
+        <div className="w-14 text-center text-xs font-medium text-gray-400 uppercase">Email</div>
+        <div className="w-14 text-center text-xs font-medium text-gray-400 uppercase">Push</div>
+      </div>
+
+      {notificationItems.map((item) => (
         <div
-          key={item.key}
-          className="flex items-start justify-between gap-4 py-2"
+          key={item.emailKey}
+          className="flex items-start gap-4 py-2"
         >
           <div className="flex-1 min-w-0">
             <div className="font-medium text-gray-100">{item.label}</div>
             <div className="text-sm text-gray-400">{item.description}</div>
           </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={preferences[item.key]}
-            disabled={isPending}
-            onClick={() => handleToggle(item.key)}
-            className={`
-              relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent
-              transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-dark-surface
-              ${preferences[item.key] ? 'bg-accent' : 'bg-dark-elevated'}
-              ${isPending ? 'opacity-50 cursor-not-allowed' : ''}
-            `}
-          >
-            <span
+
+          {/* Email toggle */}
+          <div className="w-14 flex justify-center">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={emailPrefs[item.emailKey]}
+              aria-label={`Email ${item.label}`}
+              disabled={isPending}
+              onClick={() => handleEmailToggle(item.emailKey)}
               className={`
-                pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0
-                transition duration-200 ease-in-out
-                ${preferences[item.key] ? 'translate-x-5' : 'translate-x-0'}
+                relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent
+                transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-dark-surface
+                ${emailPrefs[item.emailKey] ? 'bg-accent' : 'bg-dark-elevated'}
+                ${isPending ? 'opacity-50 cursor-not-allowed' : ''}
               `}
-            />
-          </button>
+            >
+              <span
+                className={`
+                  pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0
+                  transition duration-200 ease-in-out
+                  ${emailPrefs[item.emailKey] ? 'translate-x-5' : 'translate-x-0'}
+                `}
+              />
+            </button>
+          </div>
+
+          {/* Push toggle */}
+          <div className="w-14 flex justify-center">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={pushPrefs[item.pushKey]}
+              aria-label={`Push ${item.label}`}
+              disabled={isPending || !hasDevices}
+              onClick={() => handlePushToggle(item.pushKey)}
+              title={!hasDevices ? 'Install the app to enable push notifications' : undefined}
+              className={`
+                relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent
+                transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-dark-surface
+                ${!hasDevices ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
+                ${pushPrefs[item.pushKey] && hasDevices ? 'bg-accent' : 'bg-dark-elevated'}
+                ${isPending ? 'opacity-50 cursor-not-allowed' : ''}
+              `}
+            >
+              <span
+                className={`
+                  pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0
+                  transition duration-200 ease-in-out
+                  ${pushPrefs[item.pushKey] && hasDevices ? 'translate-x-5' : 'translate-x-0'}
+                `}
+              />
+            </button>
+          </div>
         </div>
       ))}
+
+      {!hasDevices && (
+        <p className="text-xs text-gray-500">
+          Install the Shugsy app to enable push notifications.
+        </p>
+      )}
 
       {/* Status message */}
       {message && (

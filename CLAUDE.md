@@ -179,6 +179,36 @@ Emails are sent via **Resend** with graceful degradation if not configured.
 - Duplicate prevention tracked in `sent_emails` table
 - Users can manage preferences in Settings page
 
+## Push Notifications
+
+iOS push notifications via APNs, with graceful degradation if not configured.
+
+### Architecture
+- **APNs HTTP/2**: Direct integration using Node.js `http2` module (no external dependency)
+- **JWT auth**: `.p8` key-based token authentication
+- **Device tokens**: Stored in `device_tokens` table, registered via API routes
+- **Dispatch**: Push sent alongside emails in the same 3 notification functions
+- **Preferences**: Independent from email (3 email toggles + 3 push toggles)
+
+### API Routes (for iOS app)
+| Route | Method | Auth | Purpose |
+|-------|--------|------|---------|
+| `/api/register-device` | POST | JWT Bearer | Register APNs device token |
+| `/api/unregister-device` | POST | JWT Bearer | Remove device token |
+| `/api/notification-preferences` | PUT | JWT Bearer | Update push preferences |
+
+API routes use JWT from `Authorization: Bearer <token>` header (not cookies).
+
+### Key Files
+| File | Purpose |
+|------|---------|
+| `lib/push.ts` | APNs service layer (HTTP/2 client, JWT signing) |
+| `lib/push-dispatch.ts` | Send push to user's devices with dedup and logging |
+| `lib/api-auth.ts` | JWT auth helper for API routes |
+| `app/api/register-device/route.ts` | Device registration endpoint |
+| `app/api/unregister-device/route.ts` | Device unregistration endpoint |
+| `app/api/notification-preferences/route.ts` | Push preferences endpoint |
+
 ## Code Conventions
 
 - Use ES modules (import/export)
@@ -323,6 +353,11 @@ EMAIL_FROM=Shugsy <noreply@shugsy.com>    # Optional - Email sender address
 NEXT_PUBLIC_APP_URL=https://www.shugsy.com # Required for email links (use www)
 CRON_SECRET=...                           # Optional - Vercel Cron authorization
 TMDB_API_KEY=...                          # Optional - Movie posters on charts page
+APNS_KEY_ID=...                           # Optional - APNs auth key ID
+APNS_TEAM_ID=...                          # Optional - Apple Developer Team ID
+APNS_SIGNING_KEY=...                      # Optional - Base64-encoded .p8 key (Vercel)
+APNS_KEY_PATH=...                         # Optional - Path to .p8 file (local dev)
+APNS_BUNDLE_ID=...                        # Optional - iOS app bundle ID
 ```
 
 All variables are server-only (no `NEXT_PUBLIC_` prefix) except `NEXT_PUBLIC_APP_URL`. This prevents API keys from being exposed in the client JavaScript bundle.
