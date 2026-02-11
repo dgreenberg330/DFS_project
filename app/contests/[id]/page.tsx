@@ -178,13 +178,30 @@ export default async function ContestPage({ params }: PageProps) {
         {/* User Actions */}
         {!user ? (
           <div className="bg-dark-surface border border-accent/30 rounded-lg p-6 mb-6">
-            <p className="text-gray-200 mb-4">Sign in to enter this contest.</p>
-            <Link
-              href="/login"
-              className="inline-block px-6 py-2 bg-accent text-dark-bg font-medium rounded-lg hover:bg-accent-light"
-            >
-              Sign In
-            </Link>
+            {isLocked ? (
+              <>
+                <p className="text-gray-200 mb-1">This contest is locked, but there&apos;s always next week.</p>
+                <p className="text-sm text-gray-400 mb-4">
+                  Create a free account and we&apos;ll notify you when the next contest opens.
+                </p>
+              </>
+            ) : (
+              <p className="text-gray-200 mb-4">Create a free account to enter this contest.</p>
+            )}
+            <div className="flex items-center gap-3">
+              <Link
+                href="/signup"
+                className="inline-block px-6 py-2 bg-accent text-dark-bg font-medium rounded-lg hover:bg-accent-light"
+              >
+                Sign Up
+              </Link>
+              <span className="text-gray-400 text-sm">
+                or{' '}
+                <Link href="/login" className="text-accent hover:text-accent-light">
+                  Sign In
+                </Link>
+              </span>
+            </div>
           </div>
         ) : userEntry ? (
           <div className="bg-dark-surface border border-green-600/50 rounded-lg p-4 mb-6">

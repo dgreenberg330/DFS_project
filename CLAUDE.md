@@ -4,48 +4,65 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a box office fantasy sports game where users create lineups of movies to compete based on opening weekend box office performance. Users select 2-4 movies from a weekly slate (minimum 6 movies) within a $100 salary cap, scoring 1 point per $1M in domestic opening weekend gross.
+This is a box office fantasy sports game (Shugsy, shugsy.com) where users create lineups of movies to compete based on opening weekend box office performance. Users select 2-4 movies from a weekly slate (minimum 6 movies) within a $50,000 salary cap, scoring 1 point per $1M in domestic opening weekend gross. The app includes live weekend scoring with preliminary leaderboards as box office estimates roll in Friday through Sunday.
 
 ## Tech Stack
 
-- **Framework**: Next.js 16 with App Router
+- **Framework**: Next.js 16.1.1 with App Router
 - **Language**: TypeScript (required for all files)
-- **Database**: Supabase (PostgreSQL)
+- **Database**: Supabase (PostgreSQL) with RLS
 - **Authentication**: Supabase Auth with email/password (password required)
-- **Styling**: Tailwind CSS
+- **Styling**: Tailwind CSS with custom dark theme (teal accent `#4fd1c5`)
 - **Rate Limiting**: Upstash Redis (optional, graceful degradation)
-- **Deployment**: Vercel
+- **Email**: Resend (optional, graceful degradation)
+- **Push Notifications**: APNs HTTP/2 (iOS, optional, graceful degradation)
+- **Movie Data**: TMDB API for posters and metadata (optional)
+- **Analytics**: Google Tag Manager / GA4
+- **Deployment**: Vercel (Hobby plan)
+- **Toast Notifications**: Sonner
 
 ## Development Commands
 
 - `npm run dev` - Start development server
 - `npm run build` - Production build (use this to verify changes compile)
+- `npm run lint` - Run linting
 - `supabase start` - Local database
 
 ## Project Structure
 
 ```
 /app                    # Next.js App Router (pages and layouts)
-  /admin               # Protected admin routes
-  /account             # User account and past results
-  /charts              # Box office charts with projections
-  /contests/[id]       # Dynamic contest pages (lineup builder, leaderboard)
+  /admin               # Protected admin routes (contest + movie management)
+  /account             # User dashboard, past results, reset-password
+  /charts              # Public box office charts with projections/estimates
+  /contests/[id]       # Contest overview, lineup builder, my-lineup, leaderboard
   /friends             # Friends list, search, invites
-  /settings            # User settings and email preferences
-  /auth/callback       # OAuth callback handler
+  /settings            # Notification preferences (email + push), username, account info
+  /auth/callback       # Auth callback (email links, password reset)
+  /auth/recovery       # Dedicated password recovery callback
+  /api                 # API routes (device registration, push prefs, cron jobs)
+    /register-device   # POST - iOS device token registration
+    /unregister-device # POST - Remove device token
+    /notification-preferences  # PUT - Update push preferences
+    /cron/lock-reminder        # Cron: send reminders 3hrs before lock
+    /cron/auto-lock            # Cron: lock expired contests
   /forgot-password     # Password reset flow
-  /login, /signup      # Authentication pages
-  /privacy, /terms     # Legal pages
-  /credits             # Attribution page
+  /login, /signup      # Authentication pages (signup accepts invite_token)
+  /unsubscribe/[token] # Token-based email preference management
+  /privacy, /terms     # Legal pages (indexed)
+  /credits             # TMDB attribution page
 /components            # Reusable React components (mostly client)
-  /admin               # Admin-specific components
-/actions               # Server actions ('use server')
-/lib                   # Utilities, Supabase clients, email service
+  /admin               # Admin-specific components (contest form, movie management)
+/actions               # Server actions ('use server') - 13 files
+/lib                   # Utilities, Supabase clients, services - 13 modules
 /public                # Static assets (logos, badges, icons)
-/migrations            # SQL migration files for Supabase
+/migrations            # SQL migration files for Supabase (001-011)
 types.ts               # Centralized TypeScript definitions
-middleware.ts          # Session refresh, security headers, CSP
-next.config.js         # Social media tracking redirects
+middleware.ts          # Session refresh, security headers, CSP, rate limiting
+next.config.js         # TMDB images, social media tracking redirects
+sitemap.ts             # Dynamic sitemap (static pages + locked/resolved contests)
+robots.ts              # Search engine rules (disallow /admin, /api, /auth)
+vercel.json            # Cron job schedules
 ```
 
 ## Core Architecture
@@ -89,9 +106,9 @@ All contest times stored in UTC, displayed in ET on frontend. Lock time: Thursda
 ### Lineup Constraints
 
 - 2-4 movies per lineup (optimal: 3 movies, ~30-40% of slate)
-- $100 salary cap
+- $50,000 salary cap (salaries range 1-50,000)
 - 1 entry per user per contest
-- Instant salary validation required in builder
+- Instant salary validation required in builder (`lib/validation.ts`)
 - Must prevent submission of illegal lineups
 
 ### Scoring Logic
@@ -101,43 +118,73 @@ for each lineup in contest:
     total_score = sum(movie.actual_gross for movie in lineup.movies)
     # $1M box office = 1 point
 lineups.sort(by=total_score, descending=true)
-assign ranks
+assign ranks (handles ties)
 ```
+
+Perfect lineup detection: `lib/perfect-lineup.ts` generates all valid combinations (2, 3, 4 movies within salary cap) and finds the maximum possible score. Users who achieve the perfect lineup get a badge.
 
 ### Salary System
 
-Salaries derived from projected opening weekend gross using linear scale:
-- Highest projection: $45-50 (or more)
-- Lowest projection: $5-8 (or less)
-- Manual adjustments allowed
+Salaries derived from projected opening weekend gross. Admin sets salaries manually per movie (range: 1-50,000). Manual adjustments allowed.
 
-### Data Sources (3 datasets)
+### Weekend Estimate System (Preliminary Leaderboards)
+
+Live scoring updates as box office estimates roll in during the weekend:
+
+| Time | Estimate Field | Calculation |
+|------|---------------|-------------|
+| Saturday AM | `friday_estimate` | Friday gross only |
+| Sunday AM | `saturday_estimate` | Friday + Saturday |
+| Sunday PM | `sunday_estimate` | Full weekend estimate |
+| Sunday night | `actual_gross` | Final Fri-Sun total |
+
+Key files: `lib/estimate-utils.ts`, `actions/scoring.ts` (`getPreliminaryLeaderboard`)
+
+- `calculateCurrentEstimate()` returns the best available score for a movie
+- `getEstimateDirection()` returns uptick/downtick/neutral vs projection
+- Preliminary leaderboard shows real-time rankings during locked contests
+- Users see their estimated rank, score, and direction indicators on my-lineup page
+
+### Data Sources (3 datasets + estimates)
 
 1. **Movie Slate** - Title, release date, distributor, theater count (optional)
 2. **Projections** - Single projected opening weekend gross per movie
-3. **Actuals** - Final domestic opening weekend gross (Fri-Sun)
+3. **Daily Estimates** - Friday, Saturday, Sunday box office estimates (entered by admin)
+4. **Actuals** - Final domestic opening weekend gross (Fri-Sun)
 
-Note: Manual data entry acceptable until 100+ weekly users. Carryover movies (second weekend, released in last 14 days) are optional and must be explicitly added by admin.
+Note: Manual data entry acceptable until 100+ weekly users. Carryover movies (second weekend) are optional, copied via `copyMovieToContest()` with `prior_week_gross = source.actual_gross`.
 
 ### Charts Page
 
 Public page showing weekly movie slate with:
-- Movie posters (from TMDB API)
+- Movie posters (from TMDB API via `lib/tmdb-api.ts`, 24hr cache)
 - Projections, Friday/Saturday estimates, final actuals
 - Salary information
-- Theater counts
+- Uptick/downtick indicators vs projections
+- Estimate banners ("Friday estimates released!" etc.)
 
-Related files: `app/charts/page.tsx`, `actions/charts.ts`, `components/chart-movie-row.tsx`, `lib/tmdb-api.ts`
+Related files: `app/charts/page.tsx`, `actions/charts.ts`, `components/chart-movie-row.tsx`, `lib/tmdb-api.ts`, `lib/tmdb.ts`
 
 ### Friends Feature
 
 Users can add friends and filter leaderboards to compete with their social circle:
-- **User search** - Find users by username (case-insensitive)
-- **Friend invites** - Send/accept/decline friend requests
-- **Friends list** - View and manage friends
+- **User search** - Find users by username (case-insensitive, debounced 300ms)
+- **Friend requests** - Send/accept/reject/cancel (in-app)
+- **Friend invites** - Send email invite to non-users (creates invite token, auto-accepts friendship on signup)
+- **Friends list** - View and manage friends, unfriend
 - **Leaderboard filtering** - Toggle between "All" and "Friends Only" views
+- **DB helper**: `get_friend_ids()` SQL function for efficient friend lookups
 
-Related files: `actions/friends.ts`, `actions/friend-invites.ts`, `components/friends-*.tsx`, `app/friends/`
+Related files: `actions/friends.ts`, `actions/friend-invites.ts`, `components/user-search.tsx`, `components/friends-list.tsx`, `components/incoming-friend-requests.tsx`, `components/friend-invite-form.tsx`, `app/friends/`
+
+### Analytics (Google Tag Manager)
+
+GTM events tracked via `lib/gtm.ts`:
+- `lineup_builder_opened`, `lineup_submitted`, `lineup_abandoned` (with stage: start/midway/near_end)
+- `contest_viewed`, `leaderboard_viewed`
+- `user_properties_set` (contest_sequence, user_cohort for GA4)
+
+User properties: entry count and cohort (sequential contest number) set via `actions/account.ts`.
 
 ## Supabase Client Patterns
 
@@ -175,9 +222,11 @@ Emails are sent via **Resend** with graceful degradation if not configured.
 | Password Reset | User requests reset | `actions/auth.ts` |
 
 ### Rate Limiting
-- Email rate limiting via Upstash Redis
-- Duplicate prevention tracked in `sent_emails` table
-- Users can manage preferences in Settings page
+- Auth action rate limiting: 5 attempts/minute per IP via Upstash Redis
+- Page-level rate limiting: 30 requests/minute for auth routes (middleware)
+- Email duplicate prevention tracked in `email_logs` table
+- Push duplicate prevention tracked in `push_notification_logs` table
+- Users can manage preferences in Settings page or via `/unsubscribe/[token]`
 
 ## Push Notifications
 
@@ -208,6 +257,46 @@ API routes use JWT from `Authorization: Bearer <token>` header (not cookies).
 | `app/api/register-device/route.ts` | Device registration endpoint |
 | `app/api/unregister-device/route.ts` | Device unregistration endpoint |
 | `app/api/notification-preferences/route.ts` | Push preferences endpoint |
+
+## Server Actions Reference
+
+### Action Files (`/actions/`)
+
+| File | Purpose | Access |
+|------|---------|--------|
+| `account.ts` | Entry count, cohort, past entries | Auth required |
+| `admin-contests.ts` | List/delete contests | Admin only |
+| `admin-movies.ts` | Update/delete/copy movies | Admin only |
+| `auth.ts` | Sign in/up, password reset, sign out | Public (rate limited) |
+| `charts.ts` | Public movie slate, TMDB data | Public |
+| `contests.ts` | Create/get/lock/publish contests | Mixed (public reads, admin writes) |
+| `emails.ts` | Notification dispatch, preference management | Mixed |
+| `friend-invites.ts` | Email invites to non-users | Auth required |
+| `friends.ts` | Search, request, accept, reject, unfriend | Auth required |
+| `lineups.ts` | Submit/update lineups | Auth required |
+| `movies.ts` | Create movies for contest | Admin only |
+| `scoring.ts` | Score contest, leaderboards, estimates | Admin (score), Public (read) |
+| `user-profiles.ts` | Username management | Auth required |
+
+## Library Modules Reference
+
+### Lib Files (`/lib/`)
+
+| File | Exports | Purpose |
+|------|---------|---------|
+| `supabase-server.ts` | `createClient()`, `getUser()` | SSR Supabase client with cookies |
+| `supabase-admin.ts` | `createAdminClient()` | Service role client (bypasses RLS) |
+| `admin.ts` | `isAdmin()`, `requireAdmin()`, `checkAdminAccess()` | Admin authorization |
+| `email.ts` | `send*Email()`, `isEmailConfigured()` | Resend email service |
+| `push.ts` | `sendPushNotification()`, `isPushConfigured()` | APNs HTTP/2 with JWT signing |
+| `push-dispatch.ts` | `sendPushToUser()` | Multi-device push with dedup |
+| `api-auth.ts` | `createClientFromJWT()`, `getUserFromJWT()` | JWT auth for API routes |
+| `validation.ts` | `validateLineup()`, `validateMoviesInContest()` | Lineup constraint validation |
+| `estimate-utils.ts` | `calculateCurrentEstimate()`, `getEstimateDirection()` | Weekend estimate calculations |
+| `perfect-lineup.ts` | `calculateMaxPossibleScore()` | Combinatorial optimal lineup detection |
+| `tmdb-api.ts` | `getTMDBMovieInfo()`, `batchGetTMDBMovieInfo()` | TMDB movie details (24hr cache) |
+| `tmdb.ts` | `getTMDBPosterUrl()`, `POSTER_SIZES` | TMDB poster URL construction |
+| `gtm.ts` | Event tracking functions | Google Tag Manager / GA4 events |
 
 ## Code Conventions
 
@@ -331,14 +420,67 @@ git tag -a v1.0.1 -m "Brief description of changes"
 git push origin v1.0.1
 ```
 
-Current version: v1.1.0 (February 2025) - Added friends feature, charts page, social tracking
+Current version: v1.2.0 (February 2026) - Added push notifications, iOS app API routes
+
+## Database Schema
+
+### Core Tables
+| Table | Purpose | RLS |
+|-------|---------|-----|
+| `contests` | Weekly contest metadata (status, lock_time, published) | Public read, admin write |
+| `movies` | Movie data (salary, projections, daily estimates, actuals) | Public read, admin write |
+| `entries` | Links user to contest with lineup | User-scoped |
+| `lineups` | User's movie selections, total_score, status | User-scoped |
+| `lineup_movies` | Junction: lineup ↔ movie | User-scoped |
+| `user_profiles` | Username, email/push preferences, unsubscribe_token | User-scoped |
+| `admin_users` | Admin access control | User can check own status |
+
+### Social Tables
+| Table | Purpose | RLS |
+|-------|---------|-----|
+| `friendships` | Bidirectional friend relationships (user_a < user_b ordering) | Participants only |
+| `friend_requests` | Pending/accepted/rejected requests | Sender + receiver |
+| `friend_invites` | Email invites to non-users (with invite_token) | Inviter only |
+
+### Notification Tables
+| Table | Purpose | RLS |
+|-------|---------|-----|
+| `email_logs` | Sent email tracking + dedup | User read, service role write |
+| `device_tokens` | APNs device registrations (multi-device per user) | User-scoped |
+| `push_notification_logs` | Push tracking + dedup (unique per user+contest+type) | User read, service role write |
+
+### Design Theme
+Dark theme with teal accent:
+- Background: `#0f0f1a` (dark-bg), `#1a1a2e` (dark-surface), `#252540` (dark-elevated)
+- Borders: `#2d2d4a` (dark-border)
+- Accent: `#4fd1c5` (teal), `#81e6d9` (light), `#38b2ac` (dark)
+
+## Cron Jobs (vercel.json)
+
+| Schedule | Route | Purpose |
+|----------|-------|---------|
+| `0 22 * * 4` (Thu 5PM ET) | `/api/cron/lock-reminder` | Send lock reminders (email + push) 3hrs before lock |
+| `0 1 * * 5` (Thu 8PM ET) | `/api/cron/auto-lock` | Lock expired contests, lock all lineups |
+
+Both cron routes require `CRON_SECRET` authorization header. Auto-lock runs once daily to stay within Vercel Hobby plan limits.
 
 ## Weekly Operations Workflow
 
-- **Monday-Tuesday**: Enter movie slate, projections, set salaries
-- **Wednesday**: QA contest, publish contest, send "New Contest" announcement emails
-- **Thursday**: Lock reminder sent automatically via cron at 5PM ET (3 hours before lock). Contest locks at 8PM ET.
-- **Sunday night**: Enter actuals, run scoring, publish leaderboard, send results emails
+- **Monday-Tuesday**: Enter movie slate, projections, set salaries (admin)
+- **Wednesday**: QA contest, publish contest (requires 6+ movies), send "New Contest" emails + push
+- **Thursday 5PM ET**: Lock reminder sent automatically via cron (email + push)
+- **Thursday 8PM ET**: Contest locks automatically via cron, all lineups locked
+- **Friday-Sunday**: Enter daily estimates as they become available (Friday, Saturday, Sunday). Preliminary leaderboard updates automatically.
+- **Sunday night**: Enter actuals, run scoring, publish leaderboard, send results emails + push
+
+### Admin Contest Workflow
+1. Create contest → status: `upcoming`, published: `false`
+2. Add movies (min 6) with salaries and projections
+3. Publish contest → sends "New Contest" notification
+4. Contest auto-locks at lock time → lineups become read-only
+5. Enter daily estimates (Fri/Sat/Sun) → preliminary leaderboard active
+6. Enter actuals → run scoring → contest `resolved`, lineups `scored`
+7. Send results notification
 
 ## Environment Variables
 
@@ -361,3 +503,17 @@ APNS_BUNDLE_ID=...                        # Optional - iOS app bundle ID
 ```
 
 All variables are server-only (no `NEXT_PUBLIC_` prefix) except `NEXT_PUBLIC_APP_URL`. This prevents API keys from being exposed in the client JavaScript bundle.
+
+## Security
+
+### Middleware (`middleware.ts`)
+- **CSP**: Nonce-based script execution, strict directives (allows GTM, GA, Supabase, TMDB)
+- **Headers**: X-Frame-Options DENY, HSTS (1yr + preload), nosniff, strict referrer policy
+- **Permissions**: Blocks camera, microphone, geolocation, payment
+- **Session**: Auto-refreshes Supabase auth session on every request
+- **Password reset**: Forces redirect to `/account/reset-password` if pending reset (via cookie + user metadata)
+
+### Auth Validation (`actions/auth.ts`)
+- Password: 8+ chars, 1 uppercase, 1 lowercase, 1 number
+- Username: 3-20 chars, alphanumeric + underscore (case-insensitive uniqueness)
+- Rate limit: 5 auth attempts per minute per IP

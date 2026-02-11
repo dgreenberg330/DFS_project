@@ -14,7 +14,11 @@ import {
   getPreliminaryLeaderboard,
 } from '@/actions/scoring';
 import { createAdminClient } from '@/lib/supabase-admin';
+import { getUserProfile } from '@/actions/user-profiles';
+import { getFriends } from '@/actions/friends';
 import { Header } from '@/components/header';
+import { ShareResults } from '@/components/share-results';
+import { ShareContest } from '@/components/share-contest';
 import Link from 'next/link';
 import type { Movie } from '@/types';
 
@@ -147,6 +151,11 @@ export default async function MyLineupPage({ params }: PageProps) {
     const perfectLineupInfo = await getPerfectLineupInfo(contestId);
     isPerfectLineup = perfectLineupInfo.perfectLineupUserIds.includes(user.id);
   }
+
+  // Get user profile for username and friends for share
+  const profile = await getUserProfile();
+  const username = profile?.username || 'Player';
+  const friends = await getFriends();
 
   // Determine what score to display
   const displayScore = isScored && lineup.total_score !== null
@@ -415,13 +424,37 @@ export default async function MyLineupPage({ params }: PageProps) {
             </Link>
           )}
 
+          {contest.status !== 'resolved' && (
+            <ShareContest contestId={contestId} contestName={contest.name} friends={friends} />
+          )}
+
           {contest.status === 'resolved' && (
-            <Link
-              href={`/contests/${contestId}/leaderboard`}
-              className="block px-6 py-3 bg-dark-surface border border-dark-border text-gray-100 text-center font-medium rounded-lg hover:bg-dark-elevated"
-            >
-              View Leaderboard
-            </Link>
+            <>
+              <Link
+                href={`/contests/${contestId}/leaderboard`}
+                className="block px-6 py-3 bg-dark-surface border border-dark-border text-gray-100 text-center font-medium rounded-lg hover:bg-dark-elevated"
+              >
+                View Leaderboard
+              </Link>
+              <ShareResults
+                contestId={contestId}
+                contestName={contest.name}
+                score={lineup.total_score ?? 0}
+                rank={rank}
+                totalEntries={totalEntries}
+                movies={movies.map((lm: LineupMovieData) => {
+                  const movie = Array.isArray(lm.movie) ? lm.movie[0] : lm.movie;
+                  return {
+                    title: movie.title,
+                    actual_gross: movie.actual_gross,
+                    salary: movie.salary,
+                    poster_path: movie.poster_path,
+                  };
+                })}
+                username={username}
+                isPerfectLineup={isPerfectLineup}
+              />
+            </>
           )}
 
           {contest.status === 'locked' && hasEstimates && (
