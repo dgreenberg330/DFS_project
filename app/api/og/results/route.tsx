@@ -5,8 +5,15 @@
 
 import { ImageResponse } from 'next/og';
 import { createAdminClient } from '@/lib/supabase-admin';
+import { calculateMaxPossibleScore } from '@/lib/perfect-lineup';
 
 export const runtime = 'edge';
+
+function getOrdinalSuffix(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -56,7 +63,7 @@ export async function GET(request: Request) {
     (b.actual_gross ?? 0) - (a.actual_gross ?? 0)
   );
 
-  // Calculate rank
+  // Calculate rank and total entries
   const { data: allEntries } = await supabase
     .from('entries')
     .select('lineup:lineups(total_score)')
@@ -74,6 +81,23 @@ export async function GET(request: Request) {
     rank = scores.findIndex((s) => s === totalScore) + 1;
     totalEntries = allEntries.length;
   }
+
+  // Check for perfect lineup
+  const { data: contestMovies } = await supabase
+    .from('movies')
+    .select('salary, actual_gross')
+    .eq('contest_id', contestId);
+
+  let isPerfectLineup = false;
+  if (contestMovies && contestMovies.length > 0) {
+    const { maxScore } = calculateMaxPossibleScore(contestMovies as Parameters<typeof calculateMaxPossibleScore>[0]);
+    if (maxScore > 0 && Math.abs(totalScore - maxScore) < 0.001) {
+      isPerfectLineup = true;
+    }
+  }
+
+  const rankColor = rank === 1 ? '#fbbf24' : rank === 2 ? '#d1d5db' : rank === 3 ? '#fb923c' : '#f3f4f6';
+  const rankText = `#${getOrdinalSuffix(rank)} place out of ${totalEntries} ${totalEntries === 1 ? 'entry' : 'entries'}`;
 
   return new ImageResponse(
     (
@@ -98,26 +122,35 @@ export async function GET(request: Request) {
         </div>
 
         {/* Score Section */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '40px', marginBottom: '36px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '40px', marginBottom: '12px' }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: '72px', fontWeight: 800, color: '#4fd1c5', lineHeight: 1 }}>
               {totalScore.toFixed(1)}
             </div>
             <div style={{ fontSize: '20px', color: '#9ca3af', marginTop: '4px' }}>points</div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{
-              fontSize: '36px',
-              fontWeight: 700,
-              color: rank === 1 ? '#fbbf24' : rank === 2 ? '#d1d5db' : rank === 3 ? '#fb923c' : '#f3f4f6',
-            }}>
-              #{rank}
-            </div>
-            <div style={{ fontSize: '16px', color: '#9ca3af' }}>of {totalEntries}</div>
-          </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: '24px', fontWeight: 600, color: '#f3f4f6' }}>@{profile.username}</div>
           </div>
+        </div>
+
+        {/* Rank line */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '28px' }}>
+          <div style={{ fontSize: '22px', fontWeight: 700, color: rankColor }}>
+            {rankText}
+          </div>
+          {isPerfectLineup && (
+            <div style={{
+              fontSize: '18px',
+              fontWeight: 700,
+              color: '#fbbf24',
+              backgroundColor: '#78350f',
+              padding: '4px 12px',
+              borderRadius: '8px',
+            }}>
+              Perfect Lineup
+            </div>
+          )}
         </div>
 
         {/* Movies */}

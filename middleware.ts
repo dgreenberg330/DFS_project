@@ -66,6 +66,7 @@ function buildCSP(nonce: string): string {
       'https://www.googletagmanager.com',
       'https://www.google-analytics.com',
       'https://analytics.google.com',
+      'https://image.tmdb.org',
     ],
     'img-src': [
       "'self'",
