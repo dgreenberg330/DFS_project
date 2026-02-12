@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useEffect, useTransition, useCallback } from 'react';
 import { updateEmailPreferences, updatePushPreferences } from '@/actions/emails';
 
 interface NotificationPreferencesFormProps {
@@ -33,6 +33,53 @@ export function NotificationPreferencesForm({
   const [emailPrefs, setEmailPrefs] = useState(initialEmailPreferences);
   const [pushPrefs, setPushPrefs] = useState(initialPushPreferences);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isIOSApp, setIsIOSApp] = useState(false);
+  const [pushPermissionGranted, setPushPermissionGranted] = useState(false);
+
+  // Detect iOS app and check existing push permission status on load
+  useEffect(() => {
+    const w = window as unknown as Record<string, unknown>;
+    const inApp = !!(w.isShugsyIOSApp || w.isNativeApp);
+    setIsIOSApp(inApp);
+
+    if (!inApp) return;
+
+    // Listen for both permission status (on load) and permission result (after request)
+    const handler = (event: MessageEvent) => {
+      const type = event.data?.type;
+      if (
+        (type === 'pushPermissionStatus' || type === 'pushPermissionResult') &&
+        event.data.granted
+      ) {
+        setPushPermissionGranted(true);
+      }
+    };
+
+    window.addEventListener('message', handler);
+
+    // Ask the iOS app for current permission status
+    try {
+      const webkit = w.webkit as { messageHandlers?: { checkPushPermission?: { postMessage: (msg: Record<string, unknown>) => void } } } | undefined;
+      webkit?.messageHandlers?.checkPushPermission?.postMessage({});
+    } catch {
+      // handler not available
+    }
+
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
+  const requestPushPermission = useCallback(() => {
+    try {
+      const w = window as unknown as Record<string, unknown>;
+      const webkit = w.webkit as { messageHandlers?: { requestPushPermission?: { postMessage: (msg: Record<string, unknown>) => void } } } | undefined;
+      webkit?.messageHandlers?.requestPushPermission?.postMessage({});
+    } catch {
+      // iOS message handler not available
+    }
+  }, []);
+
+  // Push toggles are enabled if user has registered devices OR just granted permission in-app
+  const pushEnabled = hasDevices || pushPermissionGranted;
 
   const handleEmailToggle = (key: keyof typeof emailPrefs) => {
     const newPreferences = {
@@ -145,14 +192,14 @@ export function NotificationPreferencesForm({
               role="switch"
               aria-checked={pushPrefs[item.pushKey]}
               aria-label={`Push ${item.label}`}
-              disabled={isPending || !hasDevices}
+              disabled={isPending || !pushEnabled}
               onClick={() => handlePushToggle(item.pushKey)}
-              title={!hasDevices ? 'Install the app to enable push notifications' : undefined}
+              title={!pushEnabled ? 'Install the app to enable push notifications' : undefined}
               className={`
                 relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent
                 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-dark-surface
-                ${!hasDevices ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
-                ${pushPrefs[item.pushKey] && hasDevices ? 'bg-accent' : 'bg-dark-elevated'}
+                ${!pushEnabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
+                ${pushPrefs[item.pushKey] && pushEnabled ? 'bg-accent' : 'bg-dark-elevated'}
                 ${isPending ? 'opacity-50 cursor-not-allowed' : ''}
               `}
             >
@@ -160,7 +207,7 @@ export function NotificationPreferencesForm({
                 className={`
                   pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0
                   transition duration-200 ease-in-out
-                  ${pushPrefs[item.pushKey] && hasDevices ? 'translate-x-5' : 'translate-x-0'}
+                  ${pushPrefs[item.pushKey] && pushEnabled ? 'translate-x-5' : 'translate-x-0'}
                 `}
               />
             </button>
@@ -168,10 +215,20 @@ export function NotificationPreferencesForm({
         </div>
       ))}
 
-      {!hasDevices && (
-        <p className="text-xs text-gray-500">
-          Install the Shugsy app to enable push notifications.
-        </p>
+      {!pushEnabled && (
+        isIOSApp ? (
+          <button
+            type="button"
+            onClick={requestPushPermission}
+            className="text-sm font-medium text-accent hover:text-accent/80 transition-colors"
+          >
+            Enable Push Notifications
+          </button>
+        ) : (
+          <p className="text-xs text-gray-500">
+            Install the Shugsy app to enable push notifications.
+          </p>
+        )
       )}
 
       {/* Status message */}
