@@ -36,27 +36,37 @@ export function NotificationPreferencesForm({
   const [isIOSApp, setIsIOSApp] = useState(false);
   const [pushPermissionGranted, setPushPermissionGranted] = useState(false);
 
-  // Detect if running inside the iOS app's WKWebView
+  // Detect iOS app and check existing push permission status on load
   useEffect(() => {
     const w = window as unknown as Record<string, unknown>;
-    if (w.isShugsyIOSApp || w.isNativeApp) {
-      setIsIOSApp(true);
-    }
-  }, []);
+    const inApp = !!(w.isShugsyIOSApp || w.isNativeApp);
+    setIsIOSApp(inApp);
 
-  // Listen for push permission result from the iOS app
-  useEffect(() => {
-    if (!isIOSApp) return;
+    if (!inApp) return;
 
+    // Listen for both permission status (on load) and permission result (after request)
     const handler = (event: MessageEvent) => {
-      if (event.data?.type === 'pushPermissionResult' && event.data.granted) {
+      const type = event.data?.type;
+      if (
+        (type === 'pushPermissionStatus' || type === 'pushPermissionResult') &&
+        event.data.granted
+      ) {
         setPushPermissionGranted(true);
       }
     };
 
     window.addEventListener('message', handler);
+
+    // Ask the iOS app for current permission status
+    try {
+      const webkit = w.webkit as { messageHandlers?: { checkPushPermission?: { postMessage: (msg: Record<string, unknown>) => void } } } | undefined;
+      webkit?.messageHandlers?.checkPushPermission?.postMessage({});
+    } catch {
+      // handler not available
+    }
+
     return () => window.removeEventListener('message', handler);
-  }, [isIOSApp]);
+  }, []);
 
   const requestPushPermission = useCallback(() => {
     try {
