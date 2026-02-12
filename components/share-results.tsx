@@ -231,9 +231,18 @@ export function ShareResults({
                   <span className="text-gray-500 text-[10px] sm:text-xs">{contestName}</span>
                 </div>
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <div>
-                    <div className="text-2xl sm:text-3xl font-extrabold text-accent leading-none">{score.toFixed(1)}</div>
-                    <div className="text-[10px] sm:text-xs text-gray-400 mt-0.5">&nbsp;points</div>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div>
+                      <div className="text-2xl sm:text-3xl font-extrabold text-accent leading-none">{score.toFixed(1)}</div>
+                      <div className="text-[10px] sm:text-xs text-gray-400 mt-0.5">&nbsp;points</div>
+                    </div>
+                    {isPerfectLineup && (
+                      <img
+                        src="/perfect-lineup-badge.png"
+                        alt="Perfect Lineup"
+                        className="h-8 sm:h-9 w-auto"
+                      />
+                    )}
                   </div>
                   <div className="ml-auto text-right">
                     <div className="text-xs sm:text-sm font-semibold text-gray-200">@{username}</div>
@@ -244,17 +253,10 @@ export function ShareResults({
               {/* Rank Banner - single line */}
               {rank !== null && totalEntries !== null && (
                 <div className="px-4 sm:px-5 pb-2 sm:pb-3">
-                  <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+                  <div className="flex items-center justify-center">
                     <span className={`text-xs sm:text-sm font-bold ${rankColor}`}>
                       #{getOrdinalSuffix(rank)} place out of {totalEntries} {totalEntries === 1 ? 'entry' : 'entries'}
                     </span>
-                    {isPerfectLineup && (
-                      <img
-                        src="/perfect-lineup-badge.png"
-                        alt="Perfect Lineup"
-                        className="h-4 sm:h-5 w-auto"
-                      />
-                    )}
                   </div>
                 </div>
               )}
